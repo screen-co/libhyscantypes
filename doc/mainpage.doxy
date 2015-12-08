@@ -1,0 +1,5 @@
+/** \mainpage Библиотека HyScanTypes
+ *
+ * Библиотека содержит определения базовых типов данных HyScan и функции для работы с ними \link HyScanTypes \endlink.
+ *
+ */
