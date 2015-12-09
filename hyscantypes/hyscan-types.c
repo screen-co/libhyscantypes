@@ -182,8 +182,8 @@ hyscan_import_data (HyScanDataType       data_type,
                     HyScanComplexFloat  *buffer,
                     gint32              *buffer_size)
 {
-  guint32 i;
-  guint32 n_points;
+  gint32 i;
+  gint32 n_points;
 
   switch (data_type)
     {
