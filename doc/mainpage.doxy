@@ -3,6 +3,7 @@
  * Библиотека содержит определения базовых типов данных HyScan и функции для работы с ними:
  *
  * - \link HyScanTypes \endlink - вспомогательные функции с определениями типов объектов HyScan;
- * - \link HyScanDataSchema \endlink - класс работы со схемой данных.
+ * - \link HyScanDataSchema \endlink - класс работы со схемой данных;
+ * - \link HyScanDataBox \endlink - класс работы с параметрами.
  *
  */
