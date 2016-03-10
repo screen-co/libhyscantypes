@@ -20,17 +20,105 @@
  * - рекомендуемый шаг изменения параметра;
  * - варианты значений параметра для перечисляемых типов.
  *
- * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaType \endlink:
+ * Схема данных приводится в формате XML. Описание схемы имеет следующий вид:
  *
- * - HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN - логический тип;
- * - HYSCAN_DATA_SCHEMA_TYPE_INTEGER - целые числа со знаком - gint64;
- * - HYSCAN_DATA_SCHEMA_TYPE_DOUBLE - числа с плавающей точкой - gdouble;
- * - HYSCAN_DATA_SCHEMA_TYPE_STRING - строка с нулём на конце;
- * - HYSCAN_DATA_SCHEMA_TYPE_ENUM - перечисляемый тип.
+ * &lt;schemalist gettext-domain="domain"&gt;<br>
+ *
+ * &nbsp;&nbsp;&lt;enum id="modes"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;value name="Fill" value="1"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Filled figure&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/value&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;value name="Empty" value="2"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Empty figure&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/value&gt;<br>
+ * &nbsp;&nbsp;&lt;/enum&gt;<br>
+ *
+ * &nbsp;&nbsp;&lt;schema id="color"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="red" name="Red" type="double"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Red component&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="green" name="Green" type="double"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Green component&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="blue" name="Blue" type="double"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Blue component&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
+ * &nbsp;&nbsp;&lt;/schema&gt;<br>
+ *
+ * &nbsp;&nbsp;&lt;schema id="circle"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;node id="color" schema="color"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="mode" name="Mode" enum="modes"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;1&lt;/default&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Filling modee&lt;/description&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
+ * &nbsp;&nbsp;&lt;/schema&gt;<br>
+ *
+ * &lt;/schemalist&gt;
+ *
+ * Все данные с описанием схем храняться в теге &lt;schemalist&gt;. Опциональным атрибутом этого тега является
+ * "gettext-domain" - имя домена с переводами для имён и описаний параметров схем. При загрузке схемы
+ * классом \link HyScanDataSchema \endlink, будет использован этот домен для поиска переводов.
+ *
+ * Описание может хранить несколько схем одновременно. Для определения схемы используется тег &lt;schema&gt;.
+ * Тег содержит обязательный атрибут "id" - идентификатор схемы. По этому идентификатору схема загружается
+ * классом \link HyScanDataSchema \endlink или может использоваться в составе другой схемы.
+ *
+ * Включение одной схемы в другую осуществляется тегом &lt;node&gt;. Обязательными атрибутами, в этом случае,
+ * являются:
+ * - id - идентификатор ветки;
+ * - schema - идентификатор дочерней схемы.
+ *
+ * Тэг &lt;node&gt; также может использоваться для создания вложенных структур. В этом случае атрибут "schema"
+ * не указывается, а необходимые параметры объявляются в этом теге. Класс \link HyScanDataSchema \endlink
+ * поддерживает неограниченную вложенность.
+ *
+ * Параметры в схеме определяются тегом &lt;key&gt;. Обязательными атрибутами этого тега являются:
+ * - id - идентификатор параметра;
+ * - name - название параметра (может содержать перевод);
+ * - type - тип параметра.
+ *
+ * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaType \endlink:
+ * - "boolean" - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, логический тип;
+ * - "integer" - #HYSCAN_DATA_SCHEMA_TYPE_INTEGER, целые числа со знаком - gint64;
+ * - "double" - #HYSCAN_DATA_SCHEMA_TYPE_DOUBLE, числа с плавающей точкой - gdouble;
+ * - "string" - #HYSCAN_DATA_SCHEMA_TYPE_STRING, строка с нулём на конце;
+ * - "enum" - #HYSCAN_DATA_SCHEMA_TYPE_ENUM, перечисляемый тип.
+ *
+ * Тэг &lt;key&gt; может содержать вложенные тэги:
+ * - description - строка с описанием параметра (может содержать перевод);
+ * - default - значение параметра по умолчанию;
+ * - range - диапазон допустимых значений и рекомендуемый шаг изменения.
+ *
+ * Тэг &lt;range&gt; применим только для типов данных "integer" и "double" и может содержать следующие атрибуты:
+ * - min - минимальное значение параметра;
+ * - max - максимальное значение параметра;
+ * - step - рекомендуемый шаг изменения параметра.
+ *
+ * При определении параметра перечисляемого типа, вместо атрибута "type" используется "enum", в котором
+ * указывается идентификатор группы вариантов значений.
+ *
+ * Группы вариантов значение определяется тегом &lt;enum&gt;. Тег содержит обязательный атрибут
+ * "id" - идентификатор группы значений.
+ *
+ * Значения в группе определяются тэгом &lt;value&gt;. Обязательными атрибутами этого тега являются:
+ * - name - название значения (может содержать перевод);
+ * - value - численный идентификатор значения.
+ *
+ * Тэг &lt;value&gt; может содержать вложенный тег &lt;description&gt; с описанием значения. Описание
+ * значения может содержать перевод.
  *
  * Функции этого класса предназначены, в первую очередь, для классов реализующих доступ к данным
  * или для программ исследующих струкутуру данных. Разработчик должен знать схему данных с которыми
  * он работает.
+ *
+ * Получить описание схемы данных можно функцией #hyscan_data_schema_get_xml_data, а идентификатор схемы
+ * функцией #hyscan_data_schema_get_schema_id.
  *
  * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_file и
  * #hyscan_data_schema_new_from_string. Описание схемы осуществляется с помощью языка XML.
@@ -133,6 +221,32 @@ HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gc
 HYSCAN_TYPES_EXPORT
 HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *data,
                                                                         const gchar           *schema_id);
+
+/**
+ *
+ * Функция возвращает описание схемы данных в фомате XML. Возвращаемая строка
+ * принадлежит объекту \link HyScanDataSchema \endlink и не должна изменяться пользователем.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ *
+ * \return Описание схемы данных.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+const gchar           *hyscan_data_schema_get_xml_data                 (HyScanDataSchema      *schema);
+
+/**
+ *
+ * Функция возвращает идентификатор используемой схемы данных. Возвращаемая строка
+ * принадлежит объекту \link HyScanDataSchema \endlink и не должна изменяться пользователем.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ *
+ * \return Идентификатор схемы данных.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+const gchar           *hyscan_data_schema_get_schema_id                (HyScanDataSchema      *schema);
 
 /**
  *

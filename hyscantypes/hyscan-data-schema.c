@@ -10,6 +10,7 @@
 
 #include "hyscan-data-schema.h"
 
+#include <glib/gi18n.h>
 #include <libxml/parser.h>
 #include <string.h>
 
@@ -51,6 +52,7 @@ struct _HyScanDataSchema
 
   gchar                       *data;                   /* Описание схемы в формате XML. */
   gchar                       *schema_id;              /* Идентификатор используемой схемы. */
+  gchar                       *gettext_domain;         /* Название домена переводов. */
 
   gchar                      **keys_list;              /* Список имён параметров. */
 
@@ -79,31 +81,40 @@ static gint64          hyscan_data_schema_value_get_integer    (gconstpointer   
 static gdouble         hyscan_data_schema_value_get_double     (gconstpointer          data);
 static const gchar *   hyscan_data_schema_value_get_string     (gconstpointer          data);
 
+static gboolean        hyscan_data_schema_validate_name        (const gchar           *name);
+
 static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaKey   *key1,
                                                                 HyScanDataSchemaKey   *key2,
                                                                 gpointer               user_data);
 
 static void            hyscan_data_schema_free_enum_values     (HyScanDataSchemaEnum  *values);
-static HyScanDataSchemaEnumValue * hyscan_data_schema_parse_enum_value (xmlNodePtr     node);
-static HyScanDataSchemaEnum * hyscan_data_schema_parse_enum_values (xmlNodePtr         node);
+static HyScanDataSchemaEnumValue * hyscan_data_schema_parse_enum_value (xmlNodePtr     node,
+                                                                        const gchar   *gettext_domain);
+static HyScanDataSchemaEnum * hyscan_data_schema_parse_enum_values (xmlNodePtr         node,
+                                                                    const gchar       *gettext_domain);
 static gboolean        hyscan_data_schema_check_enum           (HyScanDataSchemaEnum  *enums,
                                                                 gint64                 value);
 
 static void            hyscan_data_schema_free_key             (HyScanDataSchemaKey   *key);
 static HyScanDataSchemaKey * hyscan_data_schema_parse_key      (xmlNodePtr             node,
                                                                 const gchar           *path,
-                                                                GHashTable            *enums);
+                                                                GHashTable            *enums,
+                                                                const gchar           *gettext_domain);
 
 static gboolean        hyscan_data_schema_parse_node           (xmlNodePtr             node,
+                                                                const gchar           *schema_path,
                                                                 const gchar           *path,
                                                                 GHashTable            *keys,
-                                                                GHashTable            *enums);
+                                                                GHashTable            *enums,
+                                                                const gchar           *gettext_domain);
 
 static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr              doc,
+                                                                const gchar           *schema_path,
                                                                 const gchar           *schema,
                                                                 const gchar           *path,
                                                                 GHashTable            *keys,
-                                                                GHashTable            *enums);
+                                                                GHashTable            *enums,
+                                                                const gchar           *gettext_domain);
 
 G_DEFINE_TYPE (HyScanDataSchema, hyscan_data_schema, G_TYPE_OBJECT);
 
@@ -217,6 +228,32 @@ hyscan_data_schema_value_get_string (gconstpointer data)
   return *p;
 }
 
+/* Функция проверяет имя на предмет допустимости. */
+static gboolean
+hyscan_data_schema_validate_name (const gchar *name)
+{
+  gint i;
+
+  for (i = 0; name[i] != '\0'; i++)
+    {
+      gboolean match = FALSE;
+
+      if (name[i] >= 'a' && name[i] <= 'z')
+        match = TRUE;
+      if (name[i] >= 'A' && name[i] <= 'Z')
+        match = TRUE;
+      if (name[i] >= '0' && name[i] <= '9')
+        match = TRUE;
+      if (name[i] == '-' || name[i] == '.')
+        match = TRUE;
+
+      if (!match)
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
 /* Функция сравнения двух параметров по идентификаторам (для сортировки списка). */
 static gint
 hyscan_data_schema_compare_keys (HyScanDataSchemaKey *key1,
@@ -246,7 +283,8 @@ hyscan_data_schema_free_enum_values (HyScanDataSchemaEnum *values)
 
 /* Функция обрабатывает описание одного варианта значения для типа enum. */
 static HyScanDataSchemaEnumValue *
-hyscan_data_schema_parse_enum_value (xmlNodePtr node)
+hyscan_data_schema_parse_enum_value (xmlNodePtr   node,
+                                     const gchar *gettext_domain)
 {
   HyScanDataSchemaEnumValue *enum_value = NULL;
 
@@ -278,7 +316,7 @@ hyscan_data_schema_parse_enum_value (xmlNodePtr node)
   enum_value = g_new0 (HyScanDataSchemaEnumValue, 1);
   enum_value->name = g_strdup ((const gchar*)name);
   enum_value->value = g_ascii_strtoll ((const gchar *)value, NULL, 10);
-  enum_value->description = g_strdup ((const gchar *)description);
+  enum_value->description = g_strdup (g_dgettext (gettext_domain, (const gchar *)description));
 
 exit:
   xmlFree (name);
@@ -290,7 +328,8 @@ exit:
 
 /* Функция обрабатывает описание значений типа enum. */
 static HyScanDataSchemaEnum *
-hyscan_data_schema_parse_enum_values (xmlNodePtr node)
+hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
+                                      const gchar *gettext_domain)
 {
   xmlNodePtr curnode;
   xmlChar *id;
@@ -314,7 +353,10 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr node)
 
   id = xmlGetProp (node, (xmlChar *)"id");
   if (id == NULL)
-    return NULL;
+    {
+      g_warning ("HyScanDataSchema: unknown enum id");
+      return NULL;
+    }
 
   values = g_new0 (HyScanDataSchemaEnum, 1);
   values->id = g_strdup ((const gchar *)id);
@@ -329,9 +371,12 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr node)
         continue;
       if (g_ascii_strcasecmp ((const char*)curnode->name, "value") != 0)
         continue;
-      values->values[i] = hyscan_data_schema_parse_enum_value (curnode);
+      values->values[i] = hyscan_data_schema_parse_enum_value (curnode, gettext_domain);
       if (values->values[i] == NULL)
-        break;
+        {
+          g_warning ("HyScanDataSchema: unknown value in enum '%s'", values->id);
+          break;
+        }
       i++;
     }
   values->values[i] = NULL;
@@ -378,7 +423,8 @@ hyscan_data_schema_free_key (HyScanDataSchemaKey *key)
 static HyScanDataSchemaKey *
 hyscan_data_schema_parse_key (xmlNodePtr   node,
                               const gchar *path,
-                              GHashTable  *enums)
+                              GHashTable  *enums,
+                              const gchar *gettext_domain)
 {
   HyScanDataSchemaKey *key = NULL;
 
@@ -400,13 +446,25 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
   idx = xmlGetProp (node, (xmlChar *)"id");
   namex = xmlGetProp (node, (xmlChar *)"name");
   if (idx == NULL || namex == NULL)
-    goto exit;
+    {
+      g_warning ("HyScanDataSchema: unknown key id or name in node '%s'", path);
+      goto exit;
+    }
+
+  if (!hyscan_data_schema_validate_name ((const gchar*)idx))
+    {
+      g_warning ("HyScanDataSchema: incorrect key name '%s' in node '%s'", idx, path);
+      goto exit;
+    }
 
   /* Атрибуты type или enum. */
   typex = xmlGetProp (node, (xmlChar *)"type");
   enumx = xmlGetProp (node, (xmlChar *)"enum");
   if ((typex == NULL && enumx == NULL) || (typex != NULL && enumx != NULL))
-    goto exit;
+    {
+      g_warning ("HyScanDataSchema: '%s%s' unknown key type", path, idx);
+      goto exit;
+    }
 
   /* Проверка типа данных. */
   if (typex != NULL)
@@ -420,13 +478,19 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
       else if (g_ascii_strcasecmp ((const gchar *)typex, "string") == 0)
         key_data_type = HYSCAN_DATA_SCHEMA_TYPE_STRING;
       else
-        goto exit;
+        {
+          g_warning ("HyScanDataSchema: unknown type '%s' in key '%s%s'", typex, path, idx);
+          goto exit;
+        }
     }
   else
     {
       enum_values = g_hash_table_lookup (enums, enumx);
       if (enum_values == NULL)
-        goto exit;
+        {
+          g_warning ("HyScanDataSchema: incorrect enum id '%s' in key '%s%s'", enumx, path, idx);
+          goto exit;
+        }
       key_data_type = HYSCAN_DATA_SCHEMA_TYPE_ENUM;
     }
 
@@ -462,8 +526,8 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
   /* Описание параметра. */
   key = g_new0 (HyScanDataSchemaKey, 1);
   key->id = g_strdup_printf ("%s%s",path, (const gchar *)idx);
-  key->name = g_strdup ((const gchar *)namex);
-  key->description = g_strdup ((const gchar *)descriptionx);
+  key->name = g_strdup (g_dgettext (gettext_domain, (const gchar *)namex));
+  key->description = g_strdup (g_dgettext (gettext_domain, (const gchar *)descriptionx));
   key->type = key_data_type;
   key->enum_values = enum_values;
 
@@ -509,7 +573,7 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
               (default_value < minimum_value) ||
               (default_value > maximum_value))
             {
-              g_warning ("hyscan_data_schema_parse_key: %s: default value out of range", key->id);
+              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
               hyscan_data_schema_free_key (key);
               key = NULL;
               goto exit;
@@ -542,7 +606,7 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
               (default_value < minimum_value) ||
               (default_value > maximum_value))
             {
-              g_warning ("hyscan_data_schema_parse_key: %s: default value out of range", key->id);
+              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
               hyscan_data_schema_free_key (key);
               key = NULL;
               goto exit;
@@ -573,7 +637,7 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
 
           if (!hyscan_data_schema_check_enum (key->enum_values, default_value))
             {
-              g_warning ("hyscan_data_schema_parse_key: %s: default value out of range", key->id);
+              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
               hyscan_data_schema_free_key (key);
               key = NULL;
               goto exit;
@@ -606,9 +670,11 @@ exit:
 /* Функция обрабатывает описание ветки схемы. */
 static gboolean
 hyscan_data_schema_parse_node (xmlNodePtr   node,
+                               const gchar *schema_path,
                                const gchar *path,
                                GHashTable  *keys,
-                               GHashTable  *enums)
+                               GHashTable  *enums,
+                               const gchar *gettext_domain)
 {
   for (; node != NULL; node = node->next)
     {
@@ -620,22 +686,46 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
       if (node->type != XML_ELEMENT_NODE)
         continue;
 
+      if (id == NULL)
+        {
+          g_warning ("HyScanDataSchema: unknown element id in '%s'", path);
+          return FALSE;
+        }
+
+      if (!hyscan_data_schema_validate_name ((const gchar*)id))
+        {
+          g_warning ("HyScanDataSchema: incorrect node name '%s' in node '%s'", id, path);
+          return FALSE;
+        }
+
       if (g_ascii_strcasecmp ((const char*)node->name, "key") == 0)
         {
-          HyScanDataSchemaKey *key = hyscan_data_schema_parse_key (node, path, enums);
+          HyScanDataSchemaKey *key = hyscan_data_schema_parse_key (node, path, enums, gettext_domain);
           if (key == NULL)
-            status = FALSE;
+            {
+              status = FALSE;
+            }
           else
-            g_hash_table_insert (keys, key->id, key);
+            {
+              if (g_hash_table_contains (keys, key->id))
+                {
+                  g_warning ("HyScanDataSchema: duplicated key '%s'", key->id);
+                  status = FALSE;
+                }
+              else
+                {
+                g_hash_table_insert (keys, key->id, key);
+                }
+            }
         }
 
       if (g_ascii_strcasecmp ((const char*)node->name, "node") == 0)
         {
           gchar *cpath = g_strdup_printf ("%s%s/", path, id);
           if (schema != NULL)
-            status = hyscan_data_schema_parse_schema (node->doc, (gchar*)schema, cpath, keys, enums);
+            status = hyscan_data_schema_parse_schema (node->doc, schema_path, (gchar*)schema, cpath, keys, enums, gettext_domain);
           else
-            status = hyscan_data_schema_parse_node (node->children, cpath, keys, enums);
+            status = hyscan_data_schema_parse_node (node->children, schema_path, cpath, keys, enums, gettext_domain);
           g_free (cpath);
         }
 
@@ -652,12 +742,26 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
 /* Функция обрабатывает описание схемы. */
 static gboolean
 hyscan_data_schema_parse_schema (xmlDocPtr    doc,
+                                 const gchar *schema_path,
                                  const gchar *schema,
                                  const gchar *path,
                                  GHashTable  *keys,
-                                 GHashTable  *enums)
+                                 GHashTable  *enums,
+                                 const gchar *gettext_domain)
 {
   xmlNodePtr node;
+  gchar **schemas;
+  gint i;
+
+  schemas = g_strsplit (schema_path, "/", 0);
+  for (i = 0; schemas != NULL && schemas[i] != NULL; i++)
+    if (g_strcmp0 (schemas[i], schema) == 0)
+      {
+        g_warning ("HyScanDataSchema: node '%s' loops back to schema '%s'", path, schema);
+        g_strfreev (schemas);
+        return FALSE;
+      }
+  g_strfreev (schemas);
 
   for (node = doc->children; node != NULL; node = node->next)
     if (node->type == XML_ELEMENT_NODE)
@@ -670,6 +774,7 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
   for (node = node->children; node != NULL; node = node->next)
     {
       xmlChar *id;
+      gchar *cpath;
 
       if (node->type != XML_ELEMENT_NODE)
         continue;
@@ -680,11 +785,18 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
       if (g_ascii_strcasecmp ((const char*)id, schema) != 0)
         continue;
 
-      if (!hyscan_data_schema_parse_node (node->children, path, keys, enums))
-        return FALSE;
+      cpath = g_strdup_printf ("%s%s/", schema_path, (gchar*)schema);
+      if (!hyscan_data_schema_parse_node (node->children, cpath, path, keys, enums, gettext_domain))
+        {
+          g_free (cpath);
+          return FALSE;
+        }
+      g_free (cpath);
 
       return TRUE;
     }
+
+  g_warning ("HyScanDataSchema: unknown schema '%s' in '%s'", schema, path);
 
   return FALSE;
 }
@@ -696,6 +808,7 @@ hyscan_data_schema_object_constructed (GObject *object)
 
   xmlDocPtr doc;
   xmlNodePtr node;
+  xmlChar *gettext_domain;
 
   guint n_keys;
 
@@ -728,6 +841,12 @@ hyscan_data_schema_object_constructed (GObject *object)
   if (node == NULL)
     goto exit;
 
+  /* Название домена переводов. */
+  gettext_domain = xmlGetProp (node, (xmlChar *)"gettext-domain");
+  if (gettext_domain != NULL)
+    schema->gettext_domain = g_strdup ((gchar*)gettext_domain);
+  xmlFree (gettext_domain);
+
   /* Обработка enum типов. */
   for (node = node->children; node != NULL; node = node->next)
     {
@@ -739,21 +858,27 @@ hyscan_data_schema_object_constructed (GObject *object)
         continue;
 
       id = xmlGetProp (node, (xmlChar *)"id");
+      if (id == NULL)
+        {
+          g_warning ("HyScanDataSchema: unknown enum id");
+          goto exit;
+        }
+
       if (g_hash_table_lookup (schema->enums, id) == NULL)
         {
-          HyScanDataSchemaEnum *values = hyscan_data_schema_parse_enum_values (node);
+          HyScanDataSchemaEnum *values = hyscan_data_schema_parse_enum_values (node, schema->gettext_domain);
           g_hash_table_insert (schema->enums, values->id, values);
         }
       else
         {
-          g_warning ("hyscan_data_schema: duplicated enum type %s", id);
+          g_warning ("HyScanDataSchema: duplicated enum type %s", id);
         }
 
       xmlFree (id);
     }
 
   /* Обработка описания схемы. */
-  if (!hyscan_data_schema_parse_schema (doc, schema->schema_id, "/", schema->keys, schema->enums))
+  if (!hyscan_data_schema_parse_schema (doc, "/", schema->schema_id, "/", schema->keys, schema->enums, schema->gettext_domain))
     {
       g_hash_table_remove_all (schema->keys);
       g_hash_table_remove_all (schema->enums);
@@ -794,6 +919,7 @@ hyscan_data_schema_object_finalize (GObject *object)
 
   g_free (schema->data);
   g_free (schema->schema_id);
+  g_free (schema->gettext_domain);
 
   G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
 }
@@ -819,6 +945,24 @@ hyscan_data_schema_new_from_string (const gchar *data,
                                     const gchar *schema_id)
 {
   return g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
+}
+
+/* Функция возвращает описание схемы данных в фомате XML. */
+const gchar *
+hyscan_data_schema_get_xml_data (HyScanDataSchema *schema)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  return (const gchar*)schema->data;
+}
+
+/* Функция возвращает идентификатор используемой схемы данных. */
+const gchar *
+hyscan_data_schema_get_schema_id (HyScanDataSchema *schema)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  return (const gchar*)schema->schema_id;
 }
 
 /* Функция возвращает список параметров определённых в схеме. */
