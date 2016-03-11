@@ -41,9 +41,9 @@ endif ()
 # Compilers options.
 if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
   if (CPU_ARCH STREQUAL "x86" AND CPU32)
-    set (COMPILER_FLAGS "-march=pentium4 -mtune=generic -mfpmath=sse -Wall")
+    set (COMPILER_FLAGS "-march=pentium4 -mtune=generic -mfpmath=sse -Wall -Wno-strict-aliasing")
   else ()
-    set (COMPILER_FLAGS "-Wall")
+    set (COMPILER_FLAGS "-Wall -Wno-strict-aliasing")
   endif ()
   set (COMPILER_FLAGS_RELEASE "${COMPILER_FLAGS} -O2")
   set (COMPILER_FLAGS_DEBUG "${COMPILER_FLAGS} -Og")
@@ -82,8 +82,9 @@ endif ()
 #
 # System dependencies.
 pkg_check_modules (GLIB2 REQUIRED "glib-2.0 gobject-2.0 gthread-2.0 gio-2.0")
-add_definitions (${GLIB2_CFLAGS})
-link_directories (${GLIB2_LIBRARY_DIRS})
+pkg_check_modules (LIBXML2 REQUIRED "libxml-2.0")
+add_definitions (${GLIB2_CFLAGS} ${LIBXML2_CFLAGS})
+link_directories (${GLIB2_LIBRARY_DIRS} ${LIBXML2_LIBRARY_DIRS})
 
 #
 # Include directories.

@@ -21,7 +21,8 @@
  * - #hyscan_get_data_type_by_name - функция определяет тип данных по имени;
  * - #hyscan_get_data_type_name - функция возвращает название данных для указанного типа;
  * - #hyscan_get_data_point_size - функция возвращает размер одного элемента данных в байтах;
- * - #hyscan_import_data - функция преобразовывает данные из низкоуровневого формата в \link HyScanComplexFloat \endlink.
+ * - #hyscan_data_import_complex_float - функция преобразовывает данные из низкоуровневого формата в \link HyScanComplexFloat \endlink;
+ * - #hyscan_data_import_complex_double - функция преобразовывает данные из низкоуровневого формата в \link HyScanComplexFloat \endlink.
  *
  */
 

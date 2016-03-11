@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="data-schema-good">
+
+  <enum id="enum1">
+    <value name="Value1" value="1">
+      <description>Value 1</description>
+    </value>
+  </enum>
+
+  <enum id="enum2">
+    <value name="Value1" value="1">
+      <description>Value 1</description>
+    </value>
+    <value name="Value2" value="2">
+      <description>Value 2</description>
+    </value>
+  </enum>
+
+  <enum id="enum3">
+    <value name="Value1" value="1">
+      <description>Value 1</description>
+    </value>
+    <value name="Value2" value="2">
+      <description>Value 2</description>
+    </value>
+    <value name="Value3" value="3">
+      <description>Value 3</description>
+    </value>
+  </enum>
+
+  <enum id="enum4">
+    <value name="Value1" value="1">
+      <description>Value 1</description>
+    </value>
+    <value name="Value2" value="2">
+      <description>Value 2</description>
+    </value>
+    <value name="Value3" value="3">
+      <description>Value 3</description>
+    </value>
+    <value name="Value4" value="4">
+      <description>Value 4</description>
+    </value>
+  </enum>
+
+  <enum id="enum5">
+    <value name="Value1" value="1">
+      <description>Value 1</description>
+    </value>
+    <value name="Value2" value="2">
+      <description>Value 2</description>
+    </value>
+    <value name="Value3" value="3">
+      <description>Value 3</description>
+    </value>
+    <value name="Value4" value="4">
+      <description>Value 4</description>
+    </value>
+    <value name="Value5" value="5">
+      <description>Value 5</description>
+    </value>
+  </enum>
+
+  <schema id="booleans">
+    <key id="true" name="True" type="boolean">
+      <default>true</default>
+      <description>True value</description>
+    </key>
+    <key id="false" name="False" type="boolean">
+      <default>false</default>
+      <description>False value</description>
+    </key>
+  </schema>
+
+  <schema id="integers">
+    <key id="integer1" name="Integer 1" type="integer">
+      <range min="1" max="1000" step="1"/>
+      <default>1</default>
+      <description>Integer 1 value</description>
+    </key>
+    <key id="integer2" name="Integer 2" type="integer">
+      <range min="2" max="2000" step="2"/>
+      <default>2</default>
+      <description>Integer 2 value</description>
+    </key>
+    <key id="integer3" name="Integer 3" type="integer">
+      <range min="3" max="3000" step="3"/>
+      <default>3</default>
+      <description>Integer 3 value</description>
+    </key>
+    <key id="integer4" name="Integer 4" type="integer">
+      <range min="4" max="4000" step="4"/>
+      <default>4</default>
+      <description>Integer 4 value</description>
+    </key>
+    <key id="integer5" name="Integer 5" type="integer">
+      <range min="5" max="5000" step="5"/>
+      <default>5</default>
+      <description>Integer 5 value</description>
+    </key>
+  </schema>
+
+  <schema id="doubles">
+    <key id="double1" name="Double 1" type="double">
+      <range min="1.0" max="1000" step="1.0"/>
+      <default>1.0</default>
+      <description>Double 1 value</description>
+    </key>
+    <key id="double2" name="Double 2" type="double">
+      <range min="2.0" max="2000" step="2.0"/>
+      <default>2.0</default>
+      <description>Double 2 value</description>
+    </key>
+    <key id="double3" name="Double 3" type="double">
+      <range min="3.0" max="3000" step="3.0"/>
+      <default>3.0</default>
+      <description>Double 3 value</description>
+    </key>
+    <key id="double4" name="Double 4" type="double">
+      <range min="4.0" max="4000" step="4.0"/>
+      <default>4.0</default>
+      <description>Double 4 value</description>
+    </key>
+    <key id="double5" name="Double 5" type="double">
+      <range min="5.0" max="5000" step="5.0"/>
+      <default>5.0</default>
+      <description>Double 5 value</description>
+    </key>
+  </schema>
+
+  <schema id="strings">
+    <key id="string1" name="String 1" type="string">
+      <default>String 1</default>
+      <description>String 1 value</description>
+    </key>
+    <key id="string2" name="String 2" type="string">
+      <default>String 2</default>
+      <description>String 2 value</description>
+    </key>
+    <key id="string3" name="String 3" type="string">
+      <default>String 3</default>
+      <description>String 3 value</description>
+    </key>
+    <key id="string4" name="String 4" type="string">
+      <default>String 4</default>
+      <description>String 4 value</description>
+    </key>
+    <key id="string5" name="String 5" type="string">
+      <default>String 5</default>
+      <description>String 5 value</description>
+    </key>
+  </schema>
+
+  <schema id="enums">
+    <key id="enum1" name="Enum 1" enum="enum1">
+      <default>1</default>
+      <description>Enum 1 value</description>
+    </key>
+    <key id="enum2" name="Enum 2" enum="enum2">
+      <default>2</default>
+      <description>Enum 2 value</description>
+    </key>
+    <key id="enum3" name="Enum 3" enum="enum3">
+      <default>3</default>
+      <description>Enum 3 value</description>
+    </key>
+    <key id="enum4" name="Enum 4" enum="enum4">
+      <default>4</default>
+      <description>Enum 4 value</description>
+    </key>
+    <key id="enum5" name="Enum 5" enum="enum5">
+      <default>5</default>
+      <description>Enum 5 value</description>
+    </key>
+  </schema>
+
+  <schema id="complex">
+    <node id="booleans" schema="booleans"/>
+    <node id="integers" schema="integers"/>
+    <node id="doubles" schema="doubles"/>
+    <node id="strings" schema="strings"/>
+    <node id="enums" schema="enums"/>
+    <key id="false" name="False" type="boolean">
+      <default>false</default>
+      <description>False value</description>
+    </key>
+    <key id="integer" name="Integer 2" type="integer">
+      <range min="2" max="2000" step="2"/>
+      <default>2</default>
+      <description>Integer 2 value</description>
+    </key>
+    <key id="double" name="Double 2" type="double">
+      <range min="2.0" max="2000.0" step="2.0"/>
+      <default>2.0</default>
+      <description>Double 2 value</description>
+    </key>
+    <key id="string" name="String 2" type="string">
+      <default>String 2</default>
+      <description>String 2 value</description>
+    </key>
+    <key id="enum" name="Enum 2" enum="enum2">
+      <default>2</default>
+      <description>Enum 2 value</description>
+    </key>
+  </schema>
+
+  <schema id="test">
+    <node id="level1" schema="complex"/>
+    <node id="level2" schema="complex"/>
+    <node id="level3" schema="complex"/>
+    <node id="level4" schema="complex"/>
+    <node id="level5" schema="complex"/>
+    <key id="true" name="True" type="boolean">
+      <default>true</default>
+      <description>True value</description>
+    </key>
+    <key id="integer" name="Integer 1" type="integer">
+      <range min="1" max="1000" step="1"/>
+      <default>1</default>
+      <description>Integer 1 value</description>
+    </key>
+    <key id="double" name="Double 1" type="double">
+      <range min="1.0" max="1000" step="1.0"/>
+      <default>1.0</default>
+      <description>Double 1 value</description>
+    </key>
+    <key id="string" name="String 1" type="string">
+      <default>String 1</default>
+      <description>String 1 value</description>
+    </key>
+    <key id="enum" name="Enum 1" enum="enum1">
+      <default>1</default>
+      <description>Enum 1 value</description>
+    </key>
+  </schema>
+
+</schemalist>
