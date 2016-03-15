@@ -126,6 +126,11 @@
  * Список всех параметров схемы можно получить с помощью функции #hyscan_data_schema_list_keys.
  * Проверить существование параметра в схеме можно функцией #hyscan_data_schema_has_key.
  *
+ * Структурированный список параметров и их описаний можно получить функцией #hyscan_data_schema_list_nodes.
+ * Функция возвращает указатель на вновь созданую структуру \link _HyScanDataSchemaNode \endlink.
+ * После использования необходимо освободить память, занятую этой структурой, с помощью функции
+ * #hyscan_data_schema_free_nodes.
+ *
  * Следующая группа функций предназначена для получения атрибутов параметров:
  *
  * - #hyscan_data_schema_key_get_type - возвращает тип параметра;
@@ -190,6 +195,29 @@ typedef struct
   gchar                               *description;    /**< Описание значения параметра. */
 } HyScanDataSchemaEnumValue;
 
+typedef struct _HyScanDataSchemaNode HyScanDataSchemaNode;
+typedef struct _HyScanDataSchemaParam HyScanDataSchemaParam;
+
+/** \brief Узел с параметрами */
+struct _HyScanDataSchemaNode
+{
+  const gchar                         *path;           /**< Путь до узла. */
+
+  HyScanDataSchemaNode               **nodes;          /**< Дочерние узлы. */
+  gint                                 n_nodes;        /**< Число дочерних узлов. */
+
+  HyScanDataSchemaParam              **params;         /**< Параметры. */
+  gint                                 n_params;       /**< Число параметров. */
+};
+
+/** \brief Описание параметра */
+struct _HyScanDataSchemaParam
+{
+  const gchar                         *id;             /**< Идентификатор параметров. */
+  const gchar                         *name;           /**< Название параметра. */
+  const gchar                         *description;    /**< Описание параметра. */
+  HyScanDataSchemaType                 type;           /**< Тип параметра. */
+};
 
 HYSCAN_TYPES_EXPORT
 GType                  hyscan_data_schema_get_type                     (void);
@@ -261,6 +289,20 @@ const gchar           *hyscan_data_schema_get_schema_id                (HyScanDa
  */
 HYSCAN_TYPES_EXPORT
 const gchar* const    *hyscan_data_schema_list_keys                    (HyScanDataSchema      *schema);
+
+/**
+ *
+ * Функция возвращает иеархический список узлов и параметров определённых в схеме.
+ *
+ * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_nodes.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ *
+ * \return Список узлов и параметров в схеме.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchemaNode  *hyscan_data_schema_list_nodes                   (HyScanDataSchema      *schema);
 
 /**
  *
@@ -529,6 +571,18 @@ HYSCAN_TYPES_EXPORT
 gboolean               hyscan_data_schema_key_check_enum               (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                 value);
+
+/**
+ *
+ * Функция освобождает память занятую списком узлов и параметров.
+ *
+ * \param nodes указатель на список узлов и параметров.
+ *
+ * \return Нет.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+void                   hyscan_data_schema_free_nodes                   (HyScanDataSchemaNode  *nodes);
 
 G_END_DECLS
 
