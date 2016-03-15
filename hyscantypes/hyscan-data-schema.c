@@ -79,7 +79,7 @@ static void            hyscan_data_schema_value_set_string     (gpointer        
 static gboolean        hyscan_data_schema_value_get_boolean    (gconstpointer          data);
 static gint64          hyscan_data_schema_value_get_integer    (gconstpointer          data);
 static gdouble         hyscan_data_schema_value_get_double     (gconstpointer          data);
-static const gchar *   hyscan_data_schema_value_get_string     (gconstpointer          data);
+static const gchar    *hyscan_data_schema_value_get_string     (gconstpointer          data);
 
 static gboolean        hyscan_data_schema_validate_name        (const gchar           *name);
 
@@ -88,15 +88,15 @@ static gint            hyscan_data_schema_compare_keys         (HyScanDataSchema
                                                                 gpointer               user_data);
 
 static void            hyscan_data_schema_free_enum_values     (HyScanDataSchemaEnum  *values);
-static HyScanDataSchemaEnumValue * hyscan_data_schema_parse_enum_value (xmlNodePtr     node,
-                                                                        const gchar   *gettext_domain);
-static HyScanDataSchemaEnum * hyscan_data_schema_parse_enum_values (xmlNodePtr         node,
-                                                                    const gchar       *gettext_domain);
+static HyScanDataSchemaEnumValue *hyscan_data_schema_parse_enum_value (xmlNodePtr      node,
+                                                                       const gchar    *gettext_domain);
+static HyScanDataSchemaEnum *hyscan_data_schema_parse_enum_values (xmlNodePtr          node,
+                                                                   const gchar        *gettext_domain);
 static gboolean        hyscan_data_schema_check_enum           (HyScanDataSchemaEnum  *enums,
                                                                 gint64                 value);
 
 static void            hyscan_data_schema_free_key             (HyScanDataSchemaKey   *key);
-static HyScanDataSchemaKey * hyscan_data_schema_parse_key      (xmlNodePtr             node,
+static HyScanDataSchemaKey *hyscan_data_schema_parse_key       (xmlNodePtr             node,
                                                                 const gchar           *path,
                                                                 GHashTable            *enums,
                                                                 const gchar           *gettext_domain);
@@ -115,6 +115,18 @@ static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr       
                                                                 GHashTable            *keys,
                                                                 GHashTable            *enums,
                                                                 const gchar           *gettext_domain);
+
+static HyScanDataSchemaNode *hyscan_data_schema_new_node       (const gchar           *path);
+static HyScanDataSchemaParam *hyscan_data_schema_new_param     (const gchar           *id,
+                                                                const gchar           *name,
+                                                                const gchar           *description,
+                                                                HyScanDataSchemaType   type);
+static void            hyscan_data_schema_insert_param         (HyScanDataSchemaNode *node,
+                                                                const gchar          *id,
+                                                                const gchar          *name,
+                                                                const gchar          *description,
+                                                                HyScanDataSchemaType  type);
+
 
 G_DEFINE_TYPE (HyScanDataSchema, hyscan_data_schema, G_TYPE_OBJECT);
 
@@ -658,6 +670,7 @@ exit:
   xmlFree (idx);
   xmlFree (namex);
   xmlFree (typex);
+  xmlFree (enumx);
   xmlFree (descriptionx);
   xmlFree (default_valuex);
   xmlFree (minimum_valuex);
@@ -783,7 +796,11 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
 
       id = xmlGetProp (node, (xmlChar *)"id");
       if (g_ascii_strcasecmp ((const char*)id, schema) != 0)
-        continue;
+        {
+          xmlFree (id);
+          continue;
+        }
+      xmlFree (id);
 
       cpath = g_strdup_printf ("%s%s/", schema_path, (gchar*)schema);
       if (!hyscan_data_schema_parse_node (node->children, cpath, path, keys, enums, gettext_domain))
@@ -799,6 +816,92 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
   g_warning ("HyScanDataSchema: unknown schema '%s' in '%s'", schema, path);
 
   return FALSE;
+}
+
+/* Функция создаёт новый узел с параметрами. */
+static HyScanDataSchemaNode *
+hyscan_data_schema_new_node (const gchar *path)
+{
+  HyScanDataSchemaNode *node;
+
+  node = g_new0 (HyScanDataSchemaNode, 1);
+  node->path = g_strdup (path);
+  node->nodes = g_malloc0 (sizeof (HyScanDataSchemaNode*));
+  node->params = g_malloc0 (sizeof (HyScanDataSchemaParam*));
+
+  return node;
+}
+
+/* Функция создаёт новую структуру с описанием параметра. */
+static HyScanDataSchemaParam *
+hyscan_data_schema_new_param (const gchar          *id,
+                              const gchar          *name,
+                              const gchar          *description,
+                              HyScanDataSchemaType  type)
+{
+  HyScanDataSchemaParam *param;
+
+  param = g_new (HyScanDataSchemaParam, 1);
+  param->id = g_strdup (id);
+  param->name = g_strdup (name);
+  param->description = g_strdup (description);
+  param->type = type;
+
+  return param;
+}
+
+/* Функция добавляет новый параметр в список. */
+static void
+hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
+                                 const gchar          *id,
+                                 const gchar          *name,
+                                 const gchar          *description,
+                                 HyScanDataSchemaType  type)
+{
+  gchar **pathv;
+  guint i, j;
+
+  pathv = g_strsplit (id, "/", -1);
+
+  /* Поиск узла для параметра. */
+  for (i = 1; i < g_strv_length (pathv) - 1; i++)
+    {
+      gboolean has_node = FALSE;
+      gchar *cur_path;
+
+      /* Сверяем путь для текущего узла с идентификатором параметра. */
+      for (j = 0; node->nodes != NULL && node->nodes[j] != NULL; j++)
+        {
+          /* Если совпадают, мы на правильном пути:) */
+          if (g_str_has_prefix (id, node->nodes[j]->path))
+            {
+              node = node->nodes[j];
+              has_node = TRUE;
+              break;
+            }
+        }
+
+      /* Если узел для текущего пути найден, переходим к следующему компоненту пути. */
+      if (has_node)
+        continue;
+
+      /* Или добавляем новый узел. */
+      cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
+      node->nodes = g_realloc (node->nodes, (node->n_nodes + 2) * sizeof (HyScanDataSchemaNode*));
+      node->nodes[node->n_nodes] = hyscan_data_schema_new_node (cur_path);
+      node->n_nodes += 1;
+      node->nodes[node->n_nodes] = NULL;
+      node = node->nodes[j];
+      g_free (cur_path);
+    }
+
+  g_strfreev (pathv);
+
+  /* Новый параметр. */
+  node->params = g_realloc (node->params, (node->n_params + 2) * sizeof (HyScanDataSchemaParam*));
+  node->params[node->n_params] = hyscan_data_schema_new_param (id, name, description, type);
+  node->n_params += 1;
+  node->params[node->n_params] = NULL;
 }
 
 static void
@@ -895,7 +998,7 @@ hyscan_data_schema_object_constructed (GObject *object)
       schema->keys_list = g_malloc ((n_keys + 1) * sizeof (gchar*));
       g_hash_table_iter_init (&iter, schema->keys);
       for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer*)&key); i++)
-        schema->keys_list[i] = g_strdup (key->id);
+        schema->keys_list[i] = key->id;
       schema->keys_list[i] = NULL;
 
       g_qsort_with_data (schema->keys_list, n_keys, sizeof (gchar*),
@@ -972,6 +1075,28 @@ hyscan_data_schema_list_keys (HyScanDataSchema *schema)
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   return (const gchar* const *)schema->keys_list;
+}
+
+/* Функция возвращает иеархический список узлов и параметров определённых в схеме. */
+HyScanDataSchemaNode *
+hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
+{
+  HyScanDataSchemaNode *node;
+  guint i;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  if (schema->keys_list == NULL)
+    return NULL;
+
+  node = hyscan_data_schema_new_node ("");
+  for (i = 0; schema->keys_list[i] != NULL; i++)
+    {
+      HyScanDataSchemaKey *key = g_hash_table_lookup (schema->keys, schema->keys_list[i]);
+      hyscan_data_schema_insert_param (node, schema->keys_list[i], key->name, key->description, key->type);
+    }
+
+  return node;
 }
 
 /* Функция проверяет существование параметра в схеме. */
@@ -1279,4 +1404,28 @@ hyscan_data_schema_key_check_enum (HyScanDataSchema *schema,
     return FALSE;
 
   return hyscan_data_schema_check_enum (key->enum_values, value);
+}
+
+/* Функция освобождает память занятую списком узлов и параметров. */
+void
+hyscan_data_schema_free_nodes (HyScanDataSchemaNode *nodes)
+{
+  gint i;
+
+  for (i = 0; i < nodes->n_nodes; i++)
+    hyscan_data_schema_free_nodes (nodes->nodes[i]);
+
+  for (i = 0; i < nodes->n_params; i++)
+    {
+      g_free ((gchar*)nodes->params[i]->id);
+      g_free ((gchar*)nodes->params[i]->name);
+      g_free ((gchar*)nodes->params[i]->description);
+      g_free (nodes->params[i]);
+    }
+
+  g_free ((gchar*)nodes->path);
+
+  g_free (nodes->nodes);
+  g_free (nodes->params);
+  g_free (nodes);
 }
