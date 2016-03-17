@@ -10,6 +10,7 @@
 
 #include "hyscan-data-schema.h"
 
+#include <gio/gio.h>
 #include <glib/gi18n.h>
 #include <libxml/parser.h>
 #include <string.h>
@@ -1035,9 +1036,31 @@ hyscan_data_schema_new_from_file (const gchar *path,
   GObject *object;
   gchar *data;
 
-  g_file_get_contents (path, &data, NULL, NULL);
+  if (!g_file_get_contents (path, &data, NULL, NULL))
+    return NULL;
+
   object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
   g_free (data);
+
+  return HYSCAN_DATA_SCHEMA (object);
+}
+
+/* Функция создаёт новый объект HyScanDataSchema. */
+HyScanDataSchema *
+hyscan_data_schema_new_from_resource (const gchar *resource_path,
+                                      const gchar *schema_id)
+{
+  GObject *object;
+  GBytes *resource;
+  const gchar *data;
+
+  resource = g_resources_lookup_data (resource_path, 0, NULL);
+  if (resource == NULL)
+    return NULL;
+
+  data = g_bytes_get_data (resource, NULL);
+  object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
+  g_bytes_unref (resource);
 
   return HYSCAN_DATA_SCHEMA (object);
 }

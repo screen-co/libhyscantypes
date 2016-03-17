@@ -120,8 +120,8 @@
  * Получить описание схемы данных можно функцией #hyscan_data_schema_get_xml_data, а идентификатор схемы
  * функцией #hyscan_data_schema_get_schema_id.
  *
- * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_file и
- * #hyscan_data_schema_new_from_string. Описание схемы осуществляется с помощью языка XML.
+ * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_file,
+ * #hyscan_data_schema_new_from_resource и #hyscan_data_schema_new_from_string.
  *
  * Список всех параметров схемы можно получить с помощью функции #hyscan_data_schema_list_keys.
  * Проверить существование параметра в схеме можно функцией #hyscan_data_schema_has_key.
@@ -229,11 +229,25 @@ GType                  hyscan_data_schema_get_type                     (void);
  * \param path путь к XML файлу с описанием схемы;
  * \param schema_id идентификатор загружаемой схемы.
  *
- * \return Указатель на объект \link HyScanDataSchema \endlink.
+ * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный файл отсутствует.
  *
  */
 HYSCAN_TYPES_EXPORT
 HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gchar           *path,
+                                                                        const gchar           *schema_id);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataSchema \endlink.
+ *
+ * \param resource_path путь к ресурсу GResource;
+ * \param schema_id идентификатор загружаемой схемы.
+ *
+ * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный ресурс отсутствует.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *resource_path,
                                                                         const gchar           *schema_id);
 
 /**
