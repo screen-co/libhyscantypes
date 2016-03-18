@@ -12,9 +12,9 @@
  * схемой \link HyScanDataSchema \endlink. Имеется возможность зарегистрировать обработчики,
  * вызываемые при изменении значений параметров, а также отслеживать наличие изменений.
  *
- * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_schema
- * и #hyscan_data_box_new_from_xml_file. Описание используемой схемы можно получить функцией
- * #hyscan_data_box_get_schema.
+ * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_schema,
+ * #hyscan_data_box_new_from_file и #hyscan_data_box_new_from_resource.
+ * Описание используемой схемы можно получить функцией #hyscan_data_box_get_schema.
  *
  * Чтение и запись значений параметров осуществляется с использованием функций
  * #hyscan_data_box_set и #hyscan_data_box_get. В дополнение к ним существуют функции
@@ -70,7 +70,8 @@ GType                  hyscan_data_box_get_type                (void);
 
 /**
  *
- * Функция создаёт новый объект \link HyScanDataBox \endlink.
+ * Функция создаёт новый объект \link HyScanDataBox \endlink. При создании объекта
+ * будет увеличен счётчик ссылок на передаваемый объект \link HyScanDataSchema \endlink.
  *
  * \param schema объект \link HyScanDataSchema \endlink с описанием схемы параметров.
  *
@@ -91,7 +92,21 @@ HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataBox         *hyscan_data_box_new_from_xml_file       (const gchar           *path,
+HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *path,
+                                                                const gchar           *schema_id);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataBox \endlink.
+ *
+ * \param resource_path путь к ресурсу GResource;
+ * \param schema_id идентификатор загружаемой схемы.
+ *
+ * \return Указатель на объект \link HyScanDataBox \endlink.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *resource_path,
                                                                 const gchar           *schema_id);
 
 /**

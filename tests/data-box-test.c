@@ -253,9 +253,10 @@ main (int    argc,
   guint i;
 
   if (argv[1] == NULL)
-    g_error ("unknown schema file");
+    data = hyscan_data_box_new_from_resource ("/org/hyscan/schemas/data-schema-good.xml", "test");
+  else
+    data = hyscan_data_box_new_from_file (argv[1], "test");
 
-  data = hyscan_data_box_new_from_xml_file (argv[1], "test");
   schema = hyscan_data_box_get_schema (data);
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)

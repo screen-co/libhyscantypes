@@ -120,8 +120,8 @@
  * Получить описание схемы данных можно функцией #hyscan_data_schema_get_xml_data, а идентификатор схемы
  * функцией #hyscan_data_schema_get_schema_id.
  *
- * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_file,
- * #hyscan_data_schema_new_from_resource и #hyscan_data_schema_new_from_string.
+ * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_string,
+ * #hyscan_data_schema_new_from_file и #hyscan_data_schema_new_from_resource.
  *
  * Список всех параметров схемы можно получить с помощью функции #hyscan_data_schema_list_keys.
  * Проверить существование параметра в схеме можно функцией #hyscan_data_schema_has_key.
@@ -226,6 +226,20 @@ GType                  hyscan_data_schema_get_type                     (void);
  *
  * Функция создаёт новый объект \link HyScanDataSchema \endlink.
  *
+ * \param data строка с описанием схемы в формате XML;
+ * \param schema_id идентификатор загружаемой схемы.
+ *
+ * \return Указатель на объект \link HyScanDataSchema \endlink.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *data,
+                                                                        const gchar           *schema_id);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataSchema \endlink.
+ *
  * \param path путь к XML файлу с описанием схемы;
  * \param schema_id идентификатор загружаемой схемы.
  *
@@ -248,20 +262,6 @@ HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gc
  */
 HYSCAN_TYPES_EXPORT
 HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *resource_path,
-                                                                        const gchar           *schema_id);
-
-/**
- *
- * Функция создаёт новый объект \link HyScanDataSchema \endlink.
- *
- * \param data строка с описанием схемы в формате XML;
- * \param schema_id идентификатор загружаемой схемы.
- *
- * \return Указатель на объект \link HyScanDataSchema \endlink.
- *
- */
-HYSCAN_TYPES_EXPORT
-HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *data,
                                                                         const gchar           *schema_id);
 
 /**

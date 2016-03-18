@@ -212,9 +212,10 @@ main (int argc, char **argv)
   guint i;
 
   if (argv[1] == NULL)
-    g_error ("unknown schema file");
+    schema = hyscan_data_schema_new_from_resource ("/org/hyscan/schemas/data-schema-good.xml", "test");
+  else
+    schema = hyscan_data_schema_new_from_file (argv[1], "test");
 
-  schema = hyscan_data_schema_new_from_file (argv[1], "test");
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
     g_error ("empty schema");
