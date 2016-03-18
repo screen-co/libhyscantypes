@@ -10,6 +10,7 @@
 
 #include "hyscan-data-schema.h"
 
+#include <gio/gio.h>
 #include <glib/gi18n.h>
 #include <libxml/parser.h>
 #include <string.h>
@@ -175,6 +176,129 @@ hyscan_data_schema_set_property (GObject      *object,
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     }
+}
+
+static void
+hyscan_data_schema_object_constructed (GObject *object)
+{
+  HyScanDataSchema *schema = HYSCAN_DATA_SCHEMA (object);
+
+  xmlDocPtr doc;
+  xmlNodePtr node;
+  xmlChar *gettext_domain;
+
+  guint n_keys;
+
+  /* Таблица параметров. */
+  schema->keys =  g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         NULL,
+                                         (GDestroyNotify)hyscan_data_schema_free_key);
+
+  /* Таблица enum типов и их значений. */
+  schema->enums = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         NULL,
+                                         (GDestroyNotify)hyscan_data_schema_free_enum_values);
+
+
+  /* Разбор описания схемы. */
+  if (schema->data == NULL)
+    return;
+  doc = xmlParseMemory (schema->data, strlen (schema->data));
+  if (doc == NULL)
+    return;
+
+  /* Поиск корневого узла schemalist. */
+  for (node = xmlDocGetRootElement (doc); node != NULL; node = node->next)
+    if (node->type == XML_ELEMENT_NODE)
+      if (g_ascii_strcasecmp ((const char*)node->name, "schemalist") == 0)
+        break;
+
+  if (node == NULL)
+    goto exit;
+
+  /* Название домена переводов. */
+  gettext_domain = xmlGetProp (node, (xmlChar *)"gettext-domain");
+  if (gettext_domain != NULL)
+    schema->gettext_domain = g_strdup ((gchar*)gettext_domain);
+  xmlFree (gettext_domain);
+
+  /* Обработка enum типов. */
+  for (node = node->children; node != NULL; node = node->next)
+    {
+      xmlChar *id;
+
+      if (node->type != XML_ELEMENT_NODE)
+        continue;
+      if (g_ascii_strcasecmp ((const char*)node->name, "enum") != 0)
+        continue;
+
+      id = xmlGetProp (node, (xmlChar *)"id");
+      if (id == NULL)
+        {
+          g_warning ("HyScanDataSchema: unknown enum id");
+          goto exit;
+        }
+
+      if (g_hash_table_lookup (schema->enums, id) == NULL)
+        {
+          HyScanDataSchemaEnum *values = hyscan_data_schema_parse_enum_values (node, schema->gettext_domain);
+          g_hash_table_insert (schema->enums, values->id, values);
+        }
+      else
+        {
+          g_warning ("HyScanDataSchema: duplicated enum type %s", id);
+        }
+
+      xmlFree (id);
+    }
+
+  /* Обработка описания схемы. */
+  if (!hyscan_data_schema_parse_schema (doc, "/", schema->schema_id, "/", schema->keys, schema->enums, schema->gettext_domain))
+    {
+      g_hash_table_remove_all (schema->keys);
+      g_hash_table_remove_all (schema->enums);
+    }
+
+  /* Список имён параметров. */
+  n_keys = g_hash_table_size (schema->keys);
+  if (n_keys > 0)
+    {
+      HyScanDataSchemaKey *key;
+      GHashTableIter iter;
+      guint i;
+
+      schema->keys_list = g_malloc ((n_keys + 1) * sizeof (gchar*));
+      g_hash_table_iter_init (&iter, schema->keys);
+      for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer*)&key); i++)
+        schema->keys_list[i] = key->id;
+      schema->keys_list[i] = NULL;
+
+      g_qsort_with_data (schema->keys_list, n_keys, sizeof (gchar*),
+                         (GCompareDataFunc)hyscan_data_schema_compare_keys,
+                         NULL);
+    }
+
+exit:
+  xmlFreeDoc (doc);
+}
+
+static void
+hyscan_data_schema_object_finalize (GObject *object)
+{
+  HyScanDataSchema *schema = HYSCAN_DATA_SCHEMA (object);
+
+  g_hash_table_unref (schema->keys);
+  g_hash_table_unref (schema->enums);
+
+  g_free (schema->keys_list);
+
+  g_free (schema->data);
+  g_free (schema->schema_id);
+  g_free (schema->gettext_domain);
+
+  G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
 }
 
 /* Функция записывает в область памяти data значение типа gboolean. */
@@ -904,127 +1028,12 @@ hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
   node->params[node->n_params] = NULL;
 }
 
-static void
-hyscan_data_schema_object_constructed (GObject *object)
+/* Функция создаёт новый объект HyScanDataSchema. */
+HyScanDataSchema *
+hyscan_data_schema_new_from_string (const gchar *data,
+                                    const gchar *schema_id)
 {
-  HyScanDataSchema *schema = HYSCAN_DATA_SCHEMA (object);
-
-  xmlDocPtr doc;
-  xmlNodePtr node;
-  xmlChar *gettext_domain;
-
-  guint n_keys;
-
-  /* Таблица параметров. */
-  schema->keys =  g_hash_table_new_full (g_str_hash,
-                                         g_str_equal,
-                                         NULL,
-                                         (GDestroyNotify)hyscan_data_schema_free_key);
-
-  /* Таблица enum типов и их значений. */
-  schema->enums = g_hash_table_new_full (g_str_hash,
-                                         g_str_equal,
-                                         NULL,
-                                         (GDestroyNotify)hyscan_data_schema_free_enum_values);
-
-
-  /* Разбор описания схемы. */
-  if (schema->data == NULL)
-    return;
-  doc = xmlParseMemory (schema->data, strlen (schema->data));
-  if (doc == NULL)
-    return;
-
-  /* Поиск корневого узла schemalist. */
-  for (node = xmlDocGetRootElement (doc); node != NULL; node = node->next)
-    if (node->type == XML_ELEMENT_NODE)
-      if (g_ascii_strcasecmp ((const char*)node->name, "schemalist") == 0)
-        break;
-
-  if (node == NULL)
-    goto exit;
-
-  /* Название домена переводов. */
-  gettext_domain = xmlGetProp (node, (xmlChar *)"gettext-domain");
-  if (gettext_domain != NULL)
-    schema->gettext_domain = g_strdup ((gchar*)gettext_domain);
-  xmlFree (gettext_domain);
-
-  /* Обработка enum типов. */
-  for (node = node->children; node != NULL; node = node->next)
-    {
-      xmlChar *id;
-
-      if (node->type != XML_ELEMENT_NODE)
-        continue;
-      if (g_ascii_strcasecmp ((const char*)node->name, "enum") != 0)
-        continue;
-
-      id = xmlGetProp (node, (xmlChar *)"id");
-      if (id == NULL)
-        {
-          g_warning ("HyScanDataSchema: unknown enum id");
-          goto exit;
-        }
-
-      if (g_hash_table_lookup (schema->enums, id) == NULL)
-        {
-          HyScanDataSchemaEnum *values = hyscan_data_schema_parse_enum_values (node, schema->gettext_domain);
-          g_hash_table_insert (schema->enums, values->id, values);
-        }
-      else
-        {
-          g_warning ("HyScanDataSchema: duplicated enum type %s", id);
-        }
-
-      xmlFree (id);
-    }
-
-  /* Обработка описания схемы. */
-  if (!hyscan_data_schema_parse_schema (doc, "/", schema->schema_id, "/", schema->keys, schema->enums, schema->gettext_domain))
-    {
-      g_hash_table_remove_all (schema->keys);
-      g_hash_table_remove_all (schema->enums);
-    }
-
-  /* Список имён параметров. */
-  n_keys = g_hash_table_size (schema->keys);
-  if (n_keys > 0)
-    {
-      HyScanDataSchemaKey *key;
-      GHashTableIter iter;
-      guint i;
-
-      schema->keys_list = g_malloc ((n_keys + 1) * sizeof (gchar*));
-      g_hash_table_iter_init (&iter, schema->keys);
-      for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer*)&key); i++)
-        schema->keys_list[i] = key->id;
-      schema->keys_list[i] = NULL;
-
-      g_qsort_with_data (schema->keys_list, n_keys, sizeof (gchar*),
-                         (GCompareDataFunc)hyscan_data_schema_compare_keys,
-                         NULL);
-    }
-
-exit:
-  xmlFreeDoc (doc);
-}
-
-static void
-hyscan_data_schema_object_finalize (GObject *object)
-{
-  HyScanDataSchema *schema = HYSCAN_DATA_SCHEMA (object);
-
-  g_hash_table_unref (schema->keys);
-  g_hash_table_unref (schema->enums);
-
-  g_free (schema->keys_list);
-
-  g_free (schema->data);
-  g_free (schema->schema_id);
-  g_free (schema->gettext_domain);
-
-  G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
+  return g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
 }
 
 /* Функция создаёт новый объект HyScanDataSchema. */
@@ -1035,7 +1044,9 @@ hyscan_data_schema_new_from_file (const gchar *path,
   GObject *object;
   gchar *data;
 
-  g_file_get_contents (path, &data, NULL, NULL);
+  if (!g_file_get_contents (path, &data, NULL, NULL))
+    return NULL;
+
   object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
   g_free (data);
 
@@ -1044,10 +1055,22 @@ hyscan_data_schema_new_from_file (const gchar *path,
 
 /* Функция создаёт новый объект HyScanDataSchema. */
 HyScanDataSchema *
-hyscan_data_schema_new_from_string (const gchar *data,
-                                    const gchar *schema_id)
+hyscan_data_schema_new_from_resource (const gchar *resource_path,
+                                      const gchar *schema_id)
 {
-  return g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
+  GObject *object;
+  GBytes *resource;
+  const gchar *data;
+
+  resource = g_resources_lookup_data (resource_path, 0, NULL);
+  if (resource == NULL)
+    return NULL;
+
+  data = g_bytes_get_data (resource, NULL);
+  object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
+  g_bytes_unref (resource);
+
+  return HYSCAN_DATA_SCHEMA (object);
 }
 
 /* Функция возвращает описание схемы данных в фомате XML. */
