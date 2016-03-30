@@ -119,73 +119,73 @@ hyscan_get_data_point_size (HyScanDataType data_type)
 {
   switch (data_type)
     {
-      case HYSCAN_DATA_TYPE_STRING:
-        return sizeof (gchar);
+    case HYSCAN_DATA_TYPE_STRING:
+      return sizeof (gchar);
 
-      case HYSCAN_DATA_TYPE_ADC_8BIT:
-        return sizeof (gint8);
+    case HYSCAN_DATA_TYPE_ADC_8BIT:
+      return sizeof (gint8);
 
-      case HYSCAN_DATA_TYPE_ADC_10BIT:
-      case HYSCAN_DATA_TYPE_ADC_12BIT:
-      case HYSCAN_DATA_TYPE_ADC_14BIT:
-      case HYSCAN_DATA_TYPE_ADC_16BIT:
-        return sizeof (gint16);
+    case HYSCAN_DATA_TYPE_ADC_10BIT:
+    case HYSCAN_DATA_TYPE_ADC_12BIT:
+    case HYSCAN_DATA_TYPE_ADC_14BIT:
+    case HYSCAN_DATA_TYPE_ADC_16BIT:
+      return sizeof (gint16);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT:
-        return 2 * sizeof (gint8);
+    case HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT:
+      return 2 * sizeof (gint8);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT:
-      case HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT:
-      case HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT:
-      case HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT:
-        return 2 * sizeof (gint16);
+    case HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT:
+    case HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT:
+    case HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT:
+    case HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT:
+      return 2 * sizeof (gint16);
 
-      case HYSCAN_DATA_TYPE_INT8:
-      case HYSCAN_DATA_TYPE_UINT8:
-        return sizeof (gint8);
+    case HYSCAN_DATA_TYPE_INT8:
+    case HYSCAN_DATA_TYPE_UINT8:
+      return sizeof (gint8);
 
-      case HYSCAN_DATA_TYPE_INT16:
-      case HYSCAN_DATA_TYPE_UINT16:
-        return sizeof (gint16);
+    case HYSCAN_DATA_TYPE_INT16:
+    case HYSCAN_DATA_TYPE_UINT16:
+      return sizeof (gint16);
 
-      case HYSCAN_DATA_TYPE_INT32:
-      case HYSCAN_DATA_TYPE_UINT32:
-        return sizeof (gint32);
+    case HYSCAN_DATA_TYPE_INT32:
+    case HYSCAN_DATA_TYPE_UINT32:
+      return sizeof (gint32);
 
-      case HYSCAN_DATA_TYPE_INT64:
-      case HYSCAN_DATA_TYPE_UINT64:
-        return sizeof (gint64);
+    case HYSCAN_DATA_TYPE_INT64:
+    case HYSCAN_DATA_TYPE_UINT64:
+      return sizeof (gint64);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_INT8:
-      case HYSCAN_DATA_TYPE_COMPLEX_UINT8:
-        return 2 * sizeof (gint8);
+    case HYSCAN_DATA_TYPE_COMPLEX_INT8:
+    case HYSCAN_DATA_TYPE_COMPLEX_UINT8:
+      return 2 * sizeof (gint8);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_INT16:
-      case HYSCAN_DATA_TYPE_COMPLEX_UINT16:
-        return 2 * sizeof (gint16);
+    case HYSCAN_DATA_TYPE_COMPLEX_INT16:
+    case HYSCAN_DATA_TYPE_COMPLEX_UINT16:
+      return 2 * sizeof (gint16);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_INT32:
-      case HYSCAN_DATA_TYPE_COMPLEX_UINT32:
-        return 2 * sizeof (gint32);
+    case HYSCAN_DATA_TYPE_COMPLEX_INT32:
+    case HYSCAN_DATA_TYPE_COMPLEX_UINT32:
+      return 2 * sizeof (gint32);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_INT64:
-      case HYSCAN_DATA_TYPE_COMPLEX_UINT64:
-        return 2 * sizeof (gint64);
+    case HYSCAN_DATA_TYPE_COMPLEX_INT64:
+    case HYSCAN_DATA_TYPE_COMPLEX_UINT64:
+      return 2 * sizeof (gint64);
 
-      case HYSCAN_DATA_TYPE_FLOAT:
-        return sizeof (gfloat);
+    case HYSCAN_DATA_TYPE_FLOAT:
+      return sizeof (gfloat);
 
-      case HYSCAN_DATA_TYPE_DOUBLE:
-        return sizeof (gdouble);
+    case HYSCAN_DATA_TYPE_DOUBLE:
+      return sizeof (gdouble);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_FLOAT:
-        return 2 * sizeof (gfloat);
+    case HYSCAN_DATA_TYPE_COMPLEX_FLOAT:
+      return 2 * sizeof (gfloat);
 
-      case HYSCAN_DATA_TYPE_COMPLEX_DOUBLE:
-        return 2 * sizeof (gdouble);
+    case HYSCAN_DATA_TYPE_COMPLEX_DOUBLE:
+      return 2 * sizeof (gdouble);
 
-      default:
-        return 0;
+    default:
+      return 0;
     }
 
   return 0;

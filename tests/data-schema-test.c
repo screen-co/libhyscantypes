@@ -226,28 +226,28 @@ main (int argc, char **argv)
 
       switch (type)
         {
-          case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
-            check_boolean (schema, keys_list[i]);
-            break;
+        case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+          check_boolean (schema, keys_list[i]);
+          break;
 
-          case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
-            check_integer (schema, keys_list[i]);
-            break;
+        case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+          check_integer (schema, keys_list[i]);
+          break;
 
-          case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
-            check_double (schema, keys_list[i]);
-            break;
+        case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+          check_double (schema, keys_list[i]);
+          break;
 
-          case HYSCAN_DATA_SCHEMA_TYPE_STRING:
-            check_string (schema, keys_list[i]);
-            break;
+        case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+          check_string (schema, keys_list[i]);
+          break;
 
-          case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
-            check_enum (schema, keys_list[i]);
-            break;
+        case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+          check_enum (schema, keys_list[i]);
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
     }
 

@@ -669,125 +669,125 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
 
   switch (key->type)
     {
-      case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
-        {
-          gboolean default_value = FALSE;
+    case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+      {
+        gboolean default_value = FALSE;
 
-          if (default_valuex != NULL)
-            {
-              if (g_ascii_strcasecmp ((const gchar *)default_valuex, "1") == 0 ||
-                  g_ascii_strcasecmp ((const gchar *)default_valuex, "true") == 0)
-                {
-                  default_value = TRUE;
-                }
-            }
+        if (default_valuex != NULL)
+          {
+            if (g_ascii_strcasecmp ((const gchar *)default_valuex, "1") == 0 ||
+                g_ascii_strcasecmp ((const gchar *)default_valuex, "true") == 0)
+              {
+                default_value = TRUE;
+              }
+          }
 
-          hyscan_data_schema_value_set_boolean (&key->default_value, default_value);
-          hyscan_data_schema_value_set_boolean (&key->minimum_value, FALSE);
-          hyscan_data_schema_value_set_boolean (&key->maximum_value, TRUE);
-          hyscan_data_schema_value_set_boolean (&key->value_step, FALSE);
-        }
-        break;
+        hyscan_data_schema_value_set_boolean (&key->default_value, default_value);
+        hyscan_data_schema_value_set_boolean (&key->minimum_value, FALSE);
+        hyscan_data_schema_value_set_boolean (&key->maximum_value, TRUE);
+        hyscan_data_schema_value_set_boolean (&key->value_step, FALSE);
+      }
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
-        {
-          gint64 default_value = 0;
-          gint64 minimum_value = G_MININT64;
-          gint64 maximum_value = G_MAXINT64;
-          gint64 value_step = 1;
+    case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+      {
+        gint64 default_value = 0;
+        gint64 minimum_value = G_MININT64;
+        gint64 maximum_value = G_MAXINT64;
+        gint64 value_step = 1;
 
-          if (default_valuex != NULL)
-            default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
-          if (minimum_valuex != NULL)
-            minimum_value = g_ascii_strtoll ((const gchar *)minimum_valuex, NULL, 10);
-          if (maximum_valuex != NULL)
-            maximum_value = g_ascii_strtoll ((const gchar *)maximum_valuex, NULL, 10);
-          if (value_stepx != NULL)
-            value_step = g_ascii_strtoll ((const gchar *)value_stepx, NULL, 10);
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
+        if (minimum_valuex != NULL)
+          minimum_value = g_ascii_strtoll ((const gchar *)minimum_valuex, NULL, 10);
+        if (maximum_valuex != NULL)
+          maximum_value = g_ascii_strtoll ((const gchar *)maximum_valuex, NULL, 10);
+        if (value_stepx != NULL)
+          value_step = g_ascii_strtoll ((const gchar *)value_stepx, NULL, 10);
 
-          if ((minimum_value > maximum_value) ||
-              (default_value < minimum_value) ||
-              (default_value > maximum_value))
-            {
-              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-              hyscan_data_schema_free_key (key);
-              key = NULL;
-              goto exit;
-            }
+        if ((minimum_value > maximum_value) ||
+            (default_value < minimum_value) ||
+            (default_value > maximum_value))
+          {
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
+            hyscan_data_schema_free_key (key);
+            key = NULL;
+            goto exit;
+          }
 
-          hyscan_data_schema_value_set_integer (&key->default_value, default_value);
-          hyscan_data_schema_value_set_integer (&key->minimum_value, minimum_value);
-          hyscan_data_schema_value_set_integer (&key->maximum_value, maximum_value);
-          hyscan_data_schema_value_set_integer (&key->value_step, value_step);
-        }
-        break;
+        hyscan_data_schema_value_set_integer (&key->default_value, default_value);
+        hyscan_data_schema_value_set_integer (&key->minimum_value, minimum_value);
+        hyscan_data_schema_value_set_integer (&key->maximum_value, maximum_value);
+        hyscan_data_schema_value_set_integer (&key->value_step, value_step);
+      }
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
-        {
-          gdouble default_value = 0.0;
-          gdouble minimum_value = -G_MAXDOUBLE;
-          gdouble maximum_value = G_MAXDOUBLE;
-          gdouble value_step = 1.0;
+    case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+      {
+        gdouble default_value = 0.0;
+        gdouble minimum_value = -G_MAXDOUBLE;
+        gdouble maximum_value = G_MAXDOUBLE;
+        gdouble value_step = 1.0;
 
-          if (default_valuex != NULL)
-            default_value = g_ascii_strtod ((const gchar *)default_valuex, NULL);
-          if (minimum_valuex != NULL)
-            minimum_value = g_ascii_strtod ((const gchar *)minimum_valuex, NULL);
-          if (maximum_valuex != NULL)
-            maximum_value = g_ascii_strtod ((const gchar *)maximum_valuex, NULL);
-          if (value_stepx != NULL)
-            value_step = g_ascii_strtod ((const gchar *)value_stepx, NULL);
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtod ((const gchar *)default_valuex, NULL);
+        if (minimum_valuex != NULL)
+          minimum_value = g_ascii_strtod ((const gchar *)minimum_valuex, NULL);
+        if (maximum_valuex != NULL)
+          maximum_value = g_ascii_strtod ((const gchar *)maximum_valuex, NULL);
+        if (value_stepx != NULL)
+          value_step = g_ascii_strtod ((const gchar *)value_stepx, NULL);
 
-          if ((minimum_value > maximum_value) ||
-              (default_value < minimum_value) ||
-              (default_value > maximum_value))
-            {
-              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-              hyscan_data_schema_free_key (key);
-              key = NULL;
-              goto exit;
-            }
+        if ((minimum_value > maximum_value) ||
+            (default_value < minimum_value) ||
+            (default_value > maximum_value))
+          {
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
+            hyscan_data_schema_free_key (key);
+            key = NULL;
+            goto exit;
+          }
 
-          hyscan_data_schema_value_set_double (&key->default_value, default_value);
-          hyscan_data_schema_value_set_double (&key->minimum_value, minimum_value);
-          hyscan_data_schema_value_set_double (&key->maximum_value, maximum_value);
-          hyscan_data_schema_value_set_double (&key->value_step, value_step);
-        }
-        break;
+        hyscan_data_schema_value_set_double (&key->default_value, default_value);
+        hyscan_data_schema_value_set_double (&key->minimum_value, minimum_value);
+        hyscan_data_schema_value_set_double (&key->maximum_value, maximum_value);
+        hyscan_data_schema_value_set_double (&key->value_step, value_step);
+      }
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_STRING:
-        {
-          hyscan_data_schema_value_set_string (&key->default_value, (const gchar *)default_valuex);
-          hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
-          hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
-          hyscan_data_schema_value_set_string (&key->value_step, NULL);
-        }
-        break;
+    case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+      {
+        hyscan_data_schema_value_set_string (&key->default_value, (const gchar *)default_valuex);
+        hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
+        hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
+        hyscan_data_schema_value_set_string (&key->value_step, NULL);
+      }
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
-        {
-          gint64 default_value = 0;
+    case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+      {
+        gint64 default_value = 0;
 
-          if (default_valuex != NULL)
-            default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
 
-          if (!hyscan_data_schema_check_enum (key->enum_values, default_value))
-            {
-              g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-              hyscan_data_schema_free_key (key);
-              key = NULL;
-              goto exit;
-            }
+        if (!hyscan_data_schema_check_enum (key->enum_values, default_value))
+          {
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
+            hyscan_data_schema_free_key (key);
+            key = NULL;
+            goto exit;
+          }
 
-          hyscan_data_schema_value_set_integer (&key->default_value, default_value);
-          hyscan_data_schema_value_set_integer (&key->minimum_value, 0);
-          hyscan_data_schema_value_set_integer (&key->maximum_value, 0);
-          hyscan_data_schema_value_set_integer (&key->value_step, 0);
-        }
-        break;
+        hyscan_data_schema_value_set_integer (&key->default_value, default_value);
+        hyscan_data_schema_value_set_integer (&key->minimum_value, 0);
+        hyscan_data_schema_value_set_integer (&key->maximum_value, 0);
+        hyscan_data_schema_value_set_integer (&key->value_step, 0);
+      }
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
 exit:

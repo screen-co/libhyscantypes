@@ -153,7 +153,7 @@ static gint32
 hyscan_data_box_get_type_size (HyScanDataSchemaType type)
 {
   switch (type)
-  {
+    {
     case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
       return sizeof (gboolean);
 
@@ -171,7 +171,7 @@ hyscan_data_box_get_type_size (HyScanDataSchemaType type)
 
     default:
       break;
-  }
+    }
 
   return 0;
 }
@@ -303,35 +303,35 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
   /* Изменяем значение параметра. */
   switch (type)
     {
-      case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
-        *(gint64*)(&param->value) = *(gboolean*)value ? TRUE : FALSE;
-        break;
+    case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+      *(gint64*)(&param->value) = *(gboolean*)value ? TRUE : FALSE;
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
-        if (!hyscan_data_schema_key_check_integer (data_box->schema, name, *(gint64*)value))
-          goto exit;
-        *(gint64*)(&param->value) = *(gint64*)value;
-        break;
-
-      case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
-        if (!hyscan_data_schema_key_check_double (data_box->schema, name, *(gdouble*)value))
-          goto exit;
-        *(gdouble*)(&param->value) = *(gdouble*)value;
-        break;
-
-      case HYSCAN_DATA_SCHEMA_TYPE_STRING:
-        g_free (*(gpointer*)(&param->value));
-        param->value = (gint64)g_strdup (value);
-        break;
-
-      case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
-        if (!hyscan_data_schema_key_check_enum (data_box->schema, name, *(gint64*)value))
-          goto exit;
-        *(gint64*)(&param->value) = *(gint64*)value;
-        break;
-
-      default:
+    case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+      if (!hyscan_data_schema_key_check_integer (data_box->schema, name, *(gint64*)value))
         goto exit;
+      *(gint64*)(&param->value) = *(gint64*)value;
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+      if (!hyscan_data_schema_key_check_double (data_box->schema, name, *(gdouble*)value))
+        goto exit;
+      *(gdouble*)(&param->value) = *(gdouble*)value;
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+      g_free (*(gpointer*)(&param->value));
+      param->value = (gint64)g_strdup (value);
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+      if (!hyscan_data_schema_key_check_enum (data_box->schema, name, *(gint64*)value))
+        goto exit;
+      *(gint64*)(&param->value) = *(gint64*)value;
+      break;
+
+    default:
+      goto exit;
     }
 
   param->used = TRUE;
@@ -392,53 +392,53 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
 
   switch (type)
     {
-      case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+    case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+      if (param->used)
+        *(gboolean*)buffer = *(gint64*)&param->value;
+      else
+        status = hyscan_data_schema_key_get_default_boolean (data_box->schema, name, buffer);
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+      if (param->used)
+        *(gint64*)buffer = *(gint64*)&param->value;
+      else
+        status = hyscan_data_schema_key_get_default_integer (data_box->schema, name, buffer);
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+      if (param->used)
+        *(gdouble*)buffer = *(gdouble*)&param->value;
+      else
+        status = hyscan_data_schema_key_get_default_double (data_box->schema, name, buffer);
+      break;
+
+    case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+      {
+        const gchar *str_value;
+
         if (param->used)
-          *(gboolean*)buffer = *(gint64*)&param->value;
+          str_value = *(gpointer*)&param->value;
         else
-          status = hyscan_data_schema_key_get_default_boolean (data_box->schema, name, buffer);
-        break;
+          str_value = hyscan_data_schema_key_get_default_string (data_box->schema, name);
 
-      case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
-        if (param->used)
-          *(gint64*)buffer = *(gint64*)&param->value;
+        if (str_value == NULL)
+          *buffer_size = 0;
         else
-          status = hyscan_data_schema_key_get_default_integer (data_box->schema, name, buffer);
-        break;
+          *buffer_size = g_snprintf (buffer, *buffer_size, "%s", str_value);
+      }
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
-        if (param->used)
-          *(gdouble*)buffer = *(gdouble*)&param->value;
-        else
-          status = hyscan_data_schema_key_get_default_double (data_box->schema, name, buffer);
-        break;
+    case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+      if (param->used)
+        *(gint64*)buffer = *(gint64*)&param->value;
+      else
+        status = hyscan_data_schema_key_get_default_enum (data_box->schema, name, buffer);
+      break;
 
-      case HYSCAN_DATA_SCHEMA_TYPE_STRING:
-        {
-          const gchar *str_value;
-
-          if (param->used)
-            str_value = *(gpointer*)&param->value;
-          else
-            str_value = hyscan_data_schema_key_get_default_string (data_box->schema, name);
-
-          if (str_value == NULL)
-            *buffer_size = 0;
-          else
-            *buffer_size = g_snprintf (buffer, *buffer_size, "%s", str_value);
-        }
-        break;
-
-      case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
-        if (param->used)
-          *(gint64*)buffer = *(gint64*)&param->value;
-        else
-          status = hyscan_data_schema_key_get_default_enum (data_box->schema, name, buffer);
-        break;
-
-      default:
-        status = FALSE;
-        goto exit;
+    default:
+      status = FALSE;
+      goto exit;
     }
 
 exit:

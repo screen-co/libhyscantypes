@@ -313,6 +313,8 @@ gboolean               hyscan_data_box_get_double              (HyScanDataBox   
  *
  * Функция считывает значение параметра типа STRING.
  *
+ * Пользователь должен освободить память, занятую строкой функцией g_free.
+ *
  * \param data_box указатель на объект \link HyScanDataBox \endlink;
  * \param name название параметра.
  *
