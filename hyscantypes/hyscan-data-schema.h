@@ -22,44 +22,52 @@
  *
  * Схема данных приводится в формате XML. Описание схемы имеет следующий вид:
  *
- * &lt;schemalist gettext-domain="domain"&gt;<br>
+ * \code
  *
- * &nbsp;&nbsp;&lt;enum id="modes"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;value name="Fill" value="1"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Filled figure&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/value&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;value name="Empty" value="2"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Empty figure&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/value&gt;<br>
- * &nbsp;&nbsp;&lt;/enum&gt;<br>
+ * <schemalist gettext-domain="domain">
  *
- * &nbsp;&nbsp;&lt;schema id="color"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="red" name="Red" type="double"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Red component&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="green" name="Green" type="double"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Green component&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="blue" name="Blue" type="double"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;range min="0.0" max="1.0" step="0.05"/&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;0.5&lt;/default&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Blue component&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
- * &nbsp;&nbsp;&lt;/schema&gt;<br>
+ *   <enum id="modes">
+ *     <value name="Fill" value="1">
+ *       <description>Filled figure</description>
+ *     </value>
+ *     <value name="Empty" value="2">
+ *       <description>Empty figure</description>
+ *     </value>
+ *   </enum>
  *
- * &nbsp;&nbsp;&lt;schema id="circle"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;node id="color" schema="color"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;key id="mode" name="Mode" enum="modes"&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;default&gt;1&lt;/default&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;description&gt;Filling modee&lt;/description&gt;<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/key&gt;<br>
- * &nbsp;&nbsp;&lt;/schema&gt;<br>
+ *   <schema id="color">
+ *     <key id="red" name="Red" type="double">
+ *       <range min="0.0" max="1.0" step="0.05"/>
+ *       <default>0.5</default>
+ *       <description>Red component</description>
+ *     </key>
+ *     <key id="green" name="Green" type="double">
+ *       <range min="0.0" max="1.0" step="0.05"/>
+ *       <default>0.5</default>
+ *       <description>Green component</description>
+ *     </key>
+ *     <key id="blue" name="Blue" type="double">
+ *       <range min="0.0" max="1.0" step="0.05"/>
+ *       <default>0.5</default>
+ *       <description>Blue component</description>
+ *     </key>
+ *     <key id="alpha" name="Alpha" type="double" flags="readonly">
+ *       <default>0.5</default>
+ *       <description>Alpha component</description>
+ *     </key>
+ *   </schema>
  *
- * &lt;/schemalist&gt;
+ *   <schema id="circle">
+ *     <node id="color" schema="color">
+ *     <key id="mode" name="Mode" enum="modes">
+ *       <default>1</default>
+ *       <description>Filling modee</description>
+ *     </key>
+ *   </schema>
+ *
+ * </schemalis>
+ *
+ * \endcode
  *
  * Все данные с описанием схем храняться в теге &lt;schemalist&gt;. Опциональным атрибутом этого тега является
  * "gettext-domain" - имя домена с переводами для имён и описаний параметров схем. При загрузке схемы
@@ -82,6 +90,9 @@
  * - id - идентификатор параметра;
  * - name - название параметра (может содержать перевод);
  * - type - тип параметра.
+ *
+ * Дополнительным атрибутом может быть "flags". Если его значение установлено в "readonly", значение этого
+ * параметра нельзя изменять.
  *
  * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaType \endlink:
  * - "boolean" - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, логический тип;
@@ -131,6 +142,8 @@
  * После использования необходимо освободить память, занятую этой структурой, с помощью функции
  * #hyscan_data_schema_free_nodes.
  *
+ * Функция #hyscan_data_schema_key_is_readonly предназначена для проверки доступности параметра на запись.
+ *
  * Следующая группа функций предназначена для получения атрибутов параметров:
  *
  * - #hyscan_data_schema_key_get_type - возвращает тип параметра;
@@ -169,7 +182,15 @@ G_BEGIN_DECLS
 #define HYSCAN_DATA_SCHEMA_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HYSCAN_TYPE_DATA_SCHEMA, HyScanDataSchemaClass))
 
 typedef struct _HyScanDataSchema HyScanDataSchema;
+typedef struct _HyScanDataSchemaPrivate HyScanDataSchemaPrivate;
 typedef struct _HyScanDataSchemaClass HyScanDataSchemaClass;
+
+struct _HyScanDataSchema
+{
+  GObject parent_instance;
+
+  HyScanDataSchemaPrivate *priv;
+};
 
 struct _HyScanDataSchemaClass
 {
@@ -217,6 +238,7 @@ struct _HyScanDataSchemaParam
   const gchar                         *name;           /**< Название параметра. */
   const gchar                         *description;    /**< Описание параметра. */
   HyScanDataSchemaType                 type;           /**< Тип параметра. */
+  gboolean                             readonly;       /**< Параметр доступен только для чтения. */
 };
 
 HYSCAN_TYPES_EXPORT
@@ -372,6 +394,19 @@ const gchar           *hyscan_data_schema_key_get_name                 (HyScanDa
  */
 HYSCAN_TYPES_EXPORT
 const gchar           *hyscan_data_schema_key_get_description          (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+/**
+ *
+ * Функция возвращает доступность параметра на запись.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param key_id идентификатор параметра.
+ *
+ * \return TRUE - если параметр доступен только для чтения, FALSE - если доступен на запись.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+gboolean               hyscan_data_schema_key_is_readonly              (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
 /**

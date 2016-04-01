@@ -197,6 +197,9 @@ void check_enum (HyScanDataSchema *schema, const gchar *key_id)
   g_free (check_name);
   g_free (check_description);
 
+  if (hyscan_data_schema_key_is_readonly (schema, key_id))
+    return;
+
   for (i = default_value; i > 0; i--)
     {
       if (!hyscan_data_schema_key_check_enum (schema, key_id, i))

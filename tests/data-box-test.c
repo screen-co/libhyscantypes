@@ -18,6 +18,14 @@ void check_boolean (HyScanDataBox *data, const gchar *name)
   schema = hyscan_data_box_get_schema (data);
   local_mod_counter = mod_counter;
 
+  if (hyscan_data_schema_key_is_readonly (schema, name))
+    {
+      if (hyscan_data_box_set (data, name, HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, NULL, 0))
+        g_error ("%s: can set read only value", name);
+
+      return;
+    }
+
   if (!hyscan_data_schema_key_get_default_boolean (schema, name, &default_value))
     g_error ("%s: can't get default value", name);
 
@@ -67,6 +75,14 @@ void check_integer (HyScanDataBox *data, const gchar *name)
 
   schema = hyscan_data_box_get_schema (data);
   local_mod_counter = mod_counter;
+
+  if (hyscan_data_schema_key_is_readonly (schema, name))
+    {
+      if (hyscan_data_box_set (data, name, HYSCAN_DATA_SCHEMA_TYPE_INTEGER, NULL, 0))
+        g_error ("%s: can set read only value", name);
+
+      return;
+    }
 
   if (!hyscan_data_schema_key_get_default_integer (schema, name, &default_value))
     g_error ("%s: can't get default value", name);
@@ -118,6 +134,14 @@ void check_double (HyScanDataBox *data, const gchar *name)
   schema = hyscan_data_box_get_schema (data);
   local_mod_counter = mod_counter;
 
+  if (hyscan_data_schema_key_is_readonly (schema, name))
+    {
+      if (hyscan_data_box_set (data, name, HYSCAN_DATA_SCHEMA_TYPE_DOUBLE, NULL, 0))
+        g_error ("%s: can set read only value", name);
+
+      return;
+    }
+
   if (!hyscan_data_schema_key_get_default_double (schema, name, &default_value))
     g_error ("%s: can't get default value", name);
 
@@ -166,6 +190,14 @@ void check_string (HyScanDataBox *data, const gchar *name)
   schema = hyscan_data_box_get_schema (data);
   local_mod_counter = mod_counter;
 
+  if (hyscan_data_schema_key_is_readonly (schema, name))
+    {
+      if (hyscan_data_box_set (data, name, HYSCAN_DATA_SCHEMA_TYPE_STRING, NULL, 0))
+        g_error ("%s: can set read only value", name);
+
+      return;
+    }
+
   default_value = hyscan_data_schema_key_get_default_string (schema, name);
   if (default_value == NULL)
     g_error ("%s: can't get default value", name);
@@ -209,6 +241,14 @@ void check_enum (HyScanDataBox *data, const gchar *name)
 
   schema = hyscan_data_box_get_schema (data);
   local_mod_counter = mod_counter;
+
+  if (hyscan_data_schema_key_is_readonly (schema, name))
+    {
+      if (hyscan_data_box_set (data, name, HYSCAN_DATA_SCHEMA_TYPE_ENUM, NULL, 0))
+        g_error ("%s: can set read only value", name);
+
+      return;
+    }
 
   if (!hyscan_data_schema_key_get_default_enum (schema, name, &default_value))
     g_error ("%s: can't get default value", name);

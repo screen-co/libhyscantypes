@@ -58,7 +58,15 @@ G_BEGIN_DECLS
 #define HYSCAN_DATA_BOX_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HYSCAN_TYPE_DATA_BOX, HyScanDataBoxClass))
 
 typedef struct _HyScanDataBox HyScanDataBox;
+typedef struct _HyScanDataBoxPrivate HyScanDataBoxPrivate;
 typedef struct _HyScanDataBoxClass HyScanDataBoxClass;
+
+struct _HyScanDataBox
+{
+  GObject parent_instance;
+
+  HyScanDataBoxPrivate *priv;
+};
 
 struct _HyScanDataBoxClass
 {

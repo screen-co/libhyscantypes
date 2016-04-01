@@ -204,12 +204,38 @@
     </key>
   </schema>
 
+  <schema id="readonly">
+    <key id="false" name="False" type="boolean" flags="readonly">
+      <default>false</default>
+      <description>False value</description>
+    </key>
+    <key id="integer" name="Integer 2" type="integer" flags="readonly">
+      <range min="2" max="2000" step="2"/>
+      <default>2</default>
+      <description>Integer 2 value</description>
+    </key>
+    <key id="double" name="Double 2" type="double" flags="readonly">
+      <range min="2.0" max="2000.0" step="2.0"/>
+      <default>2.0</default>
+      <description>Double 2 value</description>
+    </key>
+    <key id="string" name="String 2" type="string" flags="readonly">
+      <default>String 2</default>
+      <description>String 2 value</description>
+    </key>
+    <key id="enum" name="Enum 2" enum="enum2" flags="readonly">
+      <default>2</default>
+      <description>Enum 2 value</description>
+    </key>
+  </schema>
+
   <schema id="test">
     <node id="level1" schema="complex"/>
     <node id="level2" schema="complex"/>
     <node id="level3" schema="complex"/>
     <node id="level4" schema="complex"/>
     <node id="level5" schema="complex"/>
+    <node id="readonly" schema="readonly"/>
     <key id="true" name="True" type="boolean">
       <default>true</default>
       <description>True value</description>

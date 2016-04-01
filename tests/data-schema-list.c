@@ -17,7 +17,9 @@ void print_node (HyScanDataSchema     *schema,
 
   for (i = 0; i < nodes->n_params; i++)
     {
-      printf (" * %s (%s)\n", nodes->params[i]->name, nodes->params[i]->description);
+      printf (" * %s (%s) %s\n", nodes->params[i]->name,
+                                 nodes->params[i]->description,
+                                 nodes->params[i]->readonly ? "(READONLY)" : "");
 
       switch (nodes->params[i]->type)
         {
@@ -39,8 +41,15 @@ void print_node (HyScanDataSchema     *schema,
             hyscan_data_schema_key_get_integer_range (schema, nodes->params[i]->id, &minimum_value, &maximum_value);
             hyscan_data_schema_key_get_integer_step (schema, nodes->params[i]->id, &value_step);
             printf ("     Default value: %" G_GINT64_FORMAT, default_value);
-            printf (", minimum value %" G_GINT64_FORMAT", maximum value %" G_GINT64_FORMAT, minimum_value, maximum_value);
-            printf (", step %" G_GINT64_FORMAT "\n", value_step);
+            if (!nodes->params[i]->readonly)
+              {
+                printf (", minimum value %" G_GINT64_FORMAT", maximum value %" G_GINT64_FORMAT, minimum_value, maximum_value);
+                printf (", step %" G_GINT64_FORMAT "\n", value_step);
+              }
+            else
+              {
+                printf ("\n");
+              }
           }
           break;
 
@@ -54,8 +63,15 @@ void print_node (HyScanDataSchema     *schema,
             hyscan_data_schema_key_get_double_range (schema, nodes->params[i]->id, &minimum_value, &maximum_value);
             hyscan_data_schema_key_get_double_step (schema, nodes->params[i]->id, &value_step);
             printf ("     Default value: %.03lf", default_value);
-            printf (", minimum value %.03lf, maximum value %.03lf", minimum_value, maximum_value);
-            printf (", step %.03lf\n", value_step);
+            if (!nodes->params[i]->readonly)
+              {
+                printf (", minimum value %.03lf, maximum value %.03lf", minimum_value, maximum_value);
+                printf (", step %.03lf\n", value_step);
+              }
+            else
+              {
+                printf ("\n");
+              }
           }
           break;
 
@@ -78,6 +94,10 @@ void print_node (HyScanDataSchema     *schema,
 
             for (j = 0; values != NULL && values[j] != NULL; j++)
               {
+                if (nodes->params[i]->readonly &&
+                    values[j]->value != default_value)
+                  continue;
+
                 if (values[j]->value == default_value)
                   printf ("     * ");
                 else

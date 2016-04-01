@@ -31,13 +31,11 @@ typedef struct
   gint64                       value;                  /* Значение параметра. */
   guint32                      mod_count;              /* Счётчик изменений значений параметра. */
   GQuark                       name_id;                /* Идентификатор названия параметра. */
+  gboolean                     readonly;               /* Параметр доступен только для чтения. */
 } HyScanDataBoxParam;
 
-/* Внутренние данные объекта. */
-struct _HyScanDataBox
+struct _HyScanDataBoxPrivate
 {
-  GObject                      parent_instance;
-
   HyScanDataSchema            *schema;                 /* Описание схемы. */
 
   GHashTable                  *params;                 /* Значения параметров. */
@@ -60,7 +58,7 @@ static void    hyscan_data_box_param_free              (gpointer               p
 
 static guint   hyscan_data_box_signals[SIGNAL_LAST] = { 0 };
 
-G_DEFINE_TYPE (HyScanDataBox, hyscan_data_box, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_PRIVATE (HyScanDataBox, hyscan_data_box, G_TYPE_OBJECT);
 
 static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
 {
@@ -83,6 +81,7 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
 static void
 hyscan_data_box_init (HyScanDataBox *data_box)
 {
+  data_box->priv = hyscan_data_box_get_instance_private (data_box);
 }
 
 static void
@@ -92,11 +91,12 @@ hyscan_data_box_set_property (GObject      *object,
                               GParamSpec   *pspec)
 {
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
+  HyScanDataBoxPrivate *priv = data_box->priv;
 
   switch (prop_id)
     {
     case PROP_SCHEMA:
-      data_box->schema = g_value_dup_object (value);
+      priv->schema = g_value_dup_object (value);
       break;
 
     default:
@@ -109,30 +109,33 @@ static void
 hyscan_data_box_object_constructed (GObject *object)
 {
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
+  HyScanDataBoxPrivate *priv = data_box->priv;
 
   const gchar * const *keys_list;
   gint i;
 
-  g_rw_lock_init (&data_box->lock);
+  g_rw_lock_init (&priv->lock);
 
   /* Таблица со значениями параметров. */
-  data_box->params = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, hyscan_data_box_param_free);
+  priv->params = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, hyscan_data_box_param_free);
 
   /* Схема данных. */
-  if (data_box->schema == NULL)
+  if (priv->schema == NULL)
     return;
 
   /* Список параметров. */
-  keys_list = hyscan_data_schema_list_keys (data_box->schema);
+  keys_list = hyscan_data_schema_list_keys (priv->schema);
   if( keys_list == NULL)
     return;
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
       HyScanDataBoxParam *param = g_slice_new0 (HyScanDataBoxParam);
-      param->type = hyscan_data_schema_key_get_type (data_box->schema, keys_list[i]);
+
+      param->type = hyscan_data_schema_key_get_type (priv->schema, keys_list[i]);
       param->name_id = g_quark_from_string (keys_list[i]);
-      g_hash_table_insert (data_box->params, (gpointer)keys_list[i], param);
+      param->readonly = hyscan_data_schema_key_is_readonly (priv->schema, keys_list[i]);
+      g_hash_table_insert (priv->params, (gpointer)keys_list[i], param);
     }
 }
 
@@ -140,10 +143,11 @@ static void
 hyscan_data_box_object_finalize (GObject *object)
 {
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
+  HyScanDataBoxPrivate *priv = data_box->priv;
 
-  g_object_unref (data_box->schema);
-  g_hash_table_unref (data_box->params);
-  g_rw_lock_clear (&data_box->lock);
+  g_object_unref (priv->schema);
+  g_hash_table_unref (priv->params);
+  g_rw_lock_clear (&priv->lock);
 
   G_OBJECT_CLASS (hyscan_data_box_parent_class)->finalize (object);
 }
@@ -231,7 +235,7 @@ hyscan_data_box_get_schema (HyScanDataBox *data_box)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), NULL);
 
-  return data_box->schema;
+  return data_box->priv->schema;
 }
 
 /* Функция возвращает значение счётчика изменений параметра. */
@@ -244,9 +248,9 @@ hyscan_data_box_get_mod_count (HyScanDataBox *data_box,
   g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), 0);
 
   if (name == NULL)
-    return data_box->mod_count;
+    return data_box->priv->mod_count;
 
-  param = g_hash_table_lookup (data_box->params, name);
+  param = g_hash_table_lookup (data_box->priv->params, name);
   if (param != NULL)
     return param->mod_count;
 
@@ -261,17 +265,20 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
                      gconstpointer         value,
                      gint32                size)
 {
+  HyScanDataBoxPrivate *priv;
   HyScanDataBoxParam *param;
   gboolean status = FALSE;
   GQuark name_id = 0;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
 
-  param = g_hash_table_lookup (data_box->params, name);
-  if (param == NULL || param->type != type)
+  priv = data_box->priv;
+
+  param = g_hash_table_lookup (priv->params, name);
+  if (param == NULL || param->type != type || param->readonly)
     return FALSE;
 
-  g_rw_lock_writer_lock (&data_box->lock);
+  g_rw_lock_writer_lock (&priv->lock);
 
   name_id = param->name_id;
 
@@ -283,7 +290,7 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
       param->value = 0;
       param->used = FALSE;
       param->mod_count += 1;
-      data_box->mod_count += 1;
+      priv->mod_count += 1;
       status = TRUE;
       goto exit;
     }
@@ -308,13 +315,13 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
-      if (!hyscan_data_schema_key_check_integer (data_box->schema, name, *(gint64*)value))
+      if (!hyscan_data_schema_key_check_integer (priv->schema, name, *(gint64*)value))
         goto exit;
       *(gint64*)(&param->value) = *(gint64*)value;
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
-      if (!hyscan_data_schema_key_check_double (data_box->schema, name, *(gdouble*)value))
+      if (!hyscan_data_schema_key_check_double (priv->schema, name, *(gdouble*)value))
         goto exit;
       *(gdouble*)(&param->value) = *(gdouble*)value;
       break;
@@ -325,7 +332,7 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
-      if (!hyscan_data_schema_key_check_enum (data_box->schema, name, *(gint64*)value))
+      if (!hyscan_data_schema_key_check_enum (priv->schema, name, *(gint64*)value))
         goto exit;
       *(gint64*)(&param->value) = *(gint64*)value;
       break;
@@ -336,11 +343,11 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
 
   param->used = TRUE;
   param->mod_count += 1;
-  data_box->mod_count += 1;
+  priv->mod_count += 1;
   status = TRUE;
 
 exit:
-  g_rw_lock_writer_unlock (&data_box->lock);
+  g_rw_lock_writer_unlock (&priv->lock);
 
   if (status)
     g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_CHANGED], name_id, name);
@@ -356,16 +363,19 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
                      gpointer               buffer,
                      gint32                *buffer_size)
 {
+  HyScanDataBoxPrivate *priv;
   HyScanDataBoxParam *param;
   gboolean status = FALSE;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
 
-  param = g_hash_table_lookup (data_box->params, name);
+  priv = data_box->priv;
+
+  param = g_hash_table_lookup (priv->params, name);
   if (param == NULL || param->type != type)
     return FALSE;
 
-  g_rw_lock_reader_lock (&data_box->lock);
+  g_rw_lock_reader_lock (&priv->lock);
 
   /* Определение размера значения параметра. */
   if (buffer == NULL)
@@ -375,7 +385,7 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
       else if (param->used)
         *buffer_size = strlen (*(gpointer*)(&param->value)) + 1;
       else
-        *buffer_size = strlen (hyscan_data_schema_key_get_default_string (data_box->schema, name)) + 1;
+        *buffer_size = strlen (hyscan_data_schema_key_get_default_string (priv->schema, name)) + 1;
 
       status = TRUE;
       goto exit;
@@ -396,21 +406,21 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
       if (param->used)
         *(gboolean*)buffer = *(gint64*)&param->value;
       else
-        status = hyscan_data_schema_key_get_default_boolean (data_box->schema, name, buffer);
+        status = hyscan_data_schema_key_get_default_boolean (priv->schema, name, buffer);
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
       if (param->used)
         *(gint64*)buffer = *(gint64*)&param->value;
       else
-        status = hyscan_data_schema_key_get_default_integer (data_box->schema, name, buffer);
+        status = hyscan_data_schema_key_get_default_integer (priv->schema, name, buffer);
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
       if (param->used)
         *(gdouble*)buffer = *(gdouble*)&param->value;
       else
-        status = hyscan_data_schema_key_get_default_double (data_box->schema, name, buffer);
+        status = hyscan_data_schema_key_get_default_double (priv->schema, name, buffer);
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_STRING:
@@ -420,7 +430,7 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
         if (param->used)
           str_value = *(gpointer*)&param->value;
         else
-          str_value = hyscan_data_schema_key_get_default_string (data_box->schema, name);
+          str_value = hyscan_data_schema_key_get_default_string (priv->schema, name);
 
         if (str_value == NULL)
           *buffer_size = 0;
@@ -433,7 +443,7 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
       if (param->used)
         *(gint64*)buffer = *(gint64*)&param->value;
       else
-        status = hyscan_data_schema_key_get_default_enum (data_box->schema, name, buffer);
+        status = hyscan_data_schema_key_get_default_enum (priv->schema, name, buffer);
       break;
 
     default:
@@ -442,7 +452,7 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
     }
 
 exit:
-  g_rw_lock_reader_unlock (&data_box->lock);
+  g_rw_lock_reader_unlock (&priv->lock);
 
   return status;
 }
