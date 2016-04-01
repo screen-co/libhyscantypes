@@ -10,14 +10,84 @@
 
 #include "hyscan-types.h"
 
-/* Типы данных и их названия. */
-typedef struct HyScanDataTypeInfo
+/* Типы каналов и их названия. */
+typedef struct
 {
-  GQuark                     quark;
-  const gchar               *name;
-  HyScanDataType             type;
+  GQuark                       quark;
+  const gchar                 *name;
+
+  HyScanSonarBoardType         board_type;
+  HyScanSonarDataType          data_type;
+  gboolean                     hi_res;
+  gboolean                     raw;
+  gint                         index;
+} HyScanChannelTypeInfo;
+
+/* Типы данных и их названия. */
+typedef struct
+{
+  GQuark                       quark;
+  const gchar                 *name;
+  HyScanDataType               type;
 } HyScanDataTypeInfo;
 
+/* Типы каналов и их названия. */
+static HyScanChannelTypeInfo hyscan_channel_types_info[] =
+{
+  { 0, "echo-sounder",     HYSCAN_SONAR_BOARD_BOTTOM, HYSCAN_SONAR_DATA_ECHOSOUNDER, FALSE, FALSE, 1 },
+  { 0, "echo-sounder-raw", HYSCAN_SONAR_BOARD_BOTTOM, HYSCAN_SONAR_DATA_ECHOSOUNDER, FALSE, TRUE,  1 },
+
+  { 0, "ss-left",          HYSCAN_SONAR_BOARD_LEFT, HYSCAN_SONAR_DATA_SIDE_SCAN, FALSE, FALSE, 1 },
+  { 0, "ss-left-hi",       HYSCAN_SONAR_BOARD_LEFT, HYSCAN_SONAR_DATA_SIDE_SCAN, TRUE,  FALSE, 1 },
+  { 0, "ss-left-raw",      HYSCAN_SONAR_BOARD_LEFT, HYSCAN_SONAR_DATA_SIDE_SCAN, FALSE, TRUE,  1 },
+  { 0, "ss-left-hi-raw",   HYSCAN_SONAR_BOARD_LEFT, HYSCAN_SONAR_DATA_SIDE_SCAN, TRUE,  TRUE,  1 },
+
+  { 0, "ss-right",         HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, FALSE, FALSE, 1 },
+  { 0, "ss-right-hi",      HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, TRUE,  FALSE, 1 },
+  { 0, "ss-right-raw",     HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, FALSE, TRUE,  1 },
+  { 0, "ss-right-hi-raw",  HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, TRUE,  TRUE,  1 },
+
+  { 0, "sas",              HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, 1 },
+
+  { 0, "nmea-gsa",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, 1 },
+  { 0, "nmea-gsv",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, 1 },
+  { 0, "nmea-gga",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, 1 },
+  { 0, "nmea-gll",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, 1 },
+  { 0, "nmea-rmc",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, 1 },
+  { 0, "nmea-dpt",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, 1 },
+
+  { 0, "nmea-gsa-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, 2 },
+  { 0, "nmea-gsv-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, 2 },
+  { 0, "nmea-gga-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, 2 },
+  { 0, "nmea-gll-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, 2 },
+  { 0, "nmea-rmc-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, 2 },
+  { 0, "nmea-dpt-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, 2 },
+
+  { 0, "nmea-gsa-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, 3 },
+  { 0, "nmea-gsv-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, 3 },
+  { 0, "nmea-gga-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, 3 },
+  { 0, "nmea-gll-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, 3 },
+  { 0, "nmea-rmc-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, 3 },
+  { 0, "nmea-dpt-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, 3 },
+
+  { 0, "nmea-gsa-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, 4 },
+  { 0, "nmea-gsv-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, 4 },
+  { 0, "nmea-gga-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, 4 },
+  { 0, "nmea-gll-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, 4 },
+  { 0, "nmea-rmc-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, 4 },
+  { 0, "nmea-dpt-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, 4 },
+
+  { 0, "nmea-gsa-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, 5 },
+  { 0, "nmea-gsv-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, 5 },
+  { 0, "nmea-gga-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, 5 },
+  { 0, "nmea-gll-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, 5 },
+  { 0, "nmea-rmc-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, 5 },
+  { 0, "nmea-dpt-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, 5 },
+
+  { 0, NULL, HYSCAN_SONAR_BOARD_INVALID, HYSCAN_SONAR_DATA_INVALID, FALSE, FALSE, 0 }
+};
+
+/* Типы данных и их названия. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
   { 0, "HyScan-String", HYSCAN_DATA_TYPE_STRING },
@@ -71,10 +141,83 @@ hyscan_types_initialize (void)
   if (hyscan_initialized)
     return;
 
-  for (i = 0; hyscan_data_types_info[i].name; i++)
+  for (i = 0; hyscan_data_types_info[i].name != NULL; i++)
     hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].name);
 
+  for (i = 0; hyscan_channel_types_info[i].name != NULL; i++)
+    hyscan_channel_types_info[i].quark = g_quark_from_static_string (hyscan_channel_types_info[i].name);
+
   hyscan_initialized = TRUE;
+}
+
+/* Функция возвращает название канала для указанных характеристик. */
+const gchar *
+hyscan_get_channel_name_by_types (HyScanSonarBoardType board_type,
+                                  HyScanSonarDataType  data_type,
+                                  gboolean             hi_res,
+                                  gboolean             raw,
+                                  gint                 index)
+{
+  gint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем название канала для указанных характеристик. */
+  for (i = 0; hyscan_channel_types_info[i].quark != 0; i++)
+    {
+      if (hyscan_channel_types_info[i].board_type != board_type)
+        continue;
+      if (hyscan_channel_types_info[i].data_type != data_type)
+        continue;
+      if (hyscan_channel_types_info[i].hi_res != hi_res)
+        continue;
+      if (hyscan_channel_types_info[i].raw != raw)
+        continue;
+      if (hyscan_channel_types_info[i].index != index)
+        continue;
+      return hyscan_channel_types_info[i].name;
+    }
+
+  return NULL;
+}
+
+/* Функция возвращает характеристики канала данных по его имени. */
+gboolean
+hyscan_get_channel_types_by_name (const gchar          *channel_name,
+                                  HyScanSonarBoardType *board_type,
+                                  HyScanSonarDataType  *data_type,
+                                  gboolean             *hi_res,
+                                  gboolean             *raw,
+                                  gint                 *index)
+{
+  GQuark quark;
+  gint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем канал с указанным именем. */
+  quark = g_quark_try_string (channel_name);
+  for (i = 0; hyscan_channel_types_info[i].quark != 0; i++)
+    {
+      if (hyscan_channel_types_info[i].quark == quark)
+        {
+          if (board_type != NULL)
+            *board_type = hyscan_channel_types_info[i].board_type;
+          if (data_type != NULL)
+            *data_type = hyscan_channel_types_info[i].data_type;
+          if (hi_res != NULL)
+            *hi_res = hyscan_channel_types_info[i].hi_res;
+          if (raw != NULL)
+            *raw = hyscan_channel_types_info[i].raw;
+          if (index != NULL)
+            *index = hyscan_channel_types_info[i].index;
+          return TRUE;
+        }
+    }
+
+  return FALSE;
 }
 
 /* Функция преобразовывает строку с названием типа данных в нумерованное значение. */
@@ -87,11 +230,13 @@ hyscan_get_data_type_by_name (const gchar *data_name)
   /* Инициализация статических данных. */
   hyscan_types_initialize ();
 
-  /* Ищем строку с указанным именем типа данных. */
+  /* Ищем тип данных с указанным именем. */
   quark = g_quark_try_string (data_name);
-  for (i = 0; hyscan_data_types_info[i].name; i++)
-    if (hyscan_data_types_info[i].quark == quark)
-      return hyscan_data_types_info[i].type;
+  for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
+    {
+      if (hyscan_data_types_info[i].quark == quark)
+        return hyscan_data_types_info[i].type;
+    }
 
   return HYSCAN_DATA_TYPE_INVALID;
 }
@@ -106,7 +251,7 @@ hyscan_get_data_type_name (HyScanDataType data_type)
   hyscan_types_initialize ();
 
   /* Ищем строку с указанным типом данных. */
-  for (i = 0; hyscan_data_types_info[i].name; i++)
+  for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     if (hyscan_data_types_info[i].type == data_type)
       return hyscan_data_types_info[i].name;
 

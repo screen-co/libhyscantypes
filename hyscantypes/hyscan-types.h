@@ -15,6 +15,10 @@
  * - \link HyScanSonarDataType \endlink - типы гидролокационных данных;
  * - \link HyScanDataType \endlink - типы данных.
  *
+ * Для определения названий каналов, по типу сохраняемых в них данных и их характеристикам,
+ * предназначена функция #hyscan_get_channel_name_by_types.  Определить характеристики данных
+ * по названию канала можно функцией #hyscan_get_channel_types_by_name.
+ *
  * Для данных доступны функции определения типа по имени данных и наоборот, определения размера одного отсчёта
  * в данных и преобразования данных:
  *
@@ -39,11 +43,9 @@ typedef enum
 {
   HYSCAN_SONAR_INVALID                 = 0,            /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_SONAR_ECHO                    = 101,          /**< Эхолот. */
+  HYSCAN_SONAR_ECHOSOUNDER             = 101,          /**< Эхолот. */
   HYSCAN_SONAR_SIDE_SCAN               = 102,          /**< Гидролокатор бокового обзора. */
-  HYSCAN_SONAR_SIDE_SCAN_WITH_ECHO     = 103,          /**< Гидролокатор бокового обзора с эхолотом */
   HYSCAN_SONAR_SIDE_SCAN_DF            = 104,          /**< Гидролокатор бокового обзора двухчастотный. */
-  HYSCAN_SONAR_SIDE_SCAN_WITH_ECHO_DF  = 105,          /**< Гидролокатор бокового обзора с эхолотом двухчастотный. */
   HYSCAN_SONAR_LOOK_AROUND             = 106,          /**< Гидролокатор кругового обзора. */
   HYSCAN_SONAR_LOOK_AHEAD              = 107,          /**< Вперёд смотрящий гидролокатор. */
   HYSCAN_SONAR_PROFILER                = 108,          /**< Профилограф. */
@@ -56,21 +58,32 @@ typedef enum
 {
   HYSCAN_SONAR_BOARD_INVALID           = 0,            /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_SONAR_BOARD_FORWARD           = 101,          /**< Вперёд. */
-  HYSCAN_SONAR_BOARD_BOTTOM            = 102,          /**< Под собой. */
-  HYSCAN_SONAR_BOARD_LEFT              = 103,          /**< Левый борт. */
-  HYSCAN_SONAR_BOARD_RIGHT             = 104           /**< Правый борт. */
+  HYSCAN_SONAR_BOARD_ANY               = 101,          /**< Не определён. */
+
+  HYSCAN_SONAR_BOARD_FORWARD           = 201,          /**< Вперёд. */
+  HYSCAN_SONAR_BOARD_BACKWARD          = 202,          /**< Назад. */
+  HYSCAN_SONAR_BOARD_BOTTOM            = 203,          /**< Под собой. */
+  HYSCAN_SONAR_BOARD_LEFT              = 204,          /**< Влево. */
+  HYSCAN_SONAR_BOARD_RIGHT             = 205,          /**< Вправо. */
+  HYSCAN_SONAR_BOARD_AROUND            = 206           /**< Круговой обзор. */
 } HyScanSonarBoardType;
 
-/** \brief Типы гидролокационных данных */
+/** \brief Типы гидролокационных данных. */
 typedef enum
 {
-  HYSCAN_SONAR_DATA_TYPE_INVALID       = 0,            /**< Недопустимый тип, ошибка. */
+  HYSCAN_SONAR_DATA_INVALID            = 0,            /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_SONAR_DATA_TYPE_NMEA          = 101,          /**< Данные навигационных датчиков типа NMEA. */
+  HYSCAN_SONAR_DATA_ECHOSOUNDER        = 101,          /**< Эхолот. */
+  HYSCAN_SONAR_DATA_SIDE_SCAN          = 102,          /**< Боковой обзор. */
 
-  HYSCAN_SONAR_DATA_TYPE_SIDE_SCAN     = 201,          /**< Данные бокового обзора или эхолота. */
-  HYSCAN_SONAR_DATA_TYPE_MULTI_BEAM    = 202           /**< Данные многолучевого локатора. */
+  HYSCAN_SONAR_DATA_SAS                = 201,          /**< Сообщения САД. */
+
+  HYSCAN_SONAR_DATA_NMEA_GSA           = 301,          /**< Сообщения NMEA GSA. */
+  HYSCAN_SONAR_DATA_NMEA_GSV           = 302,          /**< Сообщения NMEA GSV. */
+  HYSCAN_SONAR_DATA_NMEA_GGA           = 303,          /**< Сообщения NMEA GGA. */
+  HYSCAN_SONAR_DATA_NMEA_GLL           = 304,          /**< Сообщения NMEA GLL. */
+  HYSCAN_SONAR_DATA_NMEA_RMC           = 305,          /**< Сообщения NMEA RMC. */
+  HYSCAN_SONAR_DATA_NMEA_DPT           = 306           /**< Сообщения NMEA DPT. */
 } HyScanSonarDataType;
 
 /** \brief Типы данных */
@@ -133,6 +146,50 @@ typedef struct
 
 /**
  *
+ * Функция возвращает название канала для указанных характеристик.
+ * Строка, возвращаемая этой функцией, не должна изменяться пользователем.
+ *
+ * Индекс канала данных для одноканальных систем (ГБО, Эхолот) должен быть равным нулю.
+ *
+ * \param board_type тип борта;
+ * \param data_type тип данных;
+ * \param hi_res признак повышенного разрешения;
+ * \param raw признак "сырых" данных;
+ * \param index индекс канала данных.
+ *
+ * \return Строка с названием канала или NULL - в случае ошибки.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+const gchar           *hyscan_get_channel_name_by_types        (HyScanSonarBoardType           board_type,
+                                                                HyScanSonarDataType            data_type,
+                                                                gboolean                       hi_res,
+                                                                gboolean                       raw,
+                                                                gint                           index);
+
+/**
+ *
+ * Функция возвращает характеристики канала данных по его имени.
+ *
+ * \param channel_name название канала данных;
+ * \param board_type переменная для типа борта или NULL;
+ * \param data_type переменная для типа данных или NULL;
+ * \param hi_res переменная для признака повышенного разрешения или NULL;
+ * \param raw переменная для признака "сырых" данных или NULL;
+ * \param index переменная для индекса канала данных.
+ *
+ * \return TRUE - если характеристики канала определены, FALSE - в случае ошибки.
+ *
+ */
+gboolean               hyscan_get_channel_types_by_name        (const gchar                   *channel_name,
+                                                                HyScanSonarBoardType          *board_type,
+                                                                HyScanSonarDataType           *data_type,
+                                                                gboolean                      *hi_res,
+                                                                gboolean                      *raw,
+                                                                gint                          *index);
+
+/**
+ *
  *  Функция преобразовывает строку с названием типа данных в нумерованное значение.
  *
  * \param data_name название типа данных.
@@ -141,7 +198,7 @@ typedef struct
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataType         hyscan_get_data_type_by_name            (const gchar           *data_name);
+HyScanDataType         hyscan_get_data_type_by_name            (const gchar                   *data_name);
 
 /**
  *
@@ -155,7 +212,7 @@ HyScanDataType         hyscan_get_data_type_by_name            (const gchar     
  *
  */
 HYSCAN_TYPES_EXPORT
-const gchar           *hyscan_get_data_type_name               (HyScanDataType         data_type);
+const gchar           *hyscan_get_data_type_name               (HyScanDataType                 data_type);
 
 /**
  *
@@ -167,7 +224,7 @@ const gchar           *hyscan_get_data_type_name               (HyScanDataType  
  *
  */
 HYSCAN_TYPES_EXPORT
-gint32                 hyscan_get_data_point_size              (HyScanDataType         data_type);
+gint32                 hyscan_get_data_point_size              (HyScanDataType                 data_type);
 
 /**
  *
@@ -186,11 +243,11 @@ gint32                 hyscan_get_data_point_size              (HyScanDataType  
  *
  */
 HYSCAN_TYPES_EXPORT
-gboolean               hyscan_data_import_complex_float        (HyScanDataType         data_type,
-                                                                gpointer               data,
-                                                                gint32                 data_size,
-                                                                HyScanComplexFloat    *buffer,
-                                                                gint32                *buffer_size);
+gboolean               hyscan_data_import_complex_float        (HyScanDataType                 data_type,
+                                                                gpointer                       data,
+                                                                gint32                         data_size,
+                                                                HyScanComplexFloat            *buffer,
+                                                                gint32                        *buffer_size);
 
 /**
  *
@@ -209,11 +266,11 @@ gboolean               hyscan_data_import_complex_float        (HyScanDataType  
  *
  */
 HYSCAN_TYPES_EXPORT
-gboolean               hyscan_data_import_complex_double       (HyScanDataType         data_type,
-                                                                gpointer               data,
-                                                                gint32                 data_size,
-                                                                HyScanComplexDouble   *buffer,
-                                                                gint32                *buffer_size);
+gboolean               hyscan_data_import_complex_double       (HyScanDataType                 data_type,
+                                                                gpointer                       data,
+                                                                gint32                         data_size,
+                                                                HyScanComplexDouble           *buffer,
+                                                                gint32                        *buffer_size);
 
 G_END_DECLS
 
