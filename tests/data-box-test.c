@@ -234,7 +234,7 @@ void check_enum (HyScanDataBox *data, const gchar *name)
 {
   HyScanDataSchema *schema;
   guint32 local_mod_counter;
-  const HyScanDataSchemaEnumValue* const *values;
+  HyScanDataSchemaEnumValue **values;
   gint64 default_value;
   gint64 value;
   gint i;
@@ -281,6 +281,8 @@ void check_enum (HyScanDataBox *data, const gchar *name)
   local_mod_counter = mod_counter - local_mod_counter;
   if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
     g_error ("%s: modification counter error", name);
+
+  hyscan_data_schema_free_enum_values (values);
 }
 
 int
@@ -289,7 +291,7 @@ main (int    argc,
 {
   HyScanDataBox *data;
   HyScanDataSchema *schema;
-  const gchar * const *keys_list;
+  gchar **keys_list;
   guint i;
 
   if (argv[1] == NULL)
@@ -334,6 +336,8 @@ main (int    argc,
           break;
         }
     }
+
+  g_strfreev (keys_list);
 
   if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
     g_error ("modification counter error");

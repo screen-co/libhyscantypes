@@ -38,6 +38,7 @@ struct _HyScanDataBoxPrivate
 {
   HyScanDataSchema            *schema;                 /* Описание схемы. */
 
+  gchar                      **keys_list;              /* Список параметров. */
   GHashTable                  *params;                 /* Значения параметров. */
 
   guint32                      mod_count;              /* Глобальный счётчик изменений значений параметра. */
@@ -111,7 +112,6 @@ hyscan_data_box_object_constructed (GObject *object)
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
   HyScanDataBoxPrivate *priv = data_box->priv;
 
-  const gchar * const *keys_list;
   gint i;
 
   g_rw_lock_init (&priv->lock);
@@ -124,18 +124,18 @@ hyscan_data_box_object_constructed (GObject *object)
     return;
 
   /* Список параметров. */
-  keys_list = hyscan_data_schema_list_keys (priv->schema);
-  if( keys_list == NULL)
+  priv->keys_list = hyscan_data_schema_list_keys (priv->schema);
+  if (priv->keys_list == NULL)
     return;
 
-  for (i = 0; keys_list[i] != NULL; i++)
+  for (i = 0; priv->keys_list[i] != NULL; i++)
     {
       HyScanDataBoxParam *param = g_slice_new0 (HyScanDataBoxParam);
 
-      param->type = hyscan_data_schema_key_get_type (priv->schema, keys_list[i]);
-      param->name_id = g_quark_from_string (keys_list[i]);
-      param->readonly = hyscan_data_schema_key_is_readonly (priv->schema, keys_list[i]);
-      g_hash_table_insert (priv->params, (gpointer)keys_list[i], param);
+      param->type = hyscan_data_schema_key_get_type (priv->schema, priv->keys_list[i]);
+      param->name_id = g_quark_from_string (priv->keys_list[i]);
+      param->readonly = hyscan_data_schema_key_is_readonly (priv->schema, priv->keys_list[i]);
+      g_hash_table_insert (priv->params, (gpointer)priv->keys_list[i], param);
     }
 }
 
@@ -148,6 +148,8 @@ hyscan_data_box_object_finalize (GObject *object)
   g_object_unref (priv->schema);
   g_hash_table_unref (priv->params);
   g_rw_lock_clear (&priv->lock);
+
+  g_strfreev (priv->keys_list);
 
   G_OBJECT_CLASS (hyscan_data_box_parent_class)->finalize (object);
 }

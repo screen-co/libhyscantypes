@@ -211,7 +211,7 @@ int
 main (int argc, char **argv)
 {
   HyScanDataSchema *schema;
-  const gchar * const *keys_list;
+  gchar **keys_list;
   guint i;
 
   if (argv[1] == NULL)
@@ -253,6 +253,8 @@ main (int argc, char **argv)
           break;
         }
     }
+
+  g_strfreev (keys_list);
 
   g_object_unref (schema);
 

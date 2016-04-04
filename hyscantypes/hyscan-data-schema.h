@@ -69,7 +69,7 @@
  *
  * \endcode
  *
- * Все данные с описанием схем храняться в теге &lt;schemalist&gt;. Опциональным атрибутом этого тега является
+ * Все данные с описанием схем хранятся в теге &lt;schemalist&gt;. Опциональным атрибутом этого тега является
  * "gettext-domain" - имя домена с переводами для имён и описаний параметров схем. При загрузке схемы
  * классом \link HyScanDataSchema \endlink, будет использован этот домен для поиска переводов.
  *
@@ -222,7 +222,7 @@ typedef struct _HyScanDataSchemaParam HyScanDataSchemaParam;
 /** \brief Узел с параметрами */
 struct _HyScanDataSchemaNode
 {
-  const gchar                         *path;           /**< Путь до узла. */
+  gchar                               *path;           /**< Путь до узла. */
 
   HyScanDataSchemaNode               **nodes;          /**< Дочерние узлы. */
   gint                                 n_nodes;        /**< Число дочерних узлов. */
@@ -234,9 +234,9 @@ struct _HyScanDataSchemaNode
 /** \brief Описание параметра */
 struct _HyScanDataSchemaParam
 {
-  const gchar                         *id;             /**< Идентификатор параметров. */
-  const gchar                         *name;           /**< Название параметра. */
-  const gchar                         *description;    /**< Описание параметра. */
+  gchar                               *id;             /**< Идентификатор параметров. */
+  gchar                               *name;           /**< Название параметра. */
+  gchar                               *description;    /**< Описание параметра. */
   HyScanDataSchemaType                 type;           /**< Тип параметра. */
   gboolean                             readonly;       /**< Параметр доступен только для чтения. */
 };
@@ -288,8 +288,9 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
 
 /**
  *
- * Функция возвращает описание схемы данных в фомате XML. Возвращаемая строка
- * принадлежит объекту \link HyScanDataSchema \endlink и не должна изменяться пользователем.
+ * Функция возвращает описание схемы данных в фомате XML.
+ *
+ * Пользователь должен освободить память, занимаемую схемой данных, функцией g_free.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink.
  *
@@ -297,12 +298,13 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
  *
  */
 HYSCAN_TYPES_EXPORT
-const gchar           *hyscan_data_schema_get_xml_data                 (HyScanDataSchema      *schema);
+gchar                 *hyscan_data_schema_get_xml_data                 (HyScanDataSchema      *schema);
 
 /**
  *
- * Функция возвращает идентификатор используемой схемы данных. Возвращаемая строка
- * принадлежит объекту \link HyScanDataSchema \endlink и не должна изменяться пользователем.
+ * Функция возвращает идентификатор используемой схемы данных.
+ *
+ * Пользователь должен освободить память, занимаемую идентификатором, функцией g_free.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink.
  *
@@ -310,13 +312,13 @@ const gchar           *hyscan_data_schema_get_xml_data                 (HyScanDa
  *
  */
 HYSCAN_TYPES_EXPORT
-const gchar           *hyscan_data_schema_get_schema_id                (HyScanDataSchema      *schema);
+ gchar                *hyscan_data_schema_get_schema_id                (HyScanDataSchema      *schema);
 
 /**
  *
  * Функция возвращает список параметров определённых в схеме.
  *
- * Пользователь не должен изменять этот список или освобождать память, занимаемую им.
+ * Пользователь должен освободить память, занимаемую списком, функцией g_strfreev.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink.
  *
@@ -324,7 +326,7 @@ const gchar           *hyscan_data_schema_get_schema_id                (HyScanDa
  *
  */
 HYSCAN_TYPES_EXPORT
-const gchar* const    *hyscan_data_schema_list_keys                    (HyScanDataSchema      *schema);
+gchar                **hyscan_data_schema_list_keys                    (HyScanDataSchema      *schema);
 
 /**
  *
@@ -417,7 +419,7 @@ gboolean               hyscan_data_schema_key_is_readonly              (HyScanDa
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для значения по умолчанию.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -433,7 +435,7 @@ gboolean               hyscan_data_schema_key_get_default_boolean      (HyScanDa
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для значения по умолчанию.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -449,7 +451,7 @@ gboolean               hyscan_data_schema_key_get_default_integer      (HyScanDa
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для значения по умолчанию.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -466,7 +468,7 @@ gboolean               hyscan_data_schema_key_get_default_double       (HyScanDa
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
  *
- * \return значение по умолчанию или NULL - если такого параметра нет в схеме или не свопадает тип.
+ * \return значение по умолчанию или NULL - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -481,7 +483,7 @@ const gchar           *hyscan_data_schema_key_get_default_string       (HyScanDa
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для значения по умолчанию.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -498,7 +500,7 @@ gboolean               hyscan_data_schema_key_get_default_enum         (HyScanDa
  * \param minimum указатель на переменную для минимального значения;
  * \param maximum указатель на переменную для максимального значения.
  *
- * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -516,7 +518,7 @@ gboolean               hyscan_data_schema_key_get_integer_range        (HyScanDa
  * \param minimum указатель на переменную для минимального значения;
  * \param maximum указатель на переменную для максимального значения.
  *
- * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -527,9 +529,10 @@ gboolean               hyscan_data_schema_key_get_double_range         (HyScanDa
 
 /**
  *
- * Функция возвращает варианты допустимых значений для параметра с типом ENUM.
+ * Функция возвращает NULL терминированный список вариантов допустимых значений
+ * для параметра с типом ENUM.
  *
- * Пользователь не должен изменять этот список или освобождать память, занимаемую им.
+ * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_enum_values.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
@@ -538,7 +541,7 @@ gboolean               hyscan_data_schema_key_get_double_range         (HyScanDa
  *
  */
 HYSCAN_TYPES_EXPORT
-const HyScanDataSchemaEnumValue* const *hyscan_data_schema_key_get_enum_values   (HyScanDataSchema      *schema,
+HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
 /**
@@ -549,7 +552,7 @@ const HyScanDataSchemaEnumValue* const *hyscan_data_schema_key_get_enum_values  
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для шага изменения значения.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -565,7 +568,7 @@ gboolean               hyscan_data_schema_key_get_integer_step         (HyScanDa
  * \param key_id идентификатор параметра;
  * \param value указатель на переменную для шага изменения значения.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не свопадает тип.
+ * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
 HYSCAN_TYPES_EXPORT
@@ -632,6 +635,18 @@ gboolean               hyscan_data_schema_key_check_enum               (HyScanDa
  */
 HYSCAN_TYPES_EXPORT
 void                   hyscan_data_schema_free_nodes                   (HyScanDataSchemaNode  *nodes);
+
+/**
+ *
+ * Функция освобождает память занятую списком вариантов допустимых значений для параметра с типом ENUM.
+ *
+ * \param values указатель на список значений.
+ *
+ * \return Нет.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+void                   hyscan_data_schema_free_enum_values             (HyScanDataSchemaEnumValue **values);
 
 G_END_DECLS
 

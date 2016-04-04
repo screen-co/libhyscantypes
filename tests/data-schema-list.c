@@ -85,7 +85,7 @@ void print_node (HyScanDataSchema     *schema,
 
         case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
           {
-            const HyScanDataSchemaEnumValue* const *values;
+            HyScanDataSchemaEnumValue **values;
             gint64 default_value;
             gint j;
 
@@ -105,6 +105,8 @@ void print_node (HyScanDataSchema     *schema,
 
                 printf ("%s (%s)\n", values[j]->name, values[j]->description);
               }
+
+            hyscan_data_schema_free_enum_values (values);
           }
           break;
 

@@ -86,7 +86,7 @@ static gint            hyscan_data_schema_compare_keys         (HyScanDataSchema
                                                                 HyScanDataSchemaKey   *key2,
                                                                 gpointer               user_data);
 
-static void            hyscan_data_schema_free_enum_values     (HyScanDataSchemaEnum  *values);
+static void            hyscan_data_schema_free_enum            (HyScanDataSchemaEnum  *values);
 static HyScanDataSchemaEnumValue *hyscan_data_schema_parse_enum_value (xmlNodePtr      node,
                                                                        const gchar    *gettext_domain);
 static HyScanDataSchemaEnum *hyscan_data_schema_parse_enum_values (xmlNodePtr          node,
@@ -201,7 +201,7 @@ hyscan_data_schema_object_constructed (GObject *object)
   priv->enums = g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        NULL,
-                                       (GDestroyNotify)hyscan_data_schema_free_enum_values);
+                                       (GDestroyNotify)hyscan_data_schema_free_enum);
 
 
   /* Разбор описания схемы. */
@@ -404,7 +404,7 @@ hyscan_data_schema_compare_keys (HyScanDataSchemaKey *key1,
 
 /* Функция освобождает память занятую структурой со значениями типа enum. */
 static void
-hyscan_data_schema_free_enum_values (HyScanDataSchemaEnum *values)
+hyscan_data_schema_free_enum (HyScanDataSchemaEnum *values)
 {
   gint i;
 
@@ -1060,7 +1060,7 @@ HyScanDataSchema *
 hyscan_data_schema_new_from_file (const gchar *path,
                                   const gchar *schema_id)
 {
-  GObject *object;
+  gpointer object;
   gchar *data;
 
   if (!g_file_get_contents (path, &data, NULL, NULL))
@@ -1069,7 +1069,7 @@ hyscan_data_schema_new_from_file (const gchar *path,
   object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
   g_free (data);
 
-  return HYSCAN_DATA_SCHEMA (object);
+  return object;
 }
 
 /* Функция создаёт новый объект HyScanDataSchema. */
@@ -1077,7 +1077,7 @@ HyScanDataSchema *
 hyscan_data_schema_new_from_resource (const gchar *resource_path,
                                       const gchar *schema_id)
 {
-  GObject *object;
+  gpointer object;
   GBytes *resource;
   const gchar *data;
 
@@ -1089,34 +1089,34 @@ hyscan_data_schema_new_from_resource (const gchar *resource_path,
   object = g_object_new (HYSCAN_TYPE_DATA_SCHEMA, "schema-data", data, "schema-id", schema_id, NULL);
   g_bytes_unref (resource);
 
-  return HYSCAN_DATA_SCHEMA (object);
+  return object;
 }
 
 /* Функция возвращает описание схемы данных в фомате XML. */
-const gchar *
+gchar *
 hyscan_data_schema_get_xml_data (HyScanDataSchema *schema)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return (const gchar*)schema->priv->data;
+  return g_strdup (schema->priv->data);
 }
 
 /* Функция возвращает идентификатор используемой схемы данных. */
-const gchar *
+gchar *
 hyscan_data_schema_get_schema_id (HyScanDataSchema *schema)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return (const gchar*)schema->priv->schema_id;
+  return g_strdup (schema->priv->schema_id);
 }
 
 /* Функция возвращает список параметров определённых в схеме. */
-const gchar* const *
+gchar **
 hyscan_data_schema_list_keys (HyScanDataSchema *schema)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return (const gchar* const *)schema->priv->keys_list;
+  return g_strdupv (schema->priv->keys_list);
 }
 
 /* Функция возвращает иеархический список узлов и параметров определённых в схеме. */
@@ -1353,11 +1353,14 @@ hyscan_data_schema_key_get_double_range (HyScanDataSchema      *schema,
 }
 
 /* Функция возвращает варианты допустимых значений для параметра с типом ENUM. */
-const HyScanDataSchemaEnumValue* const *
+HyScanDataSchemaEnumValue **
 hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
                                         const gchar           *key_id)
 {
+  HyScanDataSchemaEnumValue **values;
   HyScanDataSchemaKey *key;
+  gint n_values;
+  gint i;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
@@ -1365,7 +1368,19 @@ hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
   if (key == NULL || key->type != HYSCAN_DATA_SCHEMA_TYPE_ENUM)
     return NULL;
 
-  return (const HyScanDataSchemaEnumValue* const*)key->enum_values->values;
+  for (i = 0, n_values = 0; key->enum_values->values[i] != NULL; i++)
+    n_values += 1;
+
+  values = g_malloc0 (sizeof (HyScanDataSchemaEnumValue*) * (n_values + 1));
+  for (i = 0; i < n_values; i++)
+    {
+      values[i] = g_new0 (HyScanDataSchemaEnumValue, 1);
+      values[i]->value = key->enum_values->values[i]->value;
+      values[i]->name = g_strdup (key->enum_values->values[i]->name);
+      values[i]->description = g_strdup (key->enum_values->values[i]->description);
+    }
+
+  return values;
 }
 
 /* Функция возвращает рекомендуемый шаг изменения значения для параметра с типом INTEGER. */
@@ -1496,15 +1511,31 @@ hyscan_data_schema_free_nodes (HyScanDataSchemaNode *nodes)
 
   for (i = 0; i < nodes->n_params; i++)
     {
-      g_free ((gchar*)nodes->params[i]->id);
-      g_free ((gchar*)nodes->params[i]->name);
-      g_free ((gchar*)nodes->params[i]->description);
+      g_free (nodes->params[i]->id);
+      g_free (nodes->params[i]->name);
+      g_free (nodes->params[i]->description);
       g_free (nodes->params[i]);
     }
 
-  g_free ((gchar*)nodes->path);
+  g_free (nodes->path);
 
   g_free (nodes->nodes);
   g_free (nodes->params);
   g_free (nodes);
+}
+
+/* Функция освобождает память занятую списком вариантов допустимых значений для параметра с типом ENUM. */
+void
+hyscan_data_schema_free_enum_values (HyScanDataSchemaEnumValue **values)
+{
+  gint i;
+
+  for (i = 0; values[i] != NULL; i++)
+    {
+      g_free (values[i]->name);
+      g_free (values[i]->description);
+      g_free (values[i]);
+    }
+
+  g_free (values);
 }
