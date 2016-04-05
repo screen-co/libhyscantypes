@@ -2,62 +2,32 @@
 <schemalist gettext-domain="data-schema-good">
 
   <enum id="enum1">
-    <value name="Value1" value="1">
-      <description>Value 1</description>
+    <value name="Value0" value="0">
+      <description>Value 0</description>
     </value>
   </enum>
 
   <enum id="enum2">
-    <value name="Value1" value="1">
-      <description>Value 1</description>
-    </value>
-    <value name="Value2" value="2">
-      <description>Value 2</description>
+    <value name="Value0" value="0">
+      <description>Value 0</description>
     </value>
   </enum>
 
   <enum id="enum3">
-    <value name="Value1" value="1">
-      <description>Value 1</description>
-    </value>
-    <value name="Value2" value="2">
-      <description>Value 2</description>
-    </value>
-    <value name="Value3" value="3">
-      <description>Value 3</description>
+    <value name="Value0" value="0">
+      <description>Value 0</description>
     </value>
   </enum>
 
   <enum id="enum4">
-    <value name="Value1" value="1">
-      <description>Value 1</description>
-    </value>
-    <value name="Value2" value="2">
-      <description>Value 2</description>
-    </value>
-    <value name="Value3" value="3">
-      <description>Value 3</description>
-    </value>
-    <value name="Value4" value="4">
-      <description>Value 4</description>
+    <value name="Value0" value="0">
+      <description>Value 0</description>
     </value>
   </enum>
 
   <enum id="enum5">
-    <value name="Value1" value="1">
-      <description>Value 1</description>
-    </value>
-    <value name="Value2" value="2">
-      <description>Value 2</description>
-    </value>
-    <value name="Value3" value="3">
-      <description>Value 3</description>
-    </value>
-    <value name="Value4" value="4">
-      <description>Value 4</description>
-    </value>
-    <value name="Value5" value="5">
-      <description>Value 5</description>
+    <value name="Value0" value="0">
+      <description>Value 0</description>
     </value>
   </enum>
 
@@ -205,26 +175,19 @@
   </schema>
 
   <schema id="readonly">
-    <key id="false" name="False" type="boolean" flags="readonly">
-      <default>false</default>
+    <key id="false" name="False" type="boolean">
       <description>False value</description>
     </key>
-    <key id="integer" name="Integer 2" type="integer" flags="readonly">
-      <range min="2" max="2000" step="2"/>
-      <default>2</default>
+    <key id="integer" name="Integer 2" type="integer">
       <description>Integer 2 value</description>
     </key>
-    <key id="double" name="Double 2" type="double" flags="readonly">
-      <range min="2.0" max="2000.0" step="2.0"/>
-      <default>2.0</default>
+    <key id="double" name="Double 2" type="double">
       <description>Double 2 value</description>
     </key>
-    <key id="string" name="String 2" type="string" flags="readonly">
-      <default>String 2</default>
+    <key id="string" name="String 2" type="string">
       <description>String 2 value</description>
     </key>
-    <key id="enum" name="Enum 2" enum="enum2" flags="readonly">
-      <default>2</default>
+    <key id="enum" name="Enum 2" enum="enum2">
       <description>Enum 2 value</description>
     </key>
   </schema>

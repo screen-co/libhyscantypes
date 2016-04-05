@@ -203,13 +203,14 @@ hyscan_data_box_new_from_schema (HyScanDataSchema *schema)
 
 /* Функция создаёт новый объект HyScanDataBox. */
 HyScanDataBox *
-hyscan_data_box_new_from_file (const gchar *path,
-                               const gchar *schema_id)
+hyscan_data_box_new_from_file (const gchar *schema_path,
+                               const gchar *schema_id,
+                               const gchar *overrides_data)
 {
   HyScanDataBox *data_box;
   HyScanDataSchema *schema;
 
-  schema = hyscan_data_schema_new_from_file (path, schema_id);
+  schema = hyscan_data_schema_new_from_file (schema_path, schema_id, overrides_data);
   data_box = g_object_new (HYSCAN_TYPE_DATA_BOX, "schema", schema, NULL);
   g_clear_object (&schema);
 
@@ -218,13 +219,14 @@ hyscan_data_box_new_from_file (const gchar *path,
 
 /* Функция создаёт новый объект HyScanDataBox. */
 HyScanDataBox *
-hyscan_data_box_new_from_resource (const gchar *resource_path,
-                                   const gchar *schema_id)
+hyscan_data_box_new_from_resource (const gchar *schema_resource,
+                                   const gchar *schema_id,
+                                   const gchar *overrides_data)
 {
   HyScanDataBox *data_box;
   HyScanDataSchema *schema;
 
-  schema = hyscan_data_schema_new_from_resource (resource_path, schema_id);
+  schema = hyscan_data_schema_new_from_resource (schema_resource, schema_id, overrides_data);
   data_box = g_object_new (HYSCAN_TYPE_DATA_BOX, "schema", schema, NULL);
   g_clear_object (&schema);
 

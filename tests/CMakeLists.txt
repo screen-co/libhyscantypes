@@ -16,9 +16,11 @@ execute_process (COMMAND ${RESOURCE_COMPILER}
                          WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_executable (data-schema-test data-schema-test.c ${CMAKE_BINARY_DIR}/resources/data-schema-resources.c)
+add_executable (data-schema-overrides-test data-schema-overrides-test.c)
 add_executable (data-schema-list data-schema-list.c)
 add_executable (data-box-test data-box-test.c ${CMAKE_BINARY_DIR}/resources/data-schema-resources.c)
 
 target_link_libraries (data-schema-test ${GLIB2_LIBRARIES} hyscantypes)
+target_link_libraries (data-schema-overrides-test ${GLIB2_LIBRARIES} hyscantypes)
 target_link_libraries (data-schema-list ${GLIB2_LIBRARIES} hyscantypes)
 target_link_libraries (data-box-test ${GLIB2_LIBRARIES} hyscantypes)

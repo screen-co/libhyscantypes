@@ -93,29 +93,33 @@ HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema
  *
  * Функция создаёт новый объект \link HyScanDataBox \endlink.
  *
- * \param path путь к XML файлу с описанием схемы;
- * \param schema_id идентификатор загружаемой схемы.
+ * \param schema_path путь к XML файлу с описанием схемы;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
  *
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *path,
-                                                                const gchar           *schema_id);
+HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *schema_path,
+                                                                const gchar           *schema_id,
+                                                                const gchar           *overrides_data);
 
 /**
  *
  * Функция создаёт новый объект \link HyScanDataBox \endlink.
  *
- * \param resource_path путь к ресурсу GResource;
- * \param schema_id идентификатор загружаемой схемы.
+ * \param schema_resource путь к ресурсу GResource;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
  *
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *resource_path,
-                                                                const gchar           *schema_id);
+HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
+                                                                const gchar           *schema_id,
+                                                                const gchar           *overrides_data);
 
 /**
  *

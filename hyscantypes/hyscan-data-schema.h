@@ -128,8 +128,8 @@
  * или для программ исследующих струкутуру данных. Разработчик должен знать схему данных с которыми
  * он работает.
  *
- * Получить описание схемы данных можно функцией #hyscan_data_schema_get_xml_data, а идентификатор схемы
- * функцией #hyscan_data_schema_get_schema_id.
+ * Получить описание схемы данных можно функцией #hyscan_data_schema_get_data, а идентификатор схемы
+ * функцией #hyscan_data_schema_get_id.
  *
  * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_string,
  * #hyscan_data_schema_new_from_file и #hyscan_data_schema_new_from_resource.
@@ -248,43 +248,49 @@ GType                  hyscan_data_schema_get_type                     (void);
  *
  * Функция создаёт новый объект \link HyScanDataSchema \endlink.
  *
- * \param data строка с описанием схемы в формате XML;
- * \param schema_id идентификатор загружаемой схемы.
+ * \param schema_data строка с описанием схемы в формате XML;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
  *
  * \return Указатель на объект \link HyScanDataSchema \endlink.
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *data,
-                                                                        const gchar           *schema_id);
+HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *schema_data,
+                                                                        const gchar           *schema_id,
+                                                                        const gchar           *overrides_data);
 
 /**
  *
  * Функция создаёт новый объект \link HyScanDataSchema \endlink.
  *
- * \param path путь к XML файлу с описанием схемы;
- * \param schema_id идентификатор загружаемой схемы.
+ * \param schema_path путь к XML файлу с описанием схемы;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
  *
  * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный файл отсутствует.
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gchar           *path,
-                                                                        const gchar           *schema_id);
+HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gchar           *schema_path,
+                                                                        const gchar           *schema_id,
+                                                                        const gchar           *overrides_data);
 
 /**
  *
  * Функция создаёт новый объект \link HyScanDataSchema \endlink.
  *
- * \param resource_path путь к ресурсу GResource;
- * \param schema_id идентификатор загружаемой схемы.
+ * \param schema_resource путь к ресурсу GResource;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
  *
  * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный ресурс отсутствует.
  *
  */
 HYSCAN_TYPES_EXPORT
-HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *resource_path,
-                                                                        const gchar           *schema_id);
+HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *schema_resource,
+                                                                        const gchar           *schema_id,
+                                                                        const gchar           *overrides_data);
 
 /**
  *
@@ -298,7 +304,7 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
  *
  */
 HYSCAN_TYPES_EXPORT
-gchar                 *hyscan_data_schema_get_xml_data                 (HyScanDataSchema      *schema);
+gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema);
 
 /**
  *
@@ -312,7 +318,21 @@ gchar                 *hyscan_data_schema_get_xml_data                 (HyScanDa
  *
  */
 HYSCAN_TYPES_EXPORT
- gchar                *hyscan_data_schema_get_schema_id                (HyScanDataSchema      *schema);
+gchar                 *hyscan_data_schema_get_id                       (HyScanDataSchema      *schema);
+
+/**
+ *
+ * Функция возвращает переопределения используемой схемы данных.
+ *
+ * Пользователь должен освободить память, занимаемую переопределениями, функцией g_free.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ *
+ * \return Переопределения схемы данных.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+gchar                 *hyscan_data_schema_get_overrides                (HyScanDataSchema      *schema);
 
 /**
  *
