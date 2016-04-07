@@ -38,7 +38,8 @@
  * - step - рекомендуемый шаг изменения параметра.
  *
  * Создание объекта с переопределениями осуществляется функциями #hyscan_data_schema_overrides_new,
- * #hyscan_data_schema_overrides_new_from_data и #hyscan_data_schema_overrides_new_from_file.
+ * #hyscan_data_schema_overrides_new_from_data, #hyscan_data_schema_overrides_new_from_file или
+ * #hyscan_data_schema_overrides_new_from_resource.
  *
  * Получить строку с переопределениями в формате INI можно функцией #hyscan_data_schema_overrides_get_data.
  *
@@ -124,11 +125,23 @@ HyScanDataSchemaOverrides  *hyscan_data_schema_overrides_new_from_data    (const
  *
  * \param path путь к INI файлу с переопределениями схемы;
  *
- * \return Указатель на объект \link HyScanDataSchemaOverrides \endlink.
+ * \return Указатель на объект \link HyScanDataSchemaOverrides \endlink или NULL если указанный файл отсутствует.
  *
  */
 HYSCAN_TYPES_EXPORT
 HyScanDataSchemaOverrides  *hyscan_data_schema_overrides_new_from_file    (const gchar               *path);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataSchemaOverrides \endlink.
+ *
+ * \param resource путь к ресурсу GResource;
+ *
+ * \return Указатель на объект \link HyScanDataSchemaOverrides \endlink  или NULL если указанный ресурс отсутствует.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchemaOverrides  *hyscan_data_schema_overrides_new_from_resource(const gchar               *resource);
 
 /**
  *

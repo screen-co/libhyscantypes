@@ -10,6 +10,8 @@
 
 #include "hyscan-data-schema-overrides.h"
 
+#include <gio/gio.h>
+
 enum
 {
   PROP_O,
@@ -127,18 +129,38 @@ hyscan_data_schema_overrides_new_from_data (const gchar *data)
 HyScanDataSchemaOverrides *
 hyscan_data_schema_overrides_new_from_file (const gchar *path)
 {
-  gpointer object;
+  gpointer overrides;
   gchar *data;
 
   if (!g_file_get_contents (path, &data, NULL, NULL))
     return NULL;
 
-  object =  g_object_new (HYSCAN_TYPE_DATA_SCHEMA_OVERRIDES,
-                         "data", data,
-                         NULL);
+  overrides =  g_object_new (HYSCAN_TYPE_DATA_SCHEMA_OVERRIDES,
+                             "data", data,
+                             NULL);
   g_free (data);
 
-  return object;
+  return overrides;
+}
+
+/* Функция создаёт объект HyScanDataSchemaOverrides. */
+HyScanDataSchemaOverrides *
+hyscan_data_schema_overrides_new_from_resource (const gchar *resource_path)
+{
+  const gchar *data;
+  GBytes *resource;
+  gpointer overrides;
+
+  resource = g_resources_lookup_data (resource_path, 0, NULL);
+  if (resource == NULL)
+    return NULL;
+
+  data = g_bytes_get_data (resource, NULL);
+  overrides =  g_object_new (HYSCAN_TYPE_DATA_SCHEMA_OVERRIDES,
+                             "data", data,
+                             NULL);
+
+  return overrides;
 }
 
 /* Функция возвращает переопределения схемы данных в фомате INI. */

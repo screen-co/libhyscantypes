@@ -132,7 +132,8 @@
  * функцией #hyscan_data_schema_get_id.
  *
  * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_string,
- * #hyscan_data_schema_new_from_file и #hyscan_data_schema_new_from_resource.
+ * #hyscan_data_schema_new_from_file, #hyscan_data_schema_new_from_file_all,
+ * #hyscan_data_schema_new_from_resource или #hyscan_data_schema_new_from_resource_all.
  *
  * Список всех параметров схемы можно получить с помощью функции #hyscan_data_schema_list_keys.
  * Проверить существование параметра в схеме можно функцией #hyscan_data_schema_has_key.
@@ -280,6 +281,22 @@ HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gc
  *
  * Функция создаёт новый объект \link HyScanDataSchema \endlink.
  *
+ * \param schema_path путь к XML файлу с описанием схемы;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_path путь к INI файлу с переопределениями схемы.
+ *
+ * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный файл отсутствует.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchema      *hyscan_data_schema_new_from_file_all            (const gchar           *schema_path,
+                                                                        const gchar           *schema_id,
+                                                                        const gchar           *overrides_path);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataSchema \endlink.
+ *
  * \param schema_resource путь к ресурсу GResource;
  * \param schema_id идентификатор загружаемой схемы;
  * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
@@ -291,6 +308,22 @@ HYSCAN_TYPES_EXPORT
 HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *schema_resource,
                                                                         const gchar           *schema_id,
                                                                         const gchar           *overrides_data);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataSchema \endlink.
+ *
+ * \param schema_resource путь к ресурсу GResource со схемой;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_resource путь к ресурсу GResource с переопределениями схемы.
+ *
+ * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный ресурс отсутствует.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataSchema      *hyscan_data_schema_new_from_resource_all        (const gchar           *schema_resource,
+                                                                        const gchar           *schema_id,
+                                                                        const gchar           *overrides_resource);
 
 /**
  *

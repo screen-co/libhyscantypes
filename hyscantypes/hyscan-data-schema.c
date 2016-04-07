@@ -1258,6 +1258,36 @@ hyscan_data_schema_new_from_file (const gchar *schema_path,
 
 /* Функция создаёт новый объект HyScanDataSchema. */
 HyScanDataSchema *
+hyscan_data_schema_new_from_file_all (const gchar *schema_path,
+                                      const gchar *schema_id,
+                                      const gchar *overrides_path)
+{
+  gchar *schema_data;
+  gchar *overrides_data;
+  gpointer schema;
+
+  if (!g_file_get_contents (schema_path, &schema_data, NULL, NULL))
+    return NULL;
+
+  if (!g_file_get_contents (overrides_path, &overrides_data, NULL, NULL))
+    {
+      g_free (schema_data);
+      return NULL;
+    }
+
+  schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
+                         "schema-data", schema_data,
+                         "schema-id", schema_id,
+                         "overrides-data", overrides_data,
+                         NULL);
+  g_free (schema_data);
+  g_free (overrides_data);
+
+  return schema;
+}
+
+/* Функция создаёт новый объект HyScanDataSchema. */
+HyScanDataSchema *
 hyscan_data_schema_new_from_resource (const gchar *schema_resource,
                                       const gchar *schema_id,
                                       const gchar *overrides_data)
@@ -1277,6 +1307,42 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
                          "overrides-data", overrides_data,
                          NULL);
   g_bytes_unref (resource);
+
+  return schema;
+}
+
+/* Функция создаёт новый объект HyScanDataSchema. */
+HyScanDataSchema *
+hyscan_data_schema_new_from_resource_all (const gchar *schema_resource_path,
+                                          const gchar *schema_id,
+                                          const gchar *overrides_resource_path)
+{
+  const gchar *schema_data;
+  const gchar *overrides_data;
+  GBytes *schema_resource;
+  GBytes *overrides_resource;
+  gpointer schema;
+
+  schema_resource = g_resources_lookup_data (schema_resource_path, 0, NULL);
+  if (schema_resource == NULL)
+    return NULL;
+
+  overrides_resource = g_resources_lookup_data (overrides_resource_path, 0, NULL);
+  if (overrides_resource == NULL)
+    {
+      g_bytes_unref (schema_resource);
+      return NULL;
+    }
+
+  schema_data = g_bytes_get_data (schema_resource, NULL);
+  overrides_data = g_bytes_get_data (overrides_resource, NULL);
+  schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
+                         "schema-data", schema_data,
+                         "schema-id", schema_id,
+                         "overrides-data", overrides_data,
+                         NULL);
+  g_bytes_unref (schema_resource);
+  g_bytes_unref (overrides_resource);
 
   return schema;
 }

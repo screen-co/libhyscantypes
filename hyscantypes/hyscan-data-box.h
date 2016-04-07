@@ -13,7 +13,8 @@
  * вызываемые при изменении значений параметров, а также отслеживать наличие изменений.
  *
  * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_schema,
- * #hyscan_data_box_new_from_file и #hyscan_data_box_new_from_resource.
+ * #hyscan_data_box_new_from_file, #hyscan_data_box_new_from_file_all,
+ * #hyscan_data_box_new_from_resource и #hyscan_data_box_new_from_resource_all.
  * Описание используемой схемы можно получить функцией #hyscan_data_box_get_schema.
  *
  * Чтение и запись значений параметров осуществляется с использованием функций
@@ -109,6 +110,22 @@ HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar     
  *
  * Функция создаёт новый объект \link HyScanDataBox \endlink.
  *
+ * \param schema_path путь к XML файлу с описанием схемы;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_path путь к INI файлу с переопределениями схемы.
+ *
+ * \return Указатель на объект \link HyScanDataBox \endlink.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataBox         *hyscan_data_box_new_from_file_all       (const gchar           *schema_path,
+                                                                const gchar           *schema_id,
+                                                                const gchar           *overrides_path);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataBox \endlink.
+ *
  * \param schema_resource путь к ресурсу GResource;
  * \param schema_id идентификатор загружаемой схемы;
  * \param overrides_data строка с переопределениями схемы в формате INI или NULL.
@@ -120,6 +137,22 @@ HYSCAN_TYPES_EXPORT
 HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
                                                                 const gchar           *schema_id,
                                                                 const gchar           *overrides_data);
+
+/**
+ *
+ * Функция создаёт новый объект \link HyScanDataBox \endlink.
+ *
+ * \param schema_resource путь к ресурсу GResource;
+ * \param schema_id идентификатор загружаемой схемы;
+ * \param overrides_resource путь к ресурсу GResource с переопределениями схемы.
+ *
+ * \return Указатель на объект \link HyScanDataBox \endlink.
+ *
+ */
+HYSCAN_TYPES_EXPORT
+HyScanDataBox         *hyscan_data_box_new_from_resource_all   (const gchar           *schema_resource,
+                                                                const gchar           *schema_id,
+                                                                const gchar           *overrides_resource);
 
 /**
  *

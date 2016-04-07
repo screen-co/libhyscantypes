@@ -211,21 +211,13 @@ void check_enum (HyScanDataSchema *schema, const gchar *key_id)
 int
 main (int argc, char **argv)
 {
-  const gchar *overrides_data;
-  GBytes *resource;
-
   HyScanDataSchema *schema;
   gchar **keys_list;
   guint i;
 
-  resource = g_resources_lookup_data ("/org/hyscan/schemas/data-schema-overrides.ini", 0, NULL);
-  if (resource == NULL)
-    g_error ("can't load schema overrides");
-
-  overrides_data = g_bytes_get_data (resource, NULL);
-  schema = hyscan_data_schema_new_from_resource ("/org/hyscan/schemas/data-schema-good.xml", "test", overrides_data);
-
-  g_bytes_unref (resource);
+  schema = hyscan_data_schema_new_from_resource_all ("/org/hyscan/schemas/data-schema-good.xml",
+                                                     "test",
+                                                     "/org/hyscan/schemas/data-schema-overrides.ini");
 
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
