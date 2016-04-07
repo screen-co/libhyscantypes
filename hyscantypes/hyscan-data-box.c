@@ -145,7 +145,7 @@ hyscan_data_box_object_finalize (GObject *object)
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
   HyScanDataBoxPrivate *priv = data_box->priv;
 
-  g_object_unref (priv->schema);
+  g_clear_object (&priv->schema);
   g_hash_table_unref (priv->params);
   g_rw_lock_clear (&priv->lock);
 
