@@ -68,6 +68,18 @@ typedef enum
   HYSCAN_SONAR_BOARD_AROUND            = 206           /**< Круговой обзор. */
 } HyScanSonarBoardType;
 
+/** \brief Номера каналов датчиков. */
+typedef enum
+{
+  HYSCAN_SONAR_SENSOR_CHANNEL_INVALID  = 0,            /**< Недопустимый номер, ошибка. */
+
+  HYSCAN_SONAR_SENSOR_CHANNEL_1        = 101,          /**< Канал 1. */
+  HYSCAN_SONAR_SENSOR_CHANNEL_2        = 102,          /**< Канал 2. */
+  HYSCAN_SONAR_SENSOR_CHANNEL_3        = 103,          /**< Канал 3. */
+  HYSCAN_SONAR_SENSOR_CHANNEL_4        = 104,          /**< Канал 4. */
+  HYSCAN_SONAR_SENSOR_CHANNEL_5        = 105           /**< Канал 5. */
+} HyScanSonarSensorChannel;
+
 /** \brief Типы гидролокационных данных. */
 typedef enum
 {
@@ -78,12 +90,13 @@ typedef enum
 
   HYSCAN_SONAR_DATA_SAS                = 201,          /**< Сообщения САД. */
 
-  HYSCAN_SONAR_DATA_NMEA_GSA           = 301,          /**< Сообщения NMEA GSA. */
-  HYSCAN_SONAR_DATA_NMEA_GSV           = 302,          /**< Сообщения NMEA GSV. */
-  HYSCAN_SONAR_DATA_NMEA_GGA           = 303,          /**< Сообщения NMEA GGA. */
-  HYSCAN_SONAR_DATA_NMEA_GLL           = 304,          /**< Сообщения NMEA GLL. */
-  HYSCAN_SONAR_DATA_NMEA_RMC           = 305,          /**< Сообщения NMEA RMC. */
-  HYSCAN_SONAR_DATA_NMEA_DPT           = 306           /**< Сообщения NMEA DPT. */
+  HYSCAN_SONAR_DATA_NMEA_ANY           = 301,          /**< Любые сообщения NMEA. */
+  HYSCAN_SONAR_DATA_NMEA_GSA           = 302,          /**< Сообщения NMEA GSA. */
+  HYSCAN_SONAR_DATA_NMEA_GSV           = 303,          /**< Сообщения NMEA GSV. */
+  HYSCAN_SONAR_DATA_NMEA_GGA           = 304,          /**< Сообщения NMEA GGA. */
+  HYSCAN_SONAR_DATA_NMEA_GLL           = 305,          /**< Сообщения NMEA GLL. */
+  HYSCAN_SONAR_DATA_NMEA_RMC           = 306,          /**< Сообщения NMEA RMC. */
+  HYSCAN_SONAR_DATA_NMEA_DPT           = 307           /**< Сообщения NMEA DPT. */
 } HyScanSonarDataType;
 
 /** \brief Типы данных */
