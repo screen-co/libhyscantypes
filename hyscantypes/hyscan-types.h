@@ -99,6 +99,17 @@ typedef enum
   HYSCAN_SONAR_DATA_NMEA_DPT           = 307           /**< Сообщения NMEA DPT. */
 } HyScanSonarDataType;
 
+/** \brief Стороны света */
+typedef enum
+{
+  HYSCAN_DIRECTION_INVALID            = 0,            /**< Недопустимая сторона света, ошибка. */
+
+  HYSCAN_DIRECTION_N                  = 101,          /**< Север. */
+  HYSCAN_DIRECTION_S                  = 102,          /**< Юг. */
+  HYSCAN_DIRECTION_E                  = 103,          /**< Восток. */
+  HYSCAN_DIRECTION_W                  = 104           /**< Запад. */
+} HyScanDirection;
+
 /** \brief Типы данных */
 typedef enum
 {
