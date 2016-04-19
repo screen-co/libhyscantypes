@@ -47,45 +47,34 @@ static HyScanChannelTypeInfo hyscan_channel_types_info[] =
   { 0, "ss-right-raw",     HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, FALSE, TRUE,  1 },
   { 0, "ss-right-hi-raw",  HYSCAN_SONAR_BOARD_RIGHT, HYSCAN_SONAR_DATA_SIDE_SCAN, TRUE,  TRUE,  1 },
 
-  { 0, "sas",              HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, 1 },
+  { 0, "sas",              HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
+  { 0, "sas-2",            HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
+  { 0, "sas-3",            HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
+  { 0, "sas-4",            HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
+  { 0, "sas-5",            HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_SAS, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
 
   { 0, "nmea",             HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_ANY, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
-  { 0, "nmea-gsa",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
-  { 0, "nmea-gsv",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
   { 0, "nmea-gga",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
-  { 0, "nmea-gll",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
   { 0, "nmea-rmc",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
   { 0, "nmea-dpt",         HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_1 },
 
   { 0, "nmea-2",           HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_ANY, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
-  { 0, "nmea-gsa-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
-  { 0, "nmea-gsv-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
   { 0, "nmea-gga-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
-  { 0, "nmea-gll-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
   { 0, "nmea-rmc-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
   { 0, "nmea-dpt-2",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_2 },
 
   { 0, "nmea-3",           HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_ANY, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
-  { 0, "nmea-gsa-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
-  { 0, "nmea-gsv-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
   { 0, "nmea-gga-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
-  { 0, "nmea-gll-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
   { 0, "nmea-rmc-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
   { 0, "nmea-dpt-3",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_3 },
 
   { 0, "nmea-4",           HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_ANY, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
-  { 0, "nmea-gsa-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
-  { 0, "nmea-gsv-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
   { 0, "nmea-gga-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
-  { 0, "nmea-gll-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
   { 0, "nmea-rmc-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
   { 0, "nmea-dpt-4",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_4 },
 
   { 0, "nmea-5",           HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_ANY, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
-  { 0, "nmea-gsa-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
-  { 0, "nmea-gsv-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GSV, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
   { 0, "nmea-gga-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GGA, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
-  { 0, "nmea-gll-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_GLL, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
   { 0, "nmea-rmc-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_RMC, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
   { 0, "nmea-dpt-5",       HYSCAN_SONAR_BOARD_ANY, HYSCAN_SONAR_DATA_NMEA_DPT, FALSE, FALSE, HYSCAN_SONAR_SENSOR_CHANNEL_5 },
 
@@ -95,45 +84,45 @@ static HyScanChannelTypeInfo hyscan_channel_types_info[] =
 /* Типы данных и их названия. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
-  { 0, "HyScan-String", HYSCAN_DATA_TYPE_STRING },
+  { 0, "HyScan-String", HYSCAN_DATA_STRING },
 
-  { 0, "HyScan-ADC8bit", HYSCAN_DATA_TYPE_ADC_8BIT },
-  { 0, "HyScan-ADC10bit", HYSCAN_DATA_TYPE_ADC_10BIT },
-  { 0, "HyScan-ADC12bit", HYSCAN_DATA_TYPE_ADC_12BIT },
-  { 0, "HyScan-ADC14bit", HYSCAN_DATA_TYPE_ADC_14BIT },
-  { 0, "HyScan-ADC16bit", HYSCAN_DATA_TYPE_ADC_16BIT },
+  { 0, "HyScan-ADC8bit", HYSCAN_DATA_ADC_8BIT },
+  { 0, "HyScan-ADC10bit", HYSCAN_DATA_ADC_10BIT },
+  { 0, "HyScan-ADC12bit", HYSCAN_DATA_ADC_12BIT },
+  { 0, "HyScan-ADC14bit", HYSCAN_DATA_ADC_14BIT },
+  { 0, "HyScan-ADC16bit", HYSCAN_DATA_ADC_16BIT },
 
-  { 0, "HyScan-Complex-ADC8bit", HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT },
-  { 0, "HyScan-Complex-ADC10bit", HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT },
-  { 0, "HyScan-Complex-ADC12bit", HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT },
-  { 0, "HyScan-Complex-ADC14bit", HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT },
-  { 0, "HyScan-Complex-ADC16bit", HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT },
+  { 0, "HyScan-Complex-ADC8bit", HYSCAN_DATA_COMPLEX_ADC_8BIT },
+  { 0, "HyScan-Complex-ADC10bit", HYSCAN_DATA_COMPLEX_ADC_10BIT },
+  { 0, "HyScan-Complex-ADC12bit", HYSCAN_DATA_COMPLEX_ADC_12BIT },
+  { 0, "HyScan-Complex-ADC14bit", HYSCAN_DATA_COMPLEX_ADC_14BIT },
+  { 0, "HyScan-Complex-ADC16bit", HYSCAN_DATA_COMPLEX_ADC_16BIT },
 
-  { 0, "HyScan-Int8",   HYSCAN_DATA_TYPE_INT8 },
-  { 0, "HyScan-UInt8",  HYSCAN_DATA_TYPE_UINT8 },
-  { 0, "HyScan-Int16",  HYSCAN_DATA_TYPE_INT16 },
-  { 0, "HyScan-UInt16", HYSCAN_DATA_TYPE_UINT16 },
-  { 0, "HyScan-Int32",  HYSCAN_DATA_TYPE_INT32 },
-  { 0, "HyScan-UInt32", HYSCAN_DATA_TYPE_UINT32 },
-  { 0, "HyScan-Int64",  HYSCAN_DATA_TYPE_INT64 },
-  { 0, "HyScan-UInt64", HYSCAN_DATA_TYPE_UINT64 },
+  { 0, "HyScan-Int8",   HYSCAN_DATA_INT8 },
+  { 0, "HyScan-UInt8",  HYSCAN_DATA_UINT8 },
+  { 0, "HyScan-Int16",  HYSCAN_DATA_INT16 },
+  { 0, "HyScan-UInt16", HYSCAN_DATA_UINT16 },
+  { 0, "HyScan-Int32",  HYSCAN_DATA_INT32 },
+  { 0, "HyScan-UInt32", HYSCAN_DATA_UINT32 },
+  { 0, "HyScan-Int64",  HYSCAN_DATA_INT64 },
+  { 0, "HyScan-UInt64", HYSCAN_DATA_UINT64 },
 
-  { 0, "HyScan-Complex-Int8",   HYSCAN_DATA_TYPE_COMPLEX_INT8 },
-  { 0, "HyScan-Complex-UInt8",  HYSCAN_DATA_TYPE_COMPLEX_UINT8 },
-  { 0, "HyScan-Complex-Int16",  HYSCAN_DATA_TYPE_COMPLEX_INT16 },
-  { 0, "HyScan-Complex-UInt16", HYSCAN_DATA_TYPE_COMPLEX_UINT16 },
-  { 0, "HyScan-Complex-Int32",  HYSCAN_DATA_TYPE_COMPLEX_INT32 },
-  { 0, "HyScan-Complex-UInt32", HYSCAN_DATA_TYPE_COMPLEX_UINT32 },
-  { 0, "HyScan-Complex-Int64",  HYSCAN_DATA_TYPE_COMPLEX_INT64 },
-  { 0, "HyScan-Complex-UInt64", HYSCAN_DATA_TYPE_COMPLEX_UINT64 },
+  { 0, "HyScan-Complex-Int8",   HYSCAN_DATA_COMPLEX_INT8 },
+  { 0, "HyScan-Complex-UInt8",  HYSCAN_DATA_COMPLEX_UINT8 },
+  { 0, "HyScan-Complex-Int16",  HYSCAN_DATA_COMPLEX_INT16 },
+  { 0, "HyScan-Complex-UInt16", HYSCAN_DATA_COMPLEX_UINT16 },
+  { 0, "HyScan-Complex-Int32",  HYSCAN_DATA_COMPLEX_INT32 },
+  { 0, "HyScan-Complex-UInt32", HYSCAN_DATA_COMPLEX_UINT32 },
+  { 0, "HyScan-Complex-Int64",  HYSCAN_DATA_COMPLEX_INT64 },
+  { 0, "HyScan-Complex-UInt64", HYSCAN_DATA_COMPLEX_UINT64 },
 
-  { 0, "HyScan-Float",  HYSCAN_DATA_TYPE_FLOAT },
-  { 0, "HyScan-Double", HYSCAN_DATA_TYPE_DOUBLE },
+  { 0, "HyScan-Float",  HYSCAN_DATA_FLOAT },
+  { 0, "HyScan-Double", HYSCAN_DATA_DOUBLE },
 
-  { 0, "HyScan-Complex-Float",  HYSCAN_DATA_TYPE_COMPLEX_FLOAT },
-  { 0, "HyScan-Complex-Double", HYSCAN_DATA_TYPE_COMPLEX_DOUBLE },
+  { 0, "HyScan-Complex-Float",  HYSCAN_DATA_COMPLEX_FLOAT },
+  { 0, "HyScan-Complex-Double", HYSCAN_DATA_COMPLEX_DOUBLE },
 
-  { 0, NULL, HYSCAN_DATA_TYPE_INVALID }
+  { 0, NULL, HYSCAN_DATA_INVALID }
 };
 
 /* Функция инициализации статических данных. */
@@ -243,7 +232,7 @@ hyscan_get_data_type_by_name (const gchar *data_name)
         return hyscan_data_types_info[i].type;
     }
 
-  return HYSCAN_DATA_TYPE_INVALID;
+  return HYSCAN_DATA_INVALID;
 }
 
 /* Функция преобразовывает нумерованное значение типа данных в название типа. */
@@ -269,69 +258,69 @@ hyscan_get_data_point_size (HyScanDataType data_type)
 {
   switch (data_type)
     {
-    case HYSCAN_DATA_TYPE_STRING:
+    case HYSCAN_DATA_STRING:
       return sizeof (gchar);
 
-    case HYSCAN_DATA_TYPE_ADC_8BIT:
+    case HYSCAN_DATA_ADC_8BIT:
       return sizeof (gint8);
 
-    case HYSCAN_DATA_TYPE_ADC_10BIT:
-    case HYSCAN_DATA_TYPE_ADC_12BIT:
-    case HYSCAN_DATA_TYPE_ADC_14BIT:
-    case HYSCAN_DATA_TYPE_ADC_16BIT:
+    case HYSCAN_DATA_ADC_10BIT:
+    case HYSCAN_DATA_ADC_12BIT:
+    case HYSCAN_DATA_ADC_14BIT:
+    case HYSCAN_DATA_ADC_16BIT:
       return sizeof (gint16);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_8BIT:
       return 2 * sizeof (gint8);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT:
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT:
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT:
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_10BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_12BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_14BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_16BIT:
       return 2 * sizeof (gint16);
 
-    case HYSCAN_DATA_TYPE_INT8:
-    case HYSCAN_DATA_TYPE_UINT8:
+    case HYSCAN_DATA_INT8:
+    case HYSCAN_DATA_UINT8:
       return sizeof (gint8);
 
-    case HYSCAN_DATA_TYPE_INT16:
-    case HYSCAN_DATA_TYPE_UINT16:
+    case HYSCAN_DATA_INT16:
+    case HYSCAN_DATA_UINT16:
       return sizeof (gint16);
 
-    case HYSCAN_DATA_TYPE_INT32:
-    case HYSCAN_DATA_TYPE_UINT32:
+    case HYSCAN_DATA_INT32:
+    case HYSCAN_DATA_UINT32:
       return sizeof (gint32);
 
-    case HYSCAN_DATA_TYPE_INT64:
-    case HYSCAN_DATA_TYPE_UINT64:
+    case HYSCAN_DATA_INT64:
+    case HYSCAN_DATA_UINT64:
       return sizeof (gint64);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT8:
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT8:
+    case HYSCAN_DATA_COMPLEX_INT8:
+    case HYSCAN_DATA_COMPLEX_UINT8:
       return 2 * sizeof (gint8);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT16:
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT16:
+    case HYSCAN_DATA_COMPLEX_INT16:
+    case HYSCAN_DATA_COMPLEX_UINT16:
       return 2 * sizeof (gint16);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT32:
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT32:
+    case HYSCAN_DATA_COMPLEX_INT32:
+    case HYSCAN_DATA_COMPLEX_UINT32:
       return 2 * sizeof (gint32);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT64:
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT64:
+    case HYSCAN_DATA_COMPLEX_INT64:
+    case HYSCAN_DATA_COMPLEX_UINT64:
       return 2 * sizeof (gint64);
 
-    case HYSCAN_DATA_TYPE_FLOAT:
+    case HYSCAN_DATA_FLOAT:
       return sizeof (gfloat);
 
-    case HYSCAN_DATA_TYPE_DOUBLE:
+    case HYSCAN_DATA_DOUBLE:
       return sizeof (gdouble);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_FLOAT:
+    case HYSCAN_DATA_COMPLEX_FLOAT:
       return 2 * sizeof (gfloat);
 
-    case HYSCAN_DATA_TYPE_COMPLEX_DOUBLE:
+    case HYSCAN_DATA_COMPLEX_DOUBLE:
       return 2 * sizeof (gdouble);
 
     default:
@@ -354,7 +343,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
 
   switch (data_type)
     {
-    case HYSCAN_DATA_TYPE_ADC_8BIT:
+    case HYSCAN_DATA_ADC_8BIT:
       n_points = data_size / sizeof (gint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -365,7 +354,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_10BIT:
+    case HYSCAN_DATA_ADC_10BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -376,7 +365,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_12BIT:
+    case HYSCAN_DATA_ADC_12BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -387,7 +376,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_14BIT:
+    case HYSCAN_DATA_ADC_14BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -398,7 +387,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_16BIT:
+    case HYSCAN_DATA_ADC_16BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -409,7 +398,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_8BIT:
       n_points = data_size / (2 * sizeof (gint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -421,7 +410,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_10BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -433,7 +422,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_12BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -445,7 +434,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_14BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -457,7 +446,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_16BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -469,7 +458,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT8:
+    case HYSCAN_DATA_INT8:
       n_points = data_size / sizeof (gint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -480,7 +469,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT8:
+    case HYSCAN_DATA_UINT8:
       n_points = data_size / sizeof (guint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -491,7 +480,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT16:
+    case HYSCAN_DATA_INT16:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -502,7 +491,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT16:
+    case HYSCAN_DATA_UINT16:
       n_points = data_size / sizeof (guint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -513,7 +502,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT32:
+    case HYSCAN_DATA_INT32:
       n_points = data_size / sizeof (gint32);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -524,7 +513,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT32:
+    case HYSCAN_DATA_UINT32:
       n_points = data_size / sizeof (guint32);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -535,7 +524,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT64:
+    case HYSCAN_DATA_INT64:
       n_points = data_size / sizeof (gint64);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -546,7 +535,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT64:
+    case HYSCAN_DATA_UINT64:
       n_points = data_size / sizeof (guint64);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -557,7 +546,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT8:
+    case HYSCAN_DATA_COMPLEX_INT8:
       n_points = data_size / (2 * sizeof (gint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -569,7 +558,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT8:
+    case HYSCAN_DATA_COMPLEX_UINT8:
       n_points = data_size / (2 * sizeof (guint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -581,7 +570,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT16:
+    case HYSCAN_DATA_COMPLEX_INT16:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -593,7 +582,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT16:
+    case HYSCAN_DATA_COMPLEX_UINT16:
       n_points = data_size / (2 * sizeof (guint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -605,7 +594,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT32:
+    case HYSCAN_DATA_COMPLEX_INT32:
       n_points = data_size / (2 * sizeof (gint32));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -617,7 +606,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT32:
+    case HYSCAN_DATA_COMPLEX_UINT32:
       n_points = data_size / (2 * sizeof (guint32));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -629,7 +618,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT64:
+    case HYSCAN_DATA_COMPLEX_INT64:
       n_points = data_size / (2 * sizeof (gint64));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -641,7 +630,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT64:
+    case HYSCAN_DATA_COMPLEX_UINT64:
       n_points = data_size / (2 * sizeof (guint64));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -653,7 +642,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_FLOAT:
+    case HYSCAN_DATA_FLOAT:
       n_points = data_size / sizeof (gfloat);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -663,7 +652,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_DOUBLE:
+    case HYSCAN_DATA_DOUBLE:
       n_points = data_size / sizeof (gdouble);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -673,7 +662,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_FLOAT:
+    case HYSCAN_DATA_COMPLEX_FLOAT:
       n_points = data_size / (2 * sizeof (gfloat));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -683,7 +672,7 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_DOUBLE:
+    case HYSCAN_DATA_COMPLEX_DOUBLE:
       n_points = data_size / (2 * sizeof (gdouble));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -715,7 +704,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
 
   switch (data_type)
     {
-    case HYSCAN_DATA_TYPE_ADC_8BIT:
+    case HYSCAN_DATA_ADC_8BIT:
       n_points = data_size / sizeof (gint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -726,7 +715,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_10BIT:
+    case HYSCAN_DATA_ADC_10BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -737,7 +726,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_12BIT:
+    case HYSCAN_DATA_ADC_12BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -748,7 +737,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_14BIT:
+    case HYSCAN_DATA_ADC_14BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -759,7 +748,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_ADC_16BIT:
+    case HYSCAN_DATA_ADC_16BIT:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -770,7 +759,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_8BIT:
       n_points = data_size / (2 * sizeof (gint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -782,7 +771,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_10BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -794,7 +783,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_12BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -806,7 +795,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_14BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -818,7 +807,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT:
+    case HYSCAN_DATA_COMPLEX_ADC_16BIT:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -830,7 +819,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT8:
+    case HYSCAN_DATA_INT8:
       n_points = data_size / sizeof (gint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -841,7 +830,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT8:
+    case HYSCAN_DATA_UINT8:
       n_points = data_size / sizeof (guint8);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -852,7 +841,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT16:
+    case HYSCAN_DATA_INT16:
       n_points = data_size / sizeof (gint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -863,7 +852,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT16:
+    case HYSCAN_DATA_UINT16:
       n_points = data_size / sizeof (guint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -874,7 +863,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT32:
+    case HYSCAN_DATA_INT32:
       n_points = data_size / sizeof (gint32);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -885,7 +874,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT32:
+    case HYSCAN_DATA_UINT32:
       n_points = data_size / sizeof (guint32);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -896,7 +885,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_INT64:
+    case HYSCAN_DATA_INT64:
       n_points = data_size / sizeof (gint64);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -907,7 +896,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_UINT64:
+    case HYSCAN_DATA_UINT64:
       n_points = data_size / sizeof (guint64);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -918,7 +907,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT8:
+    case HYSCAN_DATA_COMPLEX_INT8:
       n_points = data_size / (2 * sizeof (gint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -930,7 +919,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT8:
+    case HYSCAN_DATA_COMPLEX_UINT8:
       n_points = data_size / (2 * sizeof (guint8));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -942,7 +931,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT16:
+    case HYSCAN_DATA_COMPLEX_INT16:
       n_points = data_size / (2 * sizeof (gint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -954,7 +943,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT16:
+    case HYSCAN_DATA_COMPLEX_UINT16:
       n_points = data_size / (2 * sizeof (guint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -966,7 +955,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT32:
+    case HYSCAN_DATA_COMPLEX_INT32:
       n_points = data_size / (2 * sizeof (gint32));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -978,7 +967,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT32:
+    case HYSCAN_DATA_COMPLEX_UINT32:
       n_points = data_size / (2 * sizeof (guint32));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -990,7 +979,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_INT64:
+    case HYSCAN_DATA_COMPLEX_INT64:
       n_points = data_size / (2 * sizeof (gint64));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -1002,7 +991,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_UINT64:
+    case HYSCAN_DATA_COMPLEX_UINT64:
       n_points = data_size / (2 * sizeof (guint64));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -1014,7 +1003,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_FLOAT:
+    case HYSCAN_DATA_FLOAT:
       n_points = data_size / sizeof (gfloat);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -1024,7 +1013,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_DOUBLE:
+    case HYSCAN_DATA_DOUBLE:
       n_points = data_size / sizeof (gdouble);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -1034,7 +1023,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_FLOAT:
+    case HYSCAN_DATA_COMPLEX_FLOAT:
       n_points = data_size / (2 * sizeof (gfloat));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
@@ -1044,7 +1033,7 @@ hyscan_data_import_complex_double (HyScanDataType       data_type,
         }
       break;
 
-    case HYSCAN_DATA_TYPE_COMPLEX_DOUBLE:
+    case HYSCAN_DATA_COMPLEX_DOUBLE:
       n_points = data_size / (2 * sizeof (gdouble));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)

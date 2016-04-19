@@ -91,67 +91,64 @@ typedef enum
   HYSCAN_SONAR_DATA_SAS                = 201,          /**< Сообщения САД. */
 
   HYSCAN_SONAR_DATA_NMEA_ANY           = 301,          /**< Любые сообщения NMEA. */
-  HYSCAN_SONAR_DATA_NMEA_GSA           = 302,          /**< Сообщения NMEA GSA. */
-  HYSCAN_SONAR_DATA_NMEA_GSV           = 303,          /**< Сообщения NMEA GSV. */
-  HYSCAN_SONAR_DATA_NMEA_GGA           = 304,          /**< Сообщения NMEA GGA. */
-  HYSCAN_SONAR_DATA_NMEA_GLL           = 305,          /**< Сообщения NMEA GLL. */
-  HYSCAN_SONAR_DATA_NMEA_RMC           = 306,          /**< Сообщения NMEA RMC. */
-  HYSCAN_SONAR_DATA_NMEA_DPT           = 307           /**< Сообщения NMEA DPT. */
+  HYSCAN_SONAR_DATA_NMEA_GGA           = 302,          /**< Сообщения NMEA GGA. */
+  HYSCAN_SONAR_DATA_NMEA_RMC           = 303,          /**< Сообщения NMEA RMC. */
+  HYSCAN_SONAR_DATA_NMEA_DPT           = 304           /**< Сообщения NMEA DPT. */
 } HyScanSonarDataType;
 
 /** \brief Стороны света */
 typedef enum
 {
-  HYSCAN_DIRECTION_INVALID            = 0,            /**< Недопустимая сторона света, ошибка. */
+  HYSCAN_DIRECTION_INVALID             = 0,            /**< Недопустимая сторона света, ошибка. */
 
-  HYSCAN_DIRECTION_N                  = 101,          /**< Север. */
-  HYSCAN_DIRECTION_S                  = 102,          /**< Юг. */
-  HYSCAN_DIRECTION_E                  = 103,          /**< Восток. */
-  HYSCAN_DIRECTION_W                  = 104           /**< Запад. */
+  HYSCAN_DIRECTION_N                   = 101,          /**< Север. */
+  HYSCAN_DIRECTION_S                   = 102,          /**< Юг. */
+  HYSCAN_DIRECTION_E                   = 103,          /**< Восток. */
+  HYSCAN_DIRECTION_W                   = 104           /**< Запад. */
 } HyScanDirection;
 
 /** \brief Типы данных */
 typedef enum
 {
-  HYSCAN_DATA_TYPE_INVALID             = 0,            /**< Недопустимый тип, ошибка. */
+  HYSCAN_DATA_INVALID                  = 0,            /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_DATA_TYPE_STRING              = 101,          /**< Строка с нулём на конце. */
+  HYSCAN_DATA_STRING                   = 101,          /**< Строка с нулём на конце. */
 
-  HYSCAN_DATA_TYPE_ADC_8BIT            = 201,          /**< Действительные отсчёты АЦП 8 бит. */
-  HYSCAN_DATA_TYPE_ADC_10BIT           = 202,          /**< Действительные отсчёты АЦП 10 бит. */
-  HYSCAN_DATA_TYPE_ADC_12BIT           = 203,          /**< Действительные отсчёты АЦП 12 бит. */
-  HYSCAN_DATA_TYPE_ADC_14BIT           = 204,          /**< Действительные отсчёты АЦП 14 бит. */
-  HYSCAN_DATA_TYPE_ADC_16BIT           = 205,          /**< Действительные отсчёты АЦП 16 бит. */
+  HYSCAN_DATA_ADC_8BIT                 = 201,          /**< Действительные отсчёты АЦП 8 бит. */
+  HYSCAN_DATA_ADC_10BIT                = 202,          /**< Действительные отсчёты АЦП 10 бит. */
+  HYSCAN_DATA_ADC_12BIT                = 203,          /**< Действительные отсчёты АЦП 12 бит. */
+  HYSCAN_DATA_ADC_14BIT                = 204,          /**< Действительные отсчёты АЦП 14 бит. */
+  HYSCAN_DATA_ADC_16BIT                = 205,          /**< Действительные отсчёты АЦП 16 бит. */
 
-  HYSCAN_DATA_TYPE_COMPLEX_ADC_8BIT    = 301,          /**< Комплексные отсчёты АЦП 8 бит. */
-  HYSCAN_DATA_TYPE_COMPLEX_ADC_10BIT   = 302,          /**< Комплексные отсчёты АЦП 10 бит. */
-  HYSCAN_DATA_TYPE_COMPLEX_ADC_12BIT   = 303,          /**< Комплексные отсчёты АЦП 12 бит. */
-  HYSCAN_DATA_TYPE_COMPLEX_ADC_14BIT   = 304,          /**< Комплексные отсчёты АЦП 14 бит. */
-  HYSCAN_DATA_TYPE_COMPLEX_ADC_16BIT   = 305,          /**< Комплексные отсчёты АЦП 16 бит. */
+  HYSCAN_DATA_COMPLEX_ADC_8BIT         = 301,          /**< Комплексные отсчёты АЦП 8 бит. */
+  HYSCAN_DATA_COMPLEX_ADC_10BIT        = 302,          /**< Комплексные отсчёты АЦП 10 бит. */
+  HYSCAN_DATA_COMPLEX_ADC_12BIT        = 303,          /**< Комплексные отсчёты АЦП 12 бит. */
+  HYSCAN_DATA_COMPLEX_ADC_14BIT        = 304,          /**< Комплексные отсчёты АЦП 14 бит. */
+  HYSCAN_DATA_COMPLEX_ADC_16BIT        = 305,          /**< Комплексные отсчёты АЦП 16 бит. */
 
-  HYSCAN_DATA_TYPE_INT8                = 401,          /**< Действительные целые 8 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_UINT8               = 402,          /**< Действительные целые 8 битные значения без знака. */
-  HYSCAN_DATA_TYPE_INT16               = 403,          /**< Действительные целые 16 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_UINT16              = 404,          /**< Действительные целые 16 битные значения без знака. */
-  HYSCAN_DATA_TYPE_INT32               = 405,          /**< Действительные целые 32 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_UINT32              = 406,          /**< Действительные целые 32 битные значения без знака. */
-  HYSCAN_DATA_TYPE_INT64               = 407,          /**< Действительные целые 64 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_UINT64              = 408,          /**< Действительные целые 64 битные значения без знака. */
+  HYSCAN_DATA_INT8                     = 401,          /**< Действительные целые 8 битные значения со знаком. */
+  HYSCAN_DATA_UINT8                    = 402,          /**< Действительные целые 8 битные значения без знака. */
+  HYSCAN_DATA_INT16                    = 403,          /**< Действительные целые 16 битные значения со знаком. */
+  HYSCAN_DATA_UINT16                   = 404,          /**< Действительные целые 16 битные значения без знака. */
+  HYSCAN_DATA_INT32                    = 405,          /**< Действительные целые 32 битные значения со знаком. */
+  HYSCAN_DATA_UINT32                   = 406,          /**< Действительные целые 32 битные значения без знака. */
+  HYSCAN_DATA_INT64                    = 407,          /**< Действительные целые 64 битные значения со знаком. */
+  HYSCAN_DATA_UINT64                   = 408,          /**< Действительные целые 64 битные значения без знака. */
 
-  HYSCAN_DATA_TYPE_COMPLEX_INT8        = 501,          /**< Комплексные целые 8 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_COMPLEX_UINT8       = 502,          /**< Комплексные целые 8 битные значения без знака. */
-  HYSCAN_DATA_TYPE_COMPLEX_INT16       = 503,          /**< Комплексные целые 16 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_COMPLEX_UINT16      = 504,          /**< Комплексные целые 16 битные значения без знака. */
-  HYSCAN_DATA_TYPE_COMPLEX_INT32       = 505,          /**< Комплексные целые 32 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_COMPLEX_UINT32      = 506,          /**< Комплексные целые 32 битные значения без знака. */
-  HYSCAN_DATA_TYPE_COMPLEX_INT64       = 507,          /**< Комплексные целые 64 битные значения со знаком. */
-  HYSCAN_DATA_TYPE_COMPLEX_UINT64      = 508,          /**< Комплексные целые 64 битные значения без знака. */
+  HYSCAN_DATA_COMPLEX_INT8             = 501,          /**< Комплексные целые 8 битные значения со знаком. */
+  HYSCAN_DATA_COMPLEX_UINT8            = 502,          /**< Комплексные целые 8 битные значения без знака. */
+  HYSCAN_DATA_COMPLEX_INT16            = 503,          /**< Комплексные целые 16 битные значения со знаком. */
+  HYSCAN_DATA_COMPLEX_UINT16           = 504,          /**< Комплексные целые 16 битные значения без знака. */
+  HYSCAN_DATA_COMPLEX_INT32            = 505,          /**< Комплексные целые 32 битные значения со знаком. */
+  HYSCAN_DATA_COMPLEX_UINT32           = 506,          /**< Комплексные целые 32 битные значения без знака. */
+  HYSCAN_DATA_COMPLEX_INT64            = 507,          /**< Комплексные целые 64 битные значения со знаком. */
+  HYSCAN_DATA_COMPLEX_UINT64           = 508,          /**< Комплексные целые 64 битные значения без знака. */
 
-  HYSCAN_DATA_TYPE_FLOAT               = 601,          /**< Действительные float значения. */
-  HYSCAN_DATA_TYPE_DOUBLE              = 602,          /**< Действительные double значения. */
+  HYSCAN_DATA_FLOAT                    = 601,          /**< Действительные float значения. */
+  HYSCAN_DATA_DOUBLE                   = 602,          /**< Действительные double значения. */
 
-  HYSCAN_DATA_TYPE_COMPLEX_FLOAT       = 701,          /**< Комплексные float значения. */
-  HYSCAN_DATA_TYPE_COMPLEX_DOUBLE      = 702           /**< Комплексные double значения. */
+  HYSCAN_DATA_COMPLEX_FLOAT            = 701,          /**< Комплексные float значения. */
+  HYSCAN_DATA_COMPLEX_DOUBLE           = 702           /**< Комплексные double значения. */
 } HyScanDataType;
 
 /** \brief Комплексные float числа */
