@@ -1,4 +1,4 @@
-/**
+/*
  * \file hyscan-data-schema.c
  *
  * \brief Исходный файл класса схемы данных.

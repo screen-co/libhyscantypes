@@ -1,4 +1,4 @@
-/**
+/*
  * \file hyscan-data-box.h
  *
  * \brief Заголовочный файл класса работы с параметрами.
@@ -63,7 +63,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (HyScanDataBox, hyscan_data_box, G_TYPE_OBJECT);
 
 static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
 {
-  GObjectClass *object_class = G_OBJECT_CLASS( klass );
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->set_property = hyscan_data_box_set_property;
 
