@@ -1,6 +1,6 @@
 
 add_library (hyscantypes SHARED
-             hyscan-types.c
+             hyscan-data.c
              hyscan-data-schema.c
              hyscan-data-schema-overrides.c
              hyscan-data-box.c)

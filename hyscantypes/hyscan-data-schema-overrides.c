@@ -1,4 +1,4 @@
-/**
+/*
  * \file hyscan-data-schema-overrides.c
  *
  * \brief Исходный файл класса переопределений схемы данных.

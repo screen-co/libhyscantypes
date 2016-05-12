@@ -81,7 +81,7 @@ static StringOverrides StringOverridesList[] =
   { NULL, NULL, FALSE }
 };
 
-static const EnumOverrides const EnumOverridesList[] =
+static EnumOverrides EnumOverridesList[] =
 {
   { "/enum/key1", 1, FALSE },
   { "/enum/key2", 2, TRUE },
