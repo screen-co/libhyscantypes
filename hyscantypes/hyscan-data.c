@@ -23,16 +23,16 @@ typedef struct
 /* Типы данных и их названия. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
-  { 0, "HyScan-String", HYSCAN_DATA_STRING },
+  { 0, "string", HYSCAN_DATA_STRING },
 
-  { 0, "HyScan-ADC14LE", HYSCAN_DATA_ADC_14LE },
-  { 0, "HyScan-ADC16LE", HYSCAN_DATA_ADC_16LE },
+  { 0, "adc14le", HYSCAN_DATA_ADC_14LE },
+  { 0, "adc16le", HYSCAN_DATA_ADC_16LE },
 
-  { 0, "HyScan-Complex-ADC14LE", HYSCAN_DATA_COMPLEX_ADC_14LE },
-  { 0, "HyScan-Complex-ADC16LE", HYSCAN_DATA_COMPLEX_ADC_16LE },
+  { 0, "complex-adc14le", HYSCAN_DATA_COMPLEX_ADC_14LE },
+  { 0, "complex-adc16le", HYSCAN_DATA_COMPLEX_ADC_16LE },
 
-  { 0, "HyScan-Float",  HYSCAN_DATA_FLOAT },
-  { 0, "HyScan-Complex-Float",  HYSCAN_DATA_COMPLEX_FLOAT },
+  { 0, "float",  HYSCAN_DATA_FLOAT },
+  { 0, "complex-float",  HYSCAN_DATA_COMPLEX_FLOAT },
 
   { 0, NULL, HYSCAN_DATA_INVALID }
 };
