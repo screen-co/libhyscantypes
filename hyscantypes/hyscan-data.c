@@ -139,8 +139,8 @@ hyscan_data_import_float (HyScanDataType  data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          gint16 raw_re = GINT16_FROM_LE (*((gint16 *)data + n_points)) & 0x3fff;
-          buffer[i] = (gfloat) raw_re / 8192.0;
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points)) & 0x3fff;
+          buffer[i] = (gfloat)(raw_re / 8192.0) - 1.0;
         }
       break;
 
@@ -149,8 +149,8 @@ hyscan_data_import_float (HyScanDataType  data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          gint16 raw_re = GINT16_FROM_LE (*((gint16 *)data + n_points));
-          buffer[i] = (gfloat) raw_re / 32768.0;
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points));
+          buffer[i] = (gfloat)(raw_re / 32768.0) - 1.0;
         }
       break;
 
@@ -186,10 +186,10 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          gint16 raw_re = GINT16_FROM_LE (*((gint16 *)data + 2 * n_points)) & 0x3fff;
-          gint16 raw_im = GINT16_FROM_LE (*((gint16 *)data + 2 * n_points + 1)) & 0x3fff;
-          buffer[i].re = (gfloat) raw_re / 8192.0;
-          buffer[i].im = (gfloat) raw_im / 8192.0;
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + 2 * i)) & 0x3fff;
+          guint16 raw_im = GUINT16_FROM_LE (*((guint16 *)data + 2 * i + 1)) & 0x3fff;
+          buffer[i].re = (gfloat)(raw_re / 8192.0) - 1.0;
+          buffer[i].im = (gfloat)(raw_im / 8192.0) - 1.0;
         }
       break;
 
@@ -198,10 +198,10 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          gint16 raw_re = GINT16_FROM_LE (*((gint16 *)data + 2 * i));
-          gint16 raw_im = GINT16_FROM_LE (*((gint16 *)data + 2 * i + 1));
-          buffer[i].re = (gfloat) raw_re / 32768.0;
-          buffer[i].im = (gfloat) raw_im / 32768.0;
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + 2 * i));
+          guint16 raw_im = GUINT16_FROM_LE (*((guint16 *)data + 2 * i + 1));
+          buffer[i].re = (gfloat)(raw_re / 32768.0) - 1.0;
+          buffer[i].im = (gfloat)(raw_im / 32768.0) - 1.0;
         }
       break;
 
