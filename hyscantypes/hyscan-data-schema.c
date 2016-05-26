@@ -9,7 +9,7 @@
  */
 
 #include "hyscan-data-schema.h"
-#include "hyscan-data-schema-overrides.h"
+#include "hyscan-data-schema-internal.h"
 
 #include <gio/gio.h>
 #include <glib/gi18n.h>
@@ -20,34 +20,8 @@ enum
 {
   PROP_O,
   PROP_SCHEMA_DATA,
-  PROP_SCHEMA_ID,
-  PROP_OVERRIDES_DATA,
+  PROP_SCHEMA_ID
 };
-
-/* Варианты значений перечисляемого типа. */
-typedef struct
-{
-  gchar                       *id;                     /* Идентификатор значений перечисляемого типа. */
-
-  HyScanDataSchemaEnumValue  **values;                 /* Варианты значений для перечисляемого типа. */
-} HyScanDataSchemaEnum;
-
-/* Данные параметра. */
-typedef struct
-{
-  gchar                       *id;                     /* Идентификатор параметра. */
-
-  HyScanDataSchemaType         type;                   /* Тип параметра. */
-  gchar                       *name;                   /* Название параметра. */
-  gchar                       *description;            /* Описание параметра. */
-  gboolean                     readonly;               /* Параметр доступен только для чтения. */
-
-  HyScanDataSchemaEnum        *enum_values;            /* Варианты значений для перечисляемого типа. */
-  gint64                       default_value;          /* Значение по умолчанию. */
-  gint64                       minimum_value;          /* Минимально возможное значение. */
-  gint64                       maximum_value;          /* Маскимально возможное значение. */
-  gint64                       value_step;             /* Шаг изменения значения. */
-} HyScanDataSchemaKey;
 
 struct _HyScanDataSchemaPrivate
 {
@@ -55,8 +29,6 @@ struct _HyScanDataSchemaPrivate
   gchar                       *schema_id;              /* Идентификатор используемой схемы. */
   gchar                       *overrides_data;         /* Переопределения схемы в формате INI. */
   gchar                       *gettext_domain;         /* Название домена переводов. */
-
-  HyScanDataSchemaOverrides   *overrides;              /* Переопределения схемы. */
 
   gchar                      **keys_list;              /* Список имён параметров. */
 
@@ -71,51 +43,26 @@ static void            hyscan_data_schema_set_property         (GObject         
 static void            hyscan_data_schema_object_constructed   (GObject                    *object);
 static void            hyscan_data_schema_object_finalize      (GObject                    *object);
 
-static void            hyscan_data_schema_value_set_boolean    (gpointer                    data,
-                                                                gboolean                    value);
-static void            hyscan_data_schema_value_set_integer    (gpointer                    data,
-                                                                gint64                      value);
-static void            hyscan_data_schema_value_set_double     (gpointer                    data,
-                                                                gdouble                     value);
-static void            hyscan_data_schema_value_set_string     (gpointer                    data,
-                                                                const gchar                *value);
-
-static gboolean        hyscan_data_schema_value_get_boolean    (gconstpointer               data);
-static gint64          hyscan_data_schema_value_get_integer    (gconstpointer               data);
-static gdouble         hyscan_data_schema_value_get_double     (gconstpointer               data);
-static const gchar    *hyscan_data_schema_value_get_string     (gconstpointer               data);
-
-static gboolean        hyscan_data_schema_validate_name        (const gchar                *name);
-
 static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaKey        *key1,
                                                                 HyScanDataSchemaKey        *key2,
                                                                 gpointer                    user_data);
 
-static void            hyscan_data_schema_free_enum            (HyScanDataSchemaEnum       *values);
 static HyScanDataSchemaEnumValue
                       *hyscan_data_schema_parse_enum_value     (xmlNodePtr                  node,
                                                                 const gchar                *gettext_domain);
 static HyScanDataSchemaEnum
                       *hyscan_data_schema_parse_enum_values    (xmlNodePtr                  node,
                                                                 const gchar                *gettext_domain);
-static HyScanDataSchemaEnum
-               *hyscan_data_schema_parse_overrided_enum_values (HyScanDataSchemaOverrides  *overrides,
-                                                                const gchar                *enum_id);
-static gboolean        hyscan_data_schema_check_enum           (HyScanDataSchemaEnum       *enums,
-                                                                gint64                      value);
 
-static void            hyscan_data_schema_free_key             (HyScanDataSchemaKey        *key);
 static HyScanDataSchemaKey *hyscan_data_schema_parse_key       (xmlNodePtr                  node,
                                                                 const gchar                *path,
                                                                 GHashTable                 *enums,
-                                                                HyScanDataSchemaOverrides  *overrides,
                                                                 const gchar                *gettext_domain);
 static gboolean        hyscan_data_schema_parse_node           (xmlNodePtr                  node,
                                                                 const gchar                *schema_path,
                                                                 const gchar                *path,
                                                                 GHashTable                 *keys,
                                                                 GHashTable                 *enums,
-                                                                HyScanDataSchemaOverrides  *overrides,
                                                                 const gchar                *gettext_domain);
 static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr                   doc,
                                                                 const gchar                *schema_path,
@@ -123,21 +70,7 @@ static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr       
                                                                 const gchar                *path,
                                                                 GHashTable                 *keys,
                                                                 GHashTable                 *enums,
-                                                                HyScanDataSchemaOverrides  *overrides,
                                                                 const gchar                *gettext_domain);
-
-static HyScanDataSchemaNode *hyscan_data_schema_new_node       (const gchar                *path);
-static HyScanDataSchemaParam *hyscan_data_schema_new_param     (const gchar                *id,
-                                                                const gchar                *name,
-                                                                const gchar                *description,
-                                                                HyScanDataSchemaType        type,
-                                                                gboolean                    readonly);
-static void            hyscan_data_schema_insert_param         (HyScanDataSchemaNode       *node,
-                                                                const gchar                *id,
-                                                                const gchar                *name,
-                                                                const gchar                *description,
-                                                                HyScanDataSchemaType        type,
-                                                                gboolean                    readonly);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanDataSchema, hyscan_data_schema, G_TYPE_OBJECT);
 
@@ -156,10 +89,6 @@ static void hyscan_data_schema_class_init( HyScanDataSchemaClass *klass )
 
   g_object_class_install_property (object_class, PROP_SCHEMA_ID,
     g_param_spec_string ("schema-id", "SchemaID", "Schema id", NULL,
-                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-  g_object_class_install_property (object_class, PROP_OVERRIDES_DATA,
-    g_param_spec_string ("overrides-data", "OverridesData", "Overrides data", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
@@ -186,10 +115,6 @@ hyscan_data_schema_set_property (GObject      *object,
 
     case PROP_SCHEMA_ID:
       priv->schema_id = g_value_dup_string (value);
-      break;
-
-    case PROP_OVERRIDES_DATA:
-      priv->overrides_data = g_value_dup_string (value);
       break;
 
     default:
@@ -230,12 +155,6 @@ hyscan_data_schema_object_constructed (GObject *object)
   if (doc == NULL)
     return;
 
-  /* Переопределения схемы. */
-  if (priv->overrides_data != NULL)
-    priv->overrides = hyscan_data_schema_overrides_new_from_data (priv->overrides_data);
-  else
-    priv->overrides = hyscan_data_schema_overrides_new ();
-
   /* Поиск корневого узла schemalist. */
   for (node = xmlDocGetRootElement (doc); node != NULL; node = node->next)
     if (node->type == XML_ELEMENT_NODE)
@@ -272,10 +191,7 @@ hyscan_data_schema_object_constructed (GObject *object)
         {
           HyScanDataSchemaEnum *values;
 
-          /* Загружаем в первую очередь переопределённые значения. */
-          values = hyscan_data_schema_parse_overrided_enum_values (priv->overrides, (gchar*)id);
-          if (values == NULL)
-            values = hyscan_data_schema_parse_enum_values (node, priv->gettext_domain);
+          values = hyscan_data_schema_parse_enum_values (node, priv->gettext_domain);
 
           g_hash_table_insert (priv->enums, values->id, values);
         }
@@ -289,12 +205,8 @@ hyscan_data_schema_object_constructed (GObject *object)
 
   /* Обработка описания схемы. */
   status = hyscan_data_schema_parse_schema (doc,
-                                            "/",
-                                            priv->schema_id,
-                                            "/",
-                                            priv->keys,
-                                            priv->enums,
-                                            priv->overrides,
+                                            "/", priv->schema_id, "/",
+                                            priv->keys, priv->enums,
                                             priv->gettext_domain);
   if (!status)
     {
@@ -322,7 +234,6 @@ hyscan_data_schema_object_constructed (GObject *object)
     }
 
 exit:
-  g_object_unref (priv->overrides);
   xmlFreeDoc (doc);
 }
 
@@ -345,120 +256,13 @@ hyscan_data_schema_object_finalize (GObject *object)
   G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
 }
 
-/* Функция записывает в область памяти data значение типа gboolean. */
-static void
-hyscan_data_schema_value_set_boolean (gpointer data,
-                                      gboolean value)
-{
-  *(gboolean*)data = value;
-}
-
-/* Функция записывает в область памяти data значение типа gint64. */
-static void
-hyscan_data_schema_value_set_integer (gpointer data,
-                                      gint64   value)
-{
-  *(gint64*)data = value;
-}
-
-/* Функция записывает в область памяти data значение типа gdouble. */
-static void
-hyscan_data_schema_value_set_double (gpointer data,
-                                     gdouble  value)
-{
-  *(gdouble*)data = value;
-}
-
-/* Функция записывает в область памяти data указатель на копию строки. */
-static void
-hyscan_data_schema_value_set_string (gpointer     data,
-                                     const gchar *value)
-{
-  gpointer *p = data;
-  g_free (*p);
-  *p = g_strdup (value);
-}
-
-/* Функция считывает из области памяти data значение типа gboolean. */
-static gboolean
-hyscan_data_schema_value_get_boolean (gconstpointer data)
-{
-  return *(gboolean*)data;
-}
-
-/* Функция считывает из области памяти data значение типа gint64. */
-static gint64
-hyscan_data_schema_value_get_integer (gconstpointer data)
-{
-  return *(gint64*)data;
-}
-
-/* Функция считывает из области памяти data значение типа gdouble. */
-static gdouble
-hyscan_data_schema_value_get_double (gconstpointer data)
-{
-  return *(gdouble*)data;
-}
-
-/* Функция считывает из области памяти data указатель на строку. */
-static const gchar *
-hyscan_data_schema_value_get_string (gconstpointer data)
-{
-  gconstpointer const *p = data;
-  return *p;
-}
-
-/* Функция проверяет имя на предмет допустимости. */
-static gboolean
-hyscan_data_schema_validate_name (const gchar *name)
-{
-  gint i;
-
-  for (i = 0; name[i] != '\0'; i++)
-    {
-      gboolean match = FALSE;
-
-      if (name[i] >= 'a' && name[i] <= 'z')
-        match = TRUE;
-      if (name[i] >= 'A' && name[i] <= 'Z')
-        match = TRUE;
-      if (name[i] >= '0' && name[i] <= '9')
-        match = TRUE;
-      if (name[i] == '-' || name[i] == '.')
-        match = TRUE;
-
-      if (!match)
-        return FALSE;
-    }
-
-  return TRUE;
-}
-
 /* Функция сравнения двух параметров по идентификаторам (для сортировки списка). */
-static gint
+gint
 hyscan_data_schema_compare_keys (HyScanDataSchemaKey *key1,
                                  HyScanDataSchemaKey *key2,
                                  gpointer             user_data)
 {
   return g_strcmp0 (key1->id, key2->id);
-}
-
-/* Функция освобождает память занятую структурой со значениями типа enum. */
-static void
-hyscan_data_schema_free_enum (HyScanDataSchemaEnum *values)
-{
-  gint i;
-
-  for (i = 0; values->values[i] != NULL; i++)
-    {
-      g_free (values->values[i]->name);
-      g_free (values->values[i]->description);
-      g_free (values->values[i]);
-    }
-
-  g_free (values->values);
-  g_free (values->id);
-  g_free (values);
 }
 
 /* Функция обрабатывает описание одного варианта значения для типа enum. */
@@ -560,65 +364,9 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
       i++;
     }
   values->values[i] = NULL;
+  values->n_values = n_values;
 
   return values;
-}
-
-/* Функция обрабатывает переопределения значений типа enum. */
-static HyScanDataSchemaEnum *
-hyscan_data_schema_parse_overrided_enum_values (HyScanDataSchemaOverrides *overrides,
-                                                const gchar               *enum_id)
-{
-  HyScanDataSchemaEnumValue **enum_values;
-  HyScanDataSchemaEnum *values;
-
-  if (overrides == NULL)
-    return NULL;
-
-  enum_values = hyscan_data_schema_overrides_get_enum_values (overrides, enum_id);
-  if (enum_values == NULL)
-    return NULL;
-
-  values = g_new0 (HyScanDataSchemaEnum, 1);
-  values->id = g_strdup (enum_id);
-  values->values = enum_values;
-
-  return values;
-}
-
-/* Функция проверяет значение перечисляемого типа на допустимость. */
-static gboolean
-hyscan_data_schema_check_enum (HyScanDataSchemaEnum *enums,
-                               gint64                value)
-{
-  guint i;
-
-  for (i = 0; enums->values[i] != NULL; i++)
-    {
-      if (enums->values[i]->value == value)
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
-/* Функция освобождает память занятую структурой с параметром. */
-static void
-hyscan_data_schema_free_key (HyScanDataSchemaKey *key)
-{
-  g_free (key->id);
-  g_free (key->name);
-  g_free (key->description);
-
-  if (key->type == HYSCAN_DATA_SCHEMA_TYPE_STRING)
-    {
-      hyscan_data_schema_value_set_string (&key->default_value, NULL);
-      hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
-      hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
-      hyscan_data_schema_value_set_string (&key->value_step, NULL);
-    }
-
-  g_free (key);
 }
 
 /* Функция обрабатывает описание параметра. */
@@ -626,7 +374,6 @@ static HyScanDataSchemaKey *
 hyscan_data_schema_parse_key (xmlNodePtr                 node,
                               const gchar               *path,
                               GHashTable                *enums,
-                              HyScanDataSchemaOverrides *overrides,
                               const gchar               *gettext_domain)
 {
   HyScanDataSchemaKey *key = NULL;
@@ -751,26 +498,13 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
     case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
       {
         gboolean default_value = FALSE;
-        gboolean readonly;
-        gboolean status;
 
-        status = hyscan_data_schema_overrides_get_boolean (overrides,
-                                                           key->id,
-                                                           &default_value,
-                                                           &readonly);
-        if (status)
+        if (default_valuex != NULL)
           {
-            key->readonly = readonly;
-          }
-        else
-          {
-            if (default_valuex != NULL)
+            if (g_ascii_strcasecmp ((const gchar *)default_valuex, "1") == 0 ||
+                g_ascii_strcasecmp ((const gchar *)default_valuex, "true") == 0)
               {
-                if (g_ascii_strcasecmp ((const gchar *)default_valuex, "1") == 0 ||
-                    g_ascii_strcasecmp ((const gchar *)default_valuex, "true") == 0)
-                  {
-                    default_value = TRUE;
-                  }
+                default_value = TRUE;
               }
           }
 
@@ -787,31 +521,15 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         gint64 minimum_value = G_MININT64;
         gint64 maximum_value = G_MAXINT64;
         gint64 value_step = 1;
-        gboolean readonly;
-        gboolean status;
 
-        status = hyscan_data_schema_overrides_get_integer (overrides,
-                                                           key->id,
-                                                           &default_value,
-                                                           &minimum_value,
-                                                           &maximum_value,
-                                                           &value_step,
-                                                           &readonly);
-        if (status)
-          {
-            key->readonly = readonly;
-          }
-        else
-          {
-            if (default_valuex != NULL)
-              default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
-            if (minimum_valuex != NULL)
-              minimum_value = g_ascii_strtoll ((const gchar *)minimum_valuex, NULL, 10);
-            if (maximum_valuex != NULL)
-              maximum_value = g_ascii_strtoll ((const gchar *)maximum_valuex, NULL, 10);
-            if (value_stepx != NULL)
-              value_step = g_ascii_strtoll ((const gchar *)value_stepx, NULL, 10);
-          }
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
+        if (minimum_valuex != NULL)
+          minimum_value = g_ascii_strtoll ((const gchar *)minimum_valuex, NULL, 10);
+        if (maximum_valuex != NULL)
+          maximum_value = g_ascii_strtoll ((const gchar *)maximum_valuex, NULL, 10);
+        if (value_stepx != NULL)
+          value_step = g_ascii_strtoll ((const gchar *)value_stepx, NULL, 10);
 
         if ((minimum_value > maximum_value) ||
             (default_value < minimum_value) ||
@@ -836,32 +554,15 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         gdouble minimum_value = -G_MAXDOUBLE;
         gdouble maximum_value = G_MAXDOUBLE;
         gdouble value_step = 1.0;
-        gboolean readonly;
-        gboolean status;
 
-        status = hyscan_data_schema_overrides_get_double (overrides,
-                                                          key->id,
-                                                          &default_value,
-                                                          &minimum_value,
-                                                          &maximum_value,
-                                                          &value_step,
-                                                          &readonly);
-
-        if (status)
-          {
-            key->readonly = readonly;
-          }
-        else
-          {
-            if (default_valuex != NULL)
-              default_value = g_ascii_strtod ((const gchar *)default_valuex, NULL);
-            if (minimum_valuex != NULL)
-              minimum_value = g_ascii_strtod ((const gchar *)minimum_valuex, NULL);
-            if (maximum_valuex != NULL)
-              maximum_value = g_ascii_strtod ((const gchar *)maximum_valuex, NULL);
-            if (value_stepx != NULL)
-              value_step = g_ascii_strtod ((const gchar *)value_stepx, NULL);
-          }
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtod ((const gchar *)default_valuex, NULL);
+        if (minimum_valuex != NULL)
+          minimum_value = g_ascii_strtod ((const gchar *)minimum_valuex, NULL);
+        if (maximum_valuex != NULL)
+          maximum_value = g_ascii_strtod ((const gchar *)maximum_valuex, NULL);
+        if (value_stepx != NULL)
+          value_step = g_ascii_strtod ((const gchar *)value_stepx, NULL);
 
         if ((minimum_value > maximum_value) ||
             (default_value < minimum_value) ||
@@ -882,52 +583,19 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
 
     case HYSCAN_DATA_SCHEMA_TYPE_STRING:
       {
-        gchar *default_value;
-        gboolean readonly;
-        gboolean status;
-
-        status = hyscan_data_schema_overrides_get_string (overrides,
-                                                          key->id,
-                                                          &default_value,
-                                                          &readonly);
-
-        if (status)
-          {
-            key->readonly = readonly;
-            hyscan_data_schema_value_set_string (&key->default_value, default_value);
-            g_free (default_value);
-          }
-        else
-          {
-            hyscan_data_schema_value_set_string (&key->default_value, (const gchar *)default_valuex);
-            hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
-            hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
-            hyscan_data_schema_value_set_string (&key->value_step, NULL);
-          }
-
+        hyscan_data_schema_value_set_string (&key->default_value, (const gchar *)default_valuex);
+        hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
+        hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
+        hyscan_data_schema_value_set_string (&key->value_step, NULL);
       }
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
       {
-        gint64 default_value = 123;
-        gboolean readonly;
-        gboolean status;
+        gint64 default_value = 0;
 
-        status = hyscan_data_schema_overrides_get_enum (overrides,
-                                                        key->id,
-                                                        &default_value,
-                                                        &readonly);
-
-        if (status)
-          {
-            key->readonly = readonly;
-          }
-        else
-          {
-            if (default_valuex != NULL)
-              default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
-          }
+        if (default_valuex != NULL)
+          default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
 
         if (!hyscan_data_schema_check_enum (key->enum_values, default_value))
           {
@@ -970,7 +638,6 @@ hyscan_data_schema_parse_node (xmlNodePtr                 node,
                                const gchar               *path,
                                GHashTable                *keys,
                                GHashTable                *enums,
-                               HyScanDataSchemaOverrides *overrides,
                                const gchar               *gettext_domain)
 {
   for (; node != NULL; node = node->next)
@@ -997,11 +664,8 @@ hyscan_data_schema_parse_node (xmlNodePtr                 node,
 
       if (g_ascii_strcasecmp ((gchar*)node->name, "key") == 0)
         {
-          HyScanDataSchemaKey *key = hyscan_data_schema_parse_key (node,
-                                                                   path,
-                                                                   enums,
-                                                                   overrides,
-                                                                   gettext_domain);
+          HyScanDataSchemaKey *key = hyscan_data_schema_parse_key (node, path,
+                                                                   enums, gettext_domain);
           if (key == NULL)
             {
               status = FALSE;
@@ -1026,22 +690,15 @@ hyscan_data_schema_parse_node (xmlNodePtr                 node,
           if (schema != NULL)
             {
               status = hyscan_data_schema_parse_schema (node->doc,
-                                                        schema_path,
-                                                        (gchar*)schema,
-                                                        cpath,
-                                                        keys,
-                                                        enums,
-                                                        overrides,
+                                                        schema_path, (gchar*)schema, cpath,
+                                                        keys, enums,
                                                         gettext_domain);
             }
           else
             {
               status = hyscan_data_schema_parse_node (node->children,
-                                                      schema_path,
-                                                      cpath,
-                                                      keys,
-                                                      enums,
-                                                      overrides,
+                                                      schema_path, cpath,
+                                                      keys, enums,
                                                       gettext_domain);
             }
           g_free (cpath);
@@ -1065,7 +722,6 @@ hyscan_data_schema_parse_schema (xmlDocPtr                  doc,
                                  const gchar               *path,
                                  GHashTable                *keys,
                                  GHashTable                *enums,
-                                 HyScanDataSchemaOverrides *overrides,
                                  const gchar               *gettext_domain)
 {
   xmlNodePtr node;
@@ -1111,11 +767,8 @@ hyscan_data_schema_parse_schema (xmlDocPtr                  doc,
 
       cpath = g_strdup_printf ("%s%s/", schema_path, (gchar*)schema);
       status = hyscan_data_schema_parse_node (node->children,
-                                              cpath,
-                                              path,
-                                              keys,
-                                              enums,
-                                              overrides,
+                                              cpath, path,
+                                              keys, enums,
                                               gettext_domain);
       if (!status)
         {
@@ -1132,113 +785,21 @@ hyscan_data_schema_parse_schema (xmlDocPtr                  doc,
   return FALSE;
 }
 
-/* Функция создаёт новый узел с параметрами. */
-static HyScanDataSchemaNode *
-hyscan_data_schema_new_node (const gchar *path)
-{
-  HyScanDataSchemaNode *node;
-
-  node = g_new0 (HyScanDataSchemaNode, 1);
-  node->path = g_strdup (path);
-  node->nodes = g_malloc0 (sizeof (HyScanDataSchemaNode*));
-  node->params = g_malloc0 (sizeof (HyScanDataSchemaParam*));
-
-  return node;
-}
-
-/* Функция создаёт новую структуру с описанием параметра. */
-static HyScanDataSchemaParam *
-hyscan_data_schema_new_param (const gchar          *id,
-                              const gchar          *name,
-                              const gchar          *description,
-                              HyScanDataSchemaType  type,
-                              gboolean              readonly)
-{
-  HyScanDataSchemaParam *param;
-
-  param = g_new (HyScanDataSchemaParam, 1);
-  param->id = g_strdup (id);
-  param->name = g_strdup (name);
-  param->description = g_strdup (description);
-  param->type = type;
-  param->readonly = readonly;
-
-  return param;
-}
-
-/* Функция добавляет новый параметр в список. */
-static void
-hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
-                                 const gchar          *id,
-                                 const gchar          *name,
-                                 const gchar          *description,
-                                 HyScanDataSchemaType  type,
-                                 gboolean              readonly)
-{
-  gchar **pathv;
-  guint i, j;
-
-  pathv = g_strsplit (id, "/", -1);
-
-  /* Поиск узла для параметра. */
-  for (i = 1; i < g_strv_length (pathv) - 1; i++)
-    {
-      gboolean has_node = FALSE;
-      gchar *cur_path;
-
-      /* Сверяем путь для текущего узла с идентификатором параметра. */
-      for (j = 0; node->nodes != NULL && node->nodes[j] != NULL; j++)
-        {
-          /* Если совпадают, мы на правильном пути:) */
-          if (g_str_has_prefix (id, node->nodes[j]->path))
-            {
-              node = node->nodes[j];
-              has_node = TRUE;
-              break;
-            }
-        }
-
-      /* Если узел для текущего пути найден, переходим к следующему компоненту пути. */
-      if (has_node)
-        continue;
-
-      /* Или добавляем новый узел. */
-      cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
-      node->nodes = g_realloc (node->nodes, (node->n_nodes + 2) * sizeof (HyScanDataSchemaNode*));
-      node->nodes[node->n_nodes] = hyscan_data_schema_new_node (cur_path);
-      node->n_nodes += 1;
-      node->nodes[node->n_nodes] = NULL;
-      node = node->nodes[j];
-      g_free (cur_path);
-    }
-
-  g_strfreev (pathv);
-
-  /* Новый параметр. */
-  node->params = g_realloc (node->params, (node->n_params + 2) * sizeof (HyScanDataSchemaParam*));
-  node->params[node->n_params] = hyscan_data_schema_new_param (id, name, description, type, readonly);
-  node->n_params += 1;
-  node->params[node->n_params] = NULL;
-}
-
 /* Функция создаёт новый объект HyScanDataSchema. */
 HyScanDataSchema *
 hyscan_data_schema_new_from_string (const gchar *schema_data,
-                                    const gchar *schema_id,
-                                    const gchar *overrides_data)
+                                    const gchar *schema_id)
 {
   return g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
                        "schema-data", schema_data,
                        "schema-id", schema_id,
-                       "overrides-data", overrides_data,
                        NULL);
 }
 
 /* Функция создаёт новый объект HyScanDataSchema. */
 HyScanDataSchema *
 hyscan_data_schema_new_from_file (const gchar *schema_path,
-                                  const gchar *schema_id,
-                                  const gchar *overrides_data)
+                                  const gchar *schema_id)
 {
   gchar *schema_data;
   gpointer schema;
@@ -1249,39 +810,8 @@ hyscan_data_schema_new_from_file (const gchar *schema_path,
   schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
                          "schema-data", schema_data,
                          "schema-id", schema_id,
-                         "overrides-data", overrides_data,
                          NULL);
   g_free (schema_data);
-
-  return schema;
-}
-
-/* Функция создаёт новый объект HyScanDataSchema. */
-HyScanDataSchema *
-hyscan_data_schema_new_from_file_all (const gchar *schema_path,
-                                      const gchar *schema_id,
-                                      const gchar *overrides_path)
-{
-  gchar *schema_data;
-  gchar *overrides_data;
-  gpointer schema;
-
-  if (!g_file_get_contents (schema_path, &schema_data, NULL, NULL))
-    return NULL;
-
-  if (!g_file_get_contents (overrides_path, &overrides_data, NULL, NULL))
-    {
-      g_free (schema_data);
-      return NULL;
-    }
-
-  schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
-                         "schema-data", schema_data,
-                         "schema-id", schema_id,
-                         "overrides-data", overrides_data,
-                         NULL);
-  g_free (schema_data);
-  g_free (overrides_data);
 
   return schema;
 }
@@ -1289,8 +819,7 @@ hyscan_data_schema_new_from_file_all (const gchar *schema_path,
 /* Функция создаёт новый объект HyScanDataSchema. */
 HyScanDataSchema *
 hyscan_data_schema_new_from_resource (const gchar *schema_resource,
-                                      const gchar *schema_id,
-                                      const gchar *overrides_data)
+                                      const gchar *schema_id)
 {
   const gchar *schema_data;
   GBytes *resource;
@@ -1304,45 +833,8 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
   schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
                          "schema-data", schema_data,
                          "schema-id", schema_id,
-                         "overrides-data", overrides_data,
                          NULL);
   g_bytes_unref (resource);
-
-  return schema;
-}
-
-/* Функция создаёт новый объект HyScanDataSchema. */
-HyScanDataSchema *
-hyscan_data_schema_new_from_resource_all (const gchar *schema_resource_path,
-                                          const gchar *schema_id,
-                                          const gchar *overrides_resource_path)
-{
-  const gchar *schema_data;
-  const gchar *overrides_data;
-  GBytes *schema_resource;
-  GBytes *overrides_resource;
-  gpointer schema;
-
-  schema_resource = g_resources_lookup_data (schema_resource_path, 0, NULL);
-  if (schema_resource == NULL)
-    return NULL;
-
-  overrides_resource = g_resources_lookup_data (overrides_resource_path, 0, NULL);
-  if (overrides_resource == NULL)
-    {
-      g_bytes_unref (schema_resource);
-      return NULL;
-    }
-
-  schema_data = g_bytes_get_data (schema_resource, NULL);
-  overrides_data = g_bytes_get_data (overrides_resource, NULL);
-  schema = g_object_new (HYSCAN_TYPE_DATA_SCHEMA,
-                         "schema-data", schema_data,
-                         "schema-id", schema_id,
-                         "overrides-data", overrides_data,
-                         NULL);
-  g_bytes_unref (schema_resource);
-  g_bytes_unref (overrides_resource);
 
   return schema;
 }

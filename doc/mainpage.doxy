@@ -4,7 +4,7 @@
  *
  * - \link HyScanData \endlink - вспомогательные функции с определениями типов данных HyScan;
  * - \link HyScanDataSchema \endlink - класс работы со схемой данных;
- * - \link HyScanDataSchemaOverrides \endlink - класс работы с переопределениями схемы данных;
+ * - \link HyScanDataSchemaBuilder \endlink - класс генерации схем данных;
  * - \link HyScanDataBox \endlink - класс работы с параметрами.
  *
  */

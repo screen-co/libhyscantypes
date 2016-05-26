@@ -1,6 +1,8 @@
 #include <gio/gio.h>
 #include <hyscan-data-schema.h>
 
+HyScanDataSchema *test_schema_create (const gchar *schema_id);
+
 /* Функция проверки параметра типа BOOLEAN. */
 void check_boolean (HyScanDataSchema *schema, const gchar *key_id)
 {
@@ -215,9 +217,7 @@ main (int argc, char **argv)
   gchar **keys_list;
   guint i;
 
-  schema = hyscan_data_schema_new_from_resource_all ("/org/hyscan/schemas/data-schema-good.xml",
-                                                     "test",
-                                                     "/org/hyscan/schemas/data-schema-overrides.ini");
+  schema = test_schema_create ("test");
 
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)

@@ -1,6 +1,8 @@
 #include <gio/gio.h>
 #include <hyscan-data-box.h>
 
+HyScanDataSchema *test_schema_create (const gchar *schema_id);
+
 static volatile guint32 mod_counter = 0;
 
 void changed_cb (HyScanDataBox *data, const gchar *name)
@@ -295,11 +297,9 @@ main (int    argc,
   gchar **keys_list;
   guint i;
 
-  data = hyscan_data_box_new_from_resource_all ("/org/hyscan/schemas/data-schema-good.xml",
-                                                "test",
-                                                "/org/hyscan/schemas/data-schema-overrides.ini");
+  schema = test_schema_create ("test");
+  data = hyscan_data_box_new_from_schema (schema);
 
-  schema = hyscan_data_box_get_schema (data);
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
     g_error ("empty schema");
@@ -343,6 +343,7 @@ main (int    argc,
     g_error ("modification counter error");
 
   g_object_unref (data);
+  g_object_unref (schema);
 
   return 0;
 }

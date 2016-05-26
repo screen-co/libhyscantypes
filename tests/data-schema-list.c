@@ -128,7 +128,7 @@ main (int argc, char **argv)
       return -1;
     }
 
-  schema = hyscan_data_schema_new_from_file (argv[1], argv[2], NULL);
+  schema = hyscan_data_schema_new_from_file (argv[1], argv[2]);
 
   nodes = hyscan_data_schema_list_nodes (schema);
   if (nodes == NULL)
