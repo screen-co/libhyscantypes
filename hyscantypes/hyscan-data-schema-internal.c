@@ -149,22 +149,22 @@ hyscan_data_schema_new_node (const gchar *path)
   node = g_new0 (HyScanDataSchemaNode, 1);
   node->path = g_strdup (path);
   node->nodes = g_malloc0 (sizeof (HyScanDataSchemaNode*));
-  node->params = g_malloc0 (sizeof (HyScanDataSchemaParam*));
+  node->keys = g_malloc0 (sizeof (HyScanDataSchemaKey*));
 
   return node;
 }
 
 /* Функция создаёт новую структуру с описанием параметра. */
-HyScanDataSchemaParam *
+HyScanDataSchemaKey *
 hyscan_data_schema_new_param (const gchar          *id,
                               const gchar          *name,
                               const gchar          *description,
                               HyScanDataSchemaType  type,
                               gboolean              readonly)
 {
-  HyScanDataSchemaParam *param;
+  HyScanDataSchemaKey *param;
 
-  param = g_new (HyScanDataSchemaParam, 1);
+  param = g_new (HyScanDataSchemaKey, 1);
   param->id = g_strdup (id);
   param->name = g_strdup (name);
   param->description = g_strdup (description);
@@ -224,10 +224,10 @@ hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
   g_strfreev (pathv);
 
   /* Новый параметр. */
-  node->params = g_realloc (node->params, (node->n_params + 2) * sizeof (HyScanDataSchemaKey*));
-  node->params[node->n_params] = hyscan_data_schema_new_param (id, name, description, type, readonly);
-  node->n_params += 1;
-  node->params[node->n_params] = NULL;
+  node->keys = g_realloc (node->keys, (node->n_keys + 2) * sizeof (HyScanDataSchemaInternalKey*));
+  node->keys[node->n_keys] = hyscan_data_schema_new_param (id, name, description, type, readonly);
+  node->n_keys += 1;
+  node->keys[node->n_keys] = NULL;
 }
 
 /* Функция освобождает память занятую структурой со значениями типа enum. */
@@ -250,7 +250,7 @@ hyscan_data_schema_free_enum (HyScanDataSchemaEnum *values)
 
 /* Функция освобождает память занятую структурой с параметром. */
 void
-hyscan_data_schema_free_key (HyScanDataSchemaKey *key)
+hyscan_data_schema_free_key (HyScanDataSchemaInternalKey *key)
 {
   g_free (key->id);
   g_free (key->name);

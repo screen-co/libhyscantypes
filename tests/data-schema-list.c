@@ -15,18 +15,18 @@ void print_node (HyScanDataSchema     *schema,
   else
     printf ("Node: '%s'\n", nodes->path);
 
-  for (i = 0; i < nodes->n_params; i++)
+  for (i = 0; i < nodes->n_keys; i++)
     {
-      printf (" * %s (%s) %s\n", nodes->params[i]->name,
-                                 nodes->params[i]->description,
-                                 nodes->params[i]->readonly ? "(READONLY)" : "");
+      printf (" * %s (%s) %s\n", nodes->keys[i]->name,
+                                 nodes->keys[i]->description,
+                                 nodes->keys[i]->readonly ? "(READONLY)" : "");
 
-      switch (nodes->params[i]->type)
+      switch (nodes->keys[i]->type)
         {
         case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
           {
             gboolean default_value;
-            hyscan_data_schema_key_get_default_boolean (schema, nodes->params[i]->id, &default_value);
+            hyscan_data_schema_key_get_default_boolean (schema, nodes->keys[i]->id, &default_value);
             printf ("     Default value: %s\n", default_value ? "TRUE" : "FALSE");
           }
           break;
@@ -37,11 +37,11 @@ void print_node (HyScanDataSchema     *schema,
             gint64 minimum_value;
             gint64 maximum_value;
             gint64 value_step;
-            hyscan_data_schema_key_get_default_integer (schema, nodes->params[i]->id, &default_value);
-            hyscan_data_schema_key_get_integer_range (schema, nodes->params[i]->id, &minimum_value, &maximum_value);
-            hyscan_data_schema_key_get_integer_step (schema, nodes->params[i]->id, &value_step);
+            hyscan_data_schema_key_get_default_integer (schema, nodes->keys[i]->id, &default_value);
+            hyscan_data_schema_key_get_integer_range (schema, nodes->keys[i]->id, &minimum_value, &maximum_value);
+            hyscan_data_schema_key_get_integer_step (schema, nodes->keys[i]->id, &value_step);
             printf ("     Default value: %" G_GINT64_FORMAT, default_value);
-            if (!nodes->params[i]->readonly)
+            if (!nodes->keys[i]->readonly)
               {
                 printf (", minimum value %" G_GINT64_FORMAT", maximum value %" G_GINT64_FORMAT, minimum_value, maximum_value);
                 printf (", step %" G_GINT64_FORMAT "\n", value_step);
@@ -59,11 +59,11 @@ void print_node (HyScanDataSchema     *schema,
             gdouble minimum_value;
             gdouble maximum_value;
             gdouble value_step;
-            hyscan_data_schema_key_get_default_double (schema, nodes->params[i]->id, &default_value);
-            hyscan_data_schema_key_get_double_range (schema, nodes->params[i]->id, &minimum_value, &maximum_value);
-            hyscan_data_schema_key_get_double_step (schema, nodes->params[i]->id, &value_step);
+            hyscan_data_schema_key_get_default_double (schema, nodes->keys[i]->id, &default_value);
+            hyscan_data_schema_key_get_double_range (schema, nodes->keys[i]->id, &minimum_value, &maximum_value);
+            hyscan_data_schema_key_get_double_step (schema, nodes->keys[i]->id, &value_step);
             printf ("     Default value: %.03lf", default_value);
-            if (!nodes->params[i]->readonly)
+            if (!nodes->keys[i]->readonly)
               {
                 printf (", minimum value %.03lf, maximum value %.03lf", minimum_value, maximum_value);
                 printf (", step %.03lf\n", value_step);
@@ -78,7 +78,7 @@ void print_node (HyScanDataSchema     *schema,
         case HYSCAN_DATA_SCHEMA_TYPE_STRING:
           {
             const gchar *default_value;
-            default_value = hyscan_data_schema_key_get_default_string (schema, nodes->params[i]->id);
+            default_value = hyscan_data_schema_key_get_default_string (schema, nodes->keys[i]->id);
             printf ("     Default value: %s\n", default_value != NULL ? default_value : "'no default value'");
           }
           break;
@@ -89,12 +89,12 @@ void print_node (HyScanDataSchema     *schema,
             gint64 default_value;
             gint j;
 
-            values = hyscan_data_schema_key_get_enum_values (schema, nodes->params[i]->id);
-            hyscan_data_schema_key_get_default_enum (schema, nodes->params[i]->id, &default_value);
+            values = hyscan_data_schema_key_get_enum_values (schema, nodes->keys[i]->id);
+            hyscan_data_schema_key_get_default_enum (schema, nodes->keys[i]->id, &default_value);
 
             for (j = 0; values != NULL && values[j] != NULL; j++)
               {
-                if (nodes->params[i]->readonly &&
+                if (nodes->keys[i]->readonly &&
                     values[j]->value != default_value)
                   continue;
 

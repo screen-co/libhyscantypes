@@ -44,7 +44,7 @@ static void            hyscan_data_schema_builder_dump_node            (GOutputS
                                                                         HyScanDataSchemaNode  *node,
                                                                         gint                   level);
 static void            hyscan_data_schema_builder_dump_key             (GOutputStream         *ostream,
-                                                                        HyScanDataSchemaKey   *key,
+                                                                        HyScanDataSchemaInternalKey *key,
                                                                         gint                   level);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanDataSchemaBuilder, hyscan_data_schema_builder, G_TYPE_OBJECT)
@@ -199,9 +199,9 @@ hyscan_data_schema_builder_dump_node (GOutputStream        *ostream,
     hyscan_data_schema_builder_dump_node (ostream, keys, node->nodes[i], level + 1);
 
   /* Описание всех параметров. */
-  for (i = 0; i < node->n_params; i++)
+  for (i = 0; i < node->n_keys; i++)
     {
-      HyScanDataSchemaKey *key = g_hash_table_lookup (keys, node->params[i]->id);
+      HyScanDataSchemaInternalKey *key = g_hash_table_lookup (keys, node->keys[i]->id);
       hyscan_data_schema_builder_dump_key (ostream, key, level);
     }
 
@@ -218,9 +218,9 @@ hyscan_data_schema_builder_dump_node (GOutputStream        *ostream,
 
 /* Функция формирует XML описание параметра. */
 static void
-hyscan_data_schema_builder_dump_key (GOutputStream       *ostream,
-                                     HyScanDataSchemaKey *key,
-                                     gint                 level)
+hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
+                                     HyScanDataSchemaInternalKey *key,
+                                     gint                         level)
 {
   gchar *indent;
   gchar **pathv;
@@ -443,7 +443,7 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   while (g_hash_table_iter_next (&iter, &key, NULL))
     {
       gchar *key_id = key;
-      HyScanDataSchemaKey *key = g_hash_table_lookup (priv->keys, key_id);
+      HyScanDataSchemaInternalKey *key = g_hash_table_lookup (priv->keys, key_id);
       hyscan_data_schema_insert_param (nodes, key->id, key->name, key->description, key->type, key->readonly);
     }
 
@@ -562,7 +562,7 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
                                                gboolean                 readonly,
                                                gboolean                 default_value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -572,7 +572,7 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
   if (!hyscan_data_schema_validate_id (key_id))
     return FALSE;
 
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup (key_id);
   key->name = g_strdup (name);
   key->description = g_strdup (description);
@@ -600,7 +600,7 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
                                                gint64                   maximum_value,
                                                gint64                   value_step)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -618,7 +618,7 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
       return FALSE;
     }
 
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup (key_id);
   key->name = g_strdup (name);
   key->description = g_strdup (description);
@@ -646,7 +646,7 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
                                               gdouble                  maximum_value,
                                               gdouble                  value_step)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -664,7 +664,7 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
       return FALSE;
     }
 
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup (key_id);
   key->name = g_strdup (name);
   key->description = g_strdup (description);
@@ -689,7 +689,7 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
                                               gboolean                 readonly,
                                               const gchar             *default_value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -699,7 +699,7 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
   if (!hyscan_data_schema_validate_id (key_id))
     return FALSE;
 
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup (key_id);
   key->name = g_strdup (name);
   key->description = g_strdup (description);
@@ -725,7 +725,7 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
                                             const gchar             *enum_id,
                                             gint64                   default_value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
   HyScanDataSchemaEnum *values;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
@@ -746,7 +746,7 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
       return FALSE;
     }
 
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup (key_id);
   key->name = g_strdup (name);
   key->description = g_strdup (description);

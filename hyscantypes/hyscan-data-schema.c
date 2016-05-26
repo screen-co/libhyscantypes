@@ -43,9 +43,9 @@ static void            hyscan_data_schema_set_property         (GObject         
 static void            hyscan_data_schema_object_constructed   (GObject                    *object);
 static void            hyscan_data_schema_object_finalize      (GObject                    *object);
 
-static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaKey        *key1,
-                                                                HyScanDataSchemaKey        *key2,
-                                                                gpointer                    user_data);
+static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaInternalKey *key1,
+                                                                HyScanDataSchemaInternalKey *key2,
+                                                                gpointer                     user_data);
 
 static HyScanDataSchemaEnumValue
                       *hyscan_data_schema_parse_enum_value     (xmlNodePtr                  node,
@@ -54,7 +54,8 @@ static HyScanDataSchemaEnum
                       *hyscan_data_schema_parse_enum_values    (xmlNodePtr                  node,
                                                                 const gchar                *gettext_domain);
 
-static HyScanDataSchemaKey *hyscan_data_schema_parse_key       (xmlNodePtr                  node,
+static HyScanDataSchemaInternalKey *
+                       hyscan_data_schema_parse_key            (xmlNodePtr                  node,
                                                                 const gchar                *path,
                                                                 GHashTable                 *enums,
                                                                 const gchar                *gettext_domain);
@@ -218,7 +219,7 @@ hyscan_data_schema_object_constructed (GObject *object)
   n_keys = g_hash_table_size (priv->keys);
   if (n_keys > 0)
     {
-      HyScanDataSchemaKey *key;
+      HyScanDataSchemaInternalKey *key;
       GHashTableIter iter;
       guint i;
 
@@ -258,9 +259,9 @@ hyscan_data_schema_object_finalize (GObject *object)
 
 /* Функция сравнения двух параметров по идентификаторам (для сортировки списка). */
 gint
-hyscan_data_schema_compare_keys (HyScanDataSchemaKey *key1,
-                                 HyScanDataSchemaKey *key2,
-                                 gpointer             user_data)
+hyscan_data_schema_compare_keys (HyScanDataSchemaInternalKey *key1,
+                                 HyScanDataSchemaInternalKey *key2,
+                                 gpointer                     user_data)
 {
   return g_strcmp0 (key1->id, key2->id);
 }
@@ -370,13 +371,13 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
 }
 
 /* Функция обрабатывает описание параметра. */
-static HyScanDataSchemaKey *
+static HyScanDataSchemaInternalKey *
 hyscan_data_schema_parse_key (xmlNodePtr                 node,
                               const gchar               *path,
                               GHashTable                *enums,
                               const gchar               *gettext_domain)
 {
-  HyScanDataSchemaKey *key = NULL;
+  HyScanDataSchemaInternalKey *key = NULL;
 
   HyScanDataSchemaType key_data_type = HYSCAN_DATA_SCHEMA_TYPE_INVALID;
   HyScanDataSchemaEnum *enum_values = NULL;
@@ -478,7 +479,7 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         }
 
   /* Описание параметра. */
-  key = g_new0 (HyScanDataSchemaKey, 1);
+  key = g_new0 (HyScanDataSchemaInternalKey, 1);
   key->id = g_strdup_printf ("%s%s",path, (const gchar *)idx);
   key->name = g_strdup (g_dgettext (gettext_domain, (const gchar *)namex));
   key->description = g_strdup (g_dgettext (gettext_domain, (const gchar *)descriptionx));
@@ -664,8 +665,8 @@ hyscan_data_schema_parse_node (xmlNodePtr                 node,
 
       if (g_ascii_strcasecmp ((gchar*)node->name, "key") == 0)
         {
-          HyScanDataSchemaKey *key = hyscan_data_schema_parse_key (node, path,
-                                                                   enums, gettext_domain);
+          HyScanDataSchemaInternalKey *key = hyscan_data_schema_parse_key (node, path,
+                                                                           enums, gettext_domain);
           if (key == NULL)
             {
               status = FALSE;
@@ -893,8 +894,12 @@ hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
   node = hyscan_data_schema_new_node ("");
   for (i = 0; priv->keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaKey *key = g_hash_table_lookup (priv->keys, priv->keys_list[i]);
-      hyscan_data_schema_insert_param (node, priv->keys_list[i], key->name, key->description, key->type, key->readonly);
+      HyScanDataSchemaInternalKey *key = g_hash_table_lookup (priv->keys, priv->keys_list[i]);
+      hyscan_data_schema_insert_param (node, priv->keys_list[i],
+                                             key->name,
+                                             key->description,
+                                             key->type,
+                                             key->readonly);
     }
 
   return node;
@@ -915,7 +920,7 @@ HyScanDataSchemaType
 hyscan_data_schema_key_get_type (HyScanDataSchema *schema,
                                  const gchar      *key_id)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), HYSCAN_DATA_SCHEMA_TYPE_INVALID);
 
@@ -931,7 +936,7 @@ const gchar *
 hyscan_data_schema_key_get_name (HyScanDataSchema *schema,
                                  const gchar      *key_id)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
@@ -947,7 +952,7 @@ const gchar *
 hyscan_data_schema_key_get_description (HyScanDataSchema *schema,
                                         const gchar      *key_id)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
@@ -963,7 +968,7 @@ gboolean
 hyscan_data_schema_key_is_readonly (HyScanDataSchema *schema,
                                     const gchar      *key_id)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), TRUE);
 
@@ -980,7 +985,7 @@ hyscan_data_schema_key_get_default_boolean (HyScanDataSchema *schema,
                                             const gchar      *key_id,
                                             gboolean         *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -999,7 +1004,7 @@ hyscan_data_schema_key_get_default_integer (HyScanDataSchema *schema,
                                             const gchar      *key_id,
                                             gint64           *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1018,7 +1023,7 @@ hyscan_data_schema_key_get_default_double (HyScanDataSchema *schema,
                                            const gchar      *key_id,
                                            gdouble          *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1036,7 +1041,7 @@ const gchar *
 hyscan_data_schema_key_get_default_string (HyScanDataSchema *schema,
                                             const gchar      *key_id)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
@@ -1053,7 +1058,7 @@ hyscan_data_schema_key_get_default_enum (HyScanDataSchema *schema,
                                          const gchar      *key_id,
                                          gint64           *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1073,7 +1078,7 @@ hyscan_data_schema_key_get_integer_range (HyScanDataSchema      *schema,
                                           gint64                *minimum,
                                           gint64                *maximum)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1094,7 +1099,7 @@ hyscan_data_schema_key_get_double_range (HyScanDataSchema      *schema,
                                          gdouble               *minimum,
                                          gdouble               *maximum)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1114,7 +1119,7 @@ hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
                                         const gchar           *key_id)
 {
   HyScanDataSchemaEnumValue **values;
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
   gint n_values;
   gint i;
 
@@ -1145,7 +1150,7 @@ hyscan_data_schema_key_get_integer_step (HyScanDataSchema *schema,
                                          const gchar      *key_id,
                                          gint64           *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1164,7 +1169,7 @@ hyscan_data_schema_key_get_double_step (HyScanDataSchema *schema,
                                         const gchar      *key_id,
                                         gdouble          *value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1183,7 +1188,7 @@ hyscan_data_schema_key_check_integer (HyScanDataSchema *schema,
                                       const gchar      *key_id,
                                       gint64            value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1211,7 +1216,7 @@ hyscan_data_schema_key_check_double (HyScanDataSchema *schema,
                                      const gchar      *key_id,
                                      gdouble           value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1239,7 +1244,7 @@ hyscan_data_schema_key_check_enum (HyScanDataSchema *schema,
                                    const gchar      *key_id,
                                    gint64            value)
 {
-  HyScanDataSchemaKey *key;
+  HyScanDataSchemaInternalKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
@@ -1265,18 +1270,18 @@ hyscan_data_schema_free_nodes (HyScanDataSchemaNode *nodes)
   for (i = 0; i < nodes->n_nodes; i++)
     hyscan_data_schema_free_nodes (nodes->nodes[i]);
 
-  for (i = 0; i < nodes->n_params; i++)
+  for (i = 0; i < nodes->n_keys; i++)
     {
-      g_free (nodes->params[i]->id);
-      g_free (nodes->params[i]->name);
-      g_free (nodes->params[i]->description);
-      g_free (nodes->params[i]);
+      g_free (nodes->keys[i]->id);
+      g_free (nodes->keys[i]->name);
+      g_free (nodes->keys[i]->description);
+      g_free (nodes->keys[i]);
     }
 
   g_free (nodes->path);
 
   g_free (nodes->nodes);
-  g_free (nodes->params);
+  g_free (nodes->keys);
   g_free (nodes);
 }
 

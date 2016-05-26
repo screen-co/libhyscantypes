@@ -217,7 +217,7 @@ typedef struct
 } HyScanDataSchemaEnumValue;
 
 typedef struct _HyScanDataSchemaNode HyScanDataSchemaNode;
-typedef struct _HyScanDataSchemaParam HyScanDataSchemaParam;
+typedef struct _HyScanDataSchemaKey HyScanDataSchemaKey;
 
 /** \brief Узел с параметрами */
 struct _HyScanDataSchemaNode
@@ -227,12 +227,12 @@ struct _HyScanDataSchemaNode
   HyScanDataSchemaNode               **nodes;          /**< Дочерние узлы. */
   gint                                 n_nodes;        /**< Число дочерних узлов. */
 
-  HyScanDataSchemaParam              **params;         /**< Параметры. */
-  gint                                 n_params;       /**< Число параметров. */
+  HyScanDataSchemaKey                **keys;           /**< Параметры. */
+  gint                                 n_keys;         /**< Число параметров. */
 };
 
 /** \brief Описание параметра */
-struct _HyScanDataSchemaParam
+struct _HyScanDataSchemaKey
 {
   gchar                               *id;             /**< Идентификатор параметров. */
   gchar                               *name;           /**< Название параметра. */

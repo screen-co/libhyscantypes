@@ -37,7 +37,7 @@ typedef struct
   gint64                       minimum_value;                  /* Минимально возможное значение. */
   gint64                       maximum_value;                  /* Маскимально возможное значение. */
   gint64                       value_step;                     /* Шаг изменения значения. */
-} HyScanDataSchemaKey;
+} HyScanDataSchemaInternalKey;
 
 /* Функция записывает в область памяти data значение типа gboolean. */
 void                   hyscan_data_schema_value_set_boolean    (gpointer                    data,
@@ -81,7 +81,7 @@ gboolean               hyscan_data_schema_check_enum           (HyScanDataSchema
 HyScanDataSchemaNode  *hyscan_data_schema_new_node             (const gchar                *path);
 
 /* Функция создаёт новую структуру с описанием параметра. */
-HyScanDataSchemaParam *hyscan_data_schema_new_param            (const gchar                *id,
+HyScanDataSchemaKey   *hyscan_data_schema_new_param            (const gchar                *id,
                                                                 const gchar                *name,
                                                                 const gchar                *description,
                                                                 HyScanDataSchemaType        type,
@@ -99,6 +99,6 @@ void                   hyscan_data_schema_insert_param         (HyScanDataSchema
 void                   hyscan_data_schema_free_enum            (HyScanDataSchemaEnum       *values);
 
 /* Функция освобождает память занятую структурой с параметром. */
-void                   hyscan_data_schema_free_key             (HyScanDataSchemaKey        *key);
+void                   hyscan_data_schema_free_key             (HyScanDataSchemaInternalKey *key);
 
 #endif /* __HYSCAN_SCHEMA_INTERNAL_H__ */
