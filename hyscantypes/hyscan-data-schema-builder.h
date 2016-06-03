@@ -127,7 +127,7 @@ gboolean                  hyscan_data_schema_builder_enum_create         (HyScan
  * \param enum_id идентификатор списка;
  * \param value численное значение параметра;
  * \param name название значения параметра;
- * \param description описание згачения параметра.
+ * \param description описание значения параметра или NULL.
  *
  * \return TRUE если новое значение создано, FALSE в случае ошибки.
  *
