@@ -27,7 +27,6 @@ struct _HyScanDataSchemaPrivate
 {
   gchar                       *schema_data;            /* Описание схемы в формате XML. */
   gchar                       *schema_id;              /* Идентификатор используемой схемы. */
-  gchar                       *overrides_data;         /* Переопределения схемы в формате INI. */
   gchar                       *gettext_domain;         /* Название домена переводов. */
 
   gchar                      **keys_list;              /* Список имён параметров. */
@@ -251,7 +250,6 @@ hyscan_data_schema_object_finalize (GObject *object)
 
   g_free (priv->schema_data);
   g_free (priv->schema_id);
-  g_free (priv->overrides_data);
   g_free (priv->gettext_domain);
 
   G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
@@ -856,15 +854,6 @@ hyscan_data_schema_get_id (HyScanDataSchema *schema)
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   return g_strdup (schema->priv->schema_id);
-}
-
-/* Функция возвращает переопределения используемой схемы данных. */
-gchar *
-hyscan_data_schema_get_overrides (HyScanDataSchema *schema)
-{
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
-
-  return g_strdup (schema->priv->overrides_data);
 }
 
 /* Функция возвращает список параметров определённых в схеме. */

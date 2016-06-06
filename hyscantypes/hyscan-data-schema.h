@@ -316,20 +316,6 @@ gchar                 *hyscan_data_schema_get_id                       (HyScanDa
 
 /**
  *
- * Функция возвращает переопределения используемой схемы данных.
- *
- * Пользователь должен освободить память, занимаемую переопределениями, функцией g_free.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink.
- *
- * \return Переопределения схемы данных.
- *
- */
-HYSCAN_TYPES_EXPORT
-gchar                 *hyscan_data_schema_get_overrides                (HyScanDataSchema      *schema);
-
-/**
- *
  * Функция возвращает список параметров определённых в схеме.
  *
  * Пользователь должен освободить память, занимаемую списком, функцией g_strfreev.
