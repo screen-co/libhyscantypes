@@ -11,6 +11,10 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 #
+# API export.
+add_definitions (-DHYSCAN_API_EXPORTS)
+
+#
 # Compilers options.
 if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
   set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2 -Wall $ENV{CFLAGS}")

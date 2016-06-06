@@ -61,7 +61,7 @@ struct _HyScanDataSchemaBuilderClass
   GObjectClass parent_class;
 };
 
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 GType                     hyscan_data_schema_builder_get_type            (void);
 
 /**
@@ -73,7 +73,7 @@ GType                     hyscan_data_schema_builder_get_type            (void);
  * \return Указатель на объект \link HyScanDataSchemaBuilder \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchemaBuilder  *hyscan_data_schema_builder_new                 (const gchar              *schema_id);
 
 /**
@@ -87,7 +87,7 @@ HyScanDataSchemaBuilder  *hyscan_data_schema_builder_new                 (const 
  * \return Указатель на объект \link HyScanDataSchemaBuilder \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchemaBuilder  *hyscan_data_schema_builder_new_with_gettext    (const gchar              *schema_id,
                                                                           const gchar              *gettext_domain);
 
@@ -102,7 +102,7 @@ HyScanDataSchemaBuilder  *hyscan_data_schema_builder_new_with_gettext    (const 
  * \return Описание схемы данных.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gchar                    *hyscan_data_schema_builder_get_data            (HyScanDataSchemaBuilder  *builder);
 
 /**
@@ -115,7 +115,7 @@ gchar                    *hyscan_data_schema_builder_get_data            (HyScan
  * \return TRUE если список создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_enum_create         (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *enum_id);
 
@@ -132,7 +132,7 @@ gboolean                  hyscan_data_schema_builder_enum_create         (HyScan
  * \return TRUE если новое значение создано, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_enum_value_create   (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *enum_id,
                                                                           gint64                    value,
@@ -153,7 +153,7 @@ gboolean                  hyscan_data_schema_builder_enum_value_create   (HyScan
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_boolean_create  (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
@@ -178,7 +178,7 @@ gboolean                  hyscan_data_schema_builder_key_boolean_create  (HyScan
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_integer_create  (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
@@ -206,7 +206,7 @@ gboolean                  hyscan_data_schema_builder_key_integer_create  (HyScan
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_double_create   (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
@@ -231,7 +231,7 @@ gboolean                  hyscan_data_schema_builder_key_double_create   (HyScan
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_string_create   (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
@@ -254,7 +254,7 @@ gboolean                  hyscan_data_schema_builder_key_string_create   (HyScan
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_enum_create     (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,

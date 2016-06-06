@@ -1977,7 +1977,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = G_OS_UNIX \
                          G_OS_WIN32 \
-                         HYSCAN_TYPES_EXPORT =
+                         HYSCAN_API =
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

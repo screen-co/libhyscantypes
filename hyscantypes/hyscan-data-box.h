@@ -73,7 +73,7 @@ struct _HyScanDataBoxClass
   GObjectClass parent_class;
 };
 
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 GType                  hyscan_data_box_get_type                (void);
 
 /**
@@ -86,7 +86,7 @@ GType                  hyscan_data_box_get_type                (void);
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema      *schema);
 
 /**
@@ -99,7 +99,7 @@ HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *schema_path,
                                                                 const gchar           *schema_id);
 
@@ -113,7 +113,7 @@ HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar     
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
                                                                 const gchar           *schema_id);
 
@@ -129,7 +129,7 @@ HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar     
  * \return Указатель на объект \link HyScanDataSchema \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchema      *hyscan_data_box_get_schema              (HyScanDataBox         *data_box);
 
 /**
@@ -143,7 +143,7 @@ HyScanDataSchema      *hyscan_data_box_get_schema              (HyScanDataBox   
  * \return Значение счётчика изменений.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 guint32                hyscan_data_box_get_mod_count           (HyScanDataBox         *data_box,
                                                                 const gchar           *name);
 
@@ -161,7 +161,7 @@ guint32                hyscan_data_box_get_mod_count           (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set                     (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 HyScanDataSchemaType   type,
@@ -182,7 +182,7 @@ gboolean               hyscan_data_box_set                     (HyScanDataBox   
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_get                     (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 HyScanDataSchemaType   type,
@@ -200,7 +200,7 @@ gboolean               hyscan_data_box_get                     (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set_boolean             (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gboolean               value);
@@ -216,7 +216,7 @@ gboolean               hyscan_data_box_set_boolean             (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set_integer             (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gint64                 value);
@@ -232,7 +232,7 @@ gboolean               hyscan_data_box_set_integer             (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set_double              (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gdouble                value);
@@ -248,7 +248,7 @@ gboolean               hyscan_data_box_set_double              (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set_string              (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 const gchar           *value);
@@ -264,7 +264,7 @@ gboolean               hyscan_data_box_set_string              (HyScanDataBox   
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_set_enum                (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gint64                 value);
@@ -280,7 +280,7 @@ gboolean               hyscan_data_box_set_enum                (HyScanDataBox   
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_get_boolean             (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gboolean              *value);
@@ -296,7 +296,7 @@ gboolean               hyscan_data_box_get_boolean             (HyScanDataBox   
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_get_integer             (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gint64                *value);
@@ -312,7 +312,7 @@ gboolean               hyscan_data_box_get_integer             (HyScanDataBox   
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_get_double              (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gdouble               *value);
@@ -329,7 +329,7 @@ gboolean               hyscan_data_box_get_double              (HyScanDataBox   
  * \return Значение параметра, NULL - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gchar                 *hyscan_data_box_get_string              (HyScanDataBox         *data_box,
                                                                 const gchar           *name);
 
@@ -344,7 +344,7 @@ gchar                 *hyscan_data_box_get_string              (HyScanDataBox   
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_box_get_enum                (HyScanDataBox         *data_box,
                                                                 const gchar           *name,
                                                                 gint64                *value);

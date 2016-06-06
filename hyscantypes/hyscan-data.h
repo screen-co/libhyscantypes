@@ -24,7 +24,7 @@
 #define __HYSCAN_TYPES_H__
 
 #include <glib.h>
-#include <hyscan-types-exports.h>
+#include <hyscan-api.h>
 
 G_BEGIN_DECLS
 
@@ -63,7 +63,7 @@ typedef struct
  * \return Строка с названием типа данных.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 const gchar           *hyscan_data_get_type_name               (HyScanDataType                 data_type);
 
 /**
@@ -75,7 +75,7 @@ const gchar           *hyscan_data_get_type_name               (HyScanDataType  
  * \return Тип данных \link HyScanDataType \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataType         hyscan_data_get_type_by_name            (const gchar                   *data_name);
 
 /**
@@ -87,7 +87,7 @@ HyScanDataType         hyscan_data_get_type_by_name            (const gchar     
  * \return Размер одного елемента данных в байтах.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gint32                 hyscan_data_get_point_size              (HyScanDataType                 data_type);
 
 /**
@@ -103,7 +103,7 @@ gint32                 hyscan_data_get_point_size              (HyScanDataType  
  * \return TRUE - если преобразование выполнено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_import_float                (HyScanDataType                 data_type,
                                                                 gpointer                       data,
                                                                 gint32                         data_size,
@@ -123,7 +123,7 @@ gboolean               hyscan_data_import_float                (HyScanDataType  
  * \return TRUE - если преобразование выполнено, FALSE - в случае ошибки.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_import_complex_float        (HyScanDataType                 data_type,
                                                                 gpointer                       data,
                                                                 gint32                         data_size,

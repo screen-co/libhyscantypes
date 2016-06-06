@@ -170,7 +170,7 @@
 #define __HYSCAN_DATA_SCHEMA_H__
 
 #include <glib-object.h>
-#include <hyscan-types-exports.h>
+#include <hyscan-api.h>
 
 G_BEGIN_DECLS
 
@@ -241,7 +241,7 @@ struct _HyScanDataSchemaKey
   gboolean                             readonly;       /**< Параметр доступен только для чтения. */
 };
 
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 GType                  hyscan_data_schema_get_type                     (void);
 
 /**
@@ -254,7 +254,7 @@ GType                  hyscan_data_schema_get_type                     (void);
  * \return Указатель на объект \link HyScanDataSchema \endlink.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gchar           *schema_data,
                                                                         const gchar           *schema_id);
 
@@ -268,7 +268,7 @@ HyScanDataSchema      *hyscan_data_schema_new_from_string              (const gc
  * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный файл отсутствует.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gchar           *schema_path,
                                                                         const gchar           *schema_id);
 
@@ -282,7 +282,7 @@ HyScanDataSchema      *hyscan_data_schema_new_from_file                (const gc
  * \return Указатель на объект \link HyScanDataSchema \endlink или NULL если указанный ресурс отсутствует.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gchar           *schema_resource,
                                                                         const gchar           *schema_id);
 
@@ -297,7 +297,7 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
  * \return Описание схемы данных.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema);
 
 /**
@@ -311,7 +311,7 @@ gchar                 *hyscan_data_schema_get_data                     (HyScanDa
  * \return Идентификатор схемы данных.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gchar                 *hyscan_data_schema_get_id                       (HyScanDataSchema      *schema);
 
 /**
@@ -325,7 +325,7 @@ gchar                 *hyscan_data_schema_get_id                       (HyScanDa
  * \return Список параметров в схеме.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gchar                **hyscan_data_schema_list_keys                    (HyScanDataSchema      *schema);
 
 /**
@@ -339,7 +339,7 @@ gchar                **hyscan_data_schema_list_keys                    (HyScanDa
  * \return Список узлов и параметров в схеме.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchemaNode  *hyscan_data_schema_list_nodes                   (HyScanDataSchema      *schema);
 
 /**
@@ -352,7 +352,7 @@ HyScanDataSchemaNode  *hyscan_data_schema_list_nodes                   (HyScanDa
  * \return TRUE - если параметр существует в схеме, иначе - FALSE.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_has_key                      (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -366,7 +366,7 @@ gboolean               hyscan_data_schema_has_key                      (HyScanDa
  * \return Тип параметра или HYSCAN_DATA_BOX_TYPE_INVALID - если такого параметра нет в схеме.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchemaType   hyscan_data_schema_key_get_type                 (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -380,7 +380,7 @@ HyScanDataSchemaType   hyscan_data_schema_key_get_type                 (HyScanDa
  * \return Название параметра или NULL - если такого параметра нет в схеме.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 const gchar           *hyscan_data_schema_key_get_name                 (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -394,7 +394,7 @@ const gchar           *hyscan_data_schema_key_get_name                 (HyScanDa
  * \return Описание параметра или NULL - если такого параметра нет в схеме.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 const gchar           *hyscan_data_schema_key_get_description          (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 /**
@@ -407,7 +407,7 @@ const gchar           *hyscan_data_schema_key_get_description          (HyScanDa
  * \return TRUE - если параметр доступен только для чтения, FALSE - если доступен на запись.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_is_readonly              (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -422,7 +422,7 @@ gboolean               hyscan_data_schema_key_is_readonly              (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_default_boolean      (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gboolean              *value);
@@ -438,7 +438,7 @@ gboolean               hyscan_data_schema_key_get_default_boolean      (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_default_integer      (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                *value);
@@ -454,7 +454,7 @@ gboolean               hyscan_data_schema_key_get_default_integer      (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_default_double       (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gdouble               *value);
@@ -471,7 +471,7 @@ gboolean               hyscan_data_schema_key_get_default_double       (HyScanDa
  * \return значение по умолчанию или NULL - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 const gchar           *hyscan_data_schema_key_get_default_string       (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -486,7 +486,7 @@ const gchar           *hyscan_data_schema_key_get_default_string       (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_default_enum         (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                *value);
@@ -503,7 +503,7 @@ gboolean               hyscan_data_schema_key_get_default_enum         (HyScanDa
  * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_integer_range        (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                *minimum,
@@ -521,7 +521,7 @@ gboolean               hyscan_data_schema_key_get_integer_range        (HyScanDa
  * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_double_range         (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gdouble               *minimum,
@@ -540,7 +540,7 @@ gboolean               hyscan_data_schema_key_get_double_range         (HyScanDa
  * \return Список допустимых значений параметра или NULL если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
@@ -555,7 +555,7 @@ HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_integer_step         (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                *value);
@@ -571,7 +571,7 @@ gboolean               hyscan_data_schema_key_get_integer_step         (HyScanDa
  * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_get_double_step          (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gdouble               *value);
@@ -587,7 +587,7 @@ gboolean               hyscan_data_schema_key_get_double_step          (HyScanDa
  * \return TRUE если значение находится в допустимых пределах, иначе FALSE.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_check_integer            (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                 value);
@@ -603,7 +603,7 @@ gboolean               hyscan_data_schema_key_check_integer            (HyScanDa
  * \return TRUE если значение находится в допустимых пределах, иначе FALSE.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_check_double             (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gdouble                value);
@@ -619,7 +619,7 @@ gboolean               hyscan_data_schema_key_check_double             (HyScanDa
  * \return TRUE если значение находится в допустимых пределах, иначе FALSE.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 gboolean               hyscan_data_schema_key_check_enum               (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
                                                                         gint64                 value);
@@ -633,7 +633,7 @@ gboolean               hyscan_data_schema_key_check_enum               (HyScanDa
  * \return Нет.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 void                   hyscan_data_schema_free_nodes                   (HyScanDataSchemaNode  *nodes);
 
 /**
@@ -645,7 +645,7 @@ void                   hyscan_data_schema_free_nodes                   (HyScanDa
  * \return Нет.
  *
  */
-HYSCAN_TYPES_EXPORT
+HYSCAN_API
 void                   hyscan_data_schema_free_enum_values             (HyScanDataSchemaEnumValue **values);
 
 G_END_DECLS
