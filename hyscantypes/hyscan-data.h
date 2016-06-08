@@ -35,11 +35,13 @@ typedef enum
 
   HYSCAN_DATA_STRING,                                          /**< Строка с нулём на конце. */
 
-  HYSCAN_DATA_ADC_14LE,                                        /**< Действительные отсчёты АЦП 14 бит, формат little endian. */
+  HYSCAN_DATA_ADC_14LE,                                        /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
   HYSCAN_DATA_ADC_16LE,                                        /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_ADC_24LE,                                        /**< Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_COMPLEX_ADC_14LE,                                /**< Комплексные отсчёты АЦП 14 бит, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_14LE,                                /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
   HYSCAN_DATA_COMPLEX_ADC_16LE,                                /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_24LE,                                /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
   HYSCAN_DATA_FLOAT,                                           /**< Действительные float значения. */
   HYSCAN_DATA_COMPLEX_FLOAT,                                   /**< Комплексные float значения. */

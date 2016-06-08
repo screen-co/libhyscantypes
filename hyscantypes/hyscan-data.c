@@ -27,9 +27,11 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
 
   { 0, "adc14le", HYSCAN_DATA_ADC_14LE },
   { 0, "adc16le", HYSCAN_DATA_ADC_16LE },
+  { 0, "adc24le", HYSCAN_DATA_ADC_24LE },
 
   { 0, "complex-adc14le", HYSCAN_DATA_COMPLEX_ADC_14LE },
   { 0, "complex-adc16le", HYSCAN_DATA_COMPLEX_ADC_16LE },
+  { 0, "complex-adc24le", HYSCAN_DATA_COMPLEX_ADC_16LE },
 
   { 0, "float",  HYSCAN_DATA_FLOAT },
   { 0, "complex-float",  HYSCAN_DATA_COMPLEX_FLOAT },
@@ -102,11 +104,17 @@ hyscan_data_get_point_size (HyScanDataType data_type)
 
     case HYSCAN_DATA_ADC_14LE:
     case HYSCAN_DATA_ADC_16LE:
-      return sizeof (gint16);
+      return sizeof (guint16);
+
+    case HYSCAN_DATA_ADC_24LE:
+      return sizeof (guint32);
 
     case HYSCAN_DATA_COMPLEX_ADC_14LE:
     case HYSCAN_DATA_COMPLEX_ADC_16LE:
-      return 2 * sizeof (gint16);
+      return 2 * sizeof (guint16);
+
+    case HYSCAN_DATA_COMPLEX_ADC_24LE:
+      return 2 * sizeof (guint32);
 
     case HYSCAN_DATA_FLOAT:
       return sizeof (gfloat);
@@ -135,22 +143,32 @@ hyscan_data_import_float (HyScanDataType  data_type,
   switch (data_type)
     {
     case HYSCAN_DATA_ADC_14LE:
-      n_points = data_size / sizeof (gint16);
+      n_points = data_size / sizeof (guint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
           guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points)) & 0x3fff;
-          buffer[i] = (gfloat)(raw_re / 8192.0) - 1.0;
+          buffer[i] = 2.0 * (gfloat)(raw_re / 16383.0) - 1.0;
         }
       break;
 
     case HYSCAN_DATA_ADC_16LE:
-      n_points = data_size / sizeof (gint16);
+      n_points = data_size / sizeof (guint16);
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
           guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points));
-          buffer[i] = (gfloat)(raw_re / 32768.0) - 1.0;
+          buffer[i] = 2.0 * (gfloat)(raw_re / 65535.0) - 1.0;
+        }
+      break;
+
+    case HYSCAN_DATA_ADC_24LE:
+      n_points = data_size / sizeof (guint32);
+      *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
+      for (i = 0; i < n_points; i++)
+        {
+          guint32 raw_re = GUINT32_FROM_LE (*((guint32 *)data + n_points)) & 0x00ffffff;
+          buffer[i] = 2.0 * (gfloat)(raw_re / 16777215.0) - 1.0;
         }
       break;
 
@@ -182,26 +200,38 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
   switch (data_type)
     {
     case HYSCAN_DATA_COMPLEX_ADC_14LE:
-      n_points = data_size / (2 * sizeof (gint16));
+      n_points = data_size / (2 * sizeof (guint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
           guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + 2 * i)) & 0x3fff;
           guint16 raw_im = GUINT16_FROM_LE (*((guint16 *)data + 2 * i + 1)) & 0x3fff;
-          buffer[i].re = (gfloat)(raw_re / 8192.0) - 1.0;
-          buffer[i].im = (gfloat)(raw_im / 8192.0) - 1.0;
+          buffer[i].re = 2.0 * (gfloat)(raw_re / 16383.0) - 1.0;
+          buffer[i].im = 2.0 * (gfloat)(raw_im / 16383.0) - 1.0;
         }
       break;
 
     case HYSCAN_DATA_COMPLEX_ADC_16LE:
-      n_points = data_size / (2 * sizeof (gint16));
+      n_points = data_size / (2 * sizeof (guint16));
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
           guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + 2 * i));
           guint16 raw_im = GUINT16_FROM_LE (*((guint16 *)data + 2 * i + 1));
-          buffer[i].re = (gfloat)(raw_re / 32768.0) - 1.0;
-          buffer[i].im = (gfloat)(raw_im / 32768.0) - 1.0;
+          buffer[i].re = 2.0 * (gfloat)(raw_re / 65535.0) - 1.0;
+          buffer[i].im = 2.0 * (gfloat)(raw_im / 65535.0) - 1.0;
+        }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_24LE:
+      n_points = data_size / (2 * sizeof (guint32));
+      *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
+      for (i = 0; i < n_points; i++)
+        {
+          guint32 raw_re = GUINT32_FROM_LE (*((guint32 *)data + 2 * i)) & 0x00ffffff;
+          guint32 raw_im = GUINT32_FROM_LE (*((guint32 *)data + 2 * i + 1)) & 0x00ffffff;
+          buffer[i].re = 2.0 * (gfloat)(raw_re / 16777215.0) - 1.0;
+          buffer[i].im = 2.0 * (gfloat)(raw_im / 16777215.0) - 1.0;
         }
       break;
 
