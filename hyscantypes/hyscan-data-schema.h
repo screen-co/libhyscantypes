@@ -201,6 +201,7 @@ struct _HyScanDataSchemaClass
 typedef enum
 {
   HYSCAN_DATA_SCHEMA_TYPE_INVALID      = 0,            /**< Недопустимый тип, ошибка. */
+
   HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN      = 101,          /**< Логический тип. */
   HYSCAN_DATA_SCHEMA_TYPE_INTEGER      = 102,          /**< Целые числа со знаком - gint64. */
   HYSCAN_DATA_SCHEMA_TYPE_DOUBLE       = 103,          /**< Числа с плавающей точкой - gdouble. */

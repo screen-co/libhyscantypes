@@ -31,20 +31,21 @@ G_BEGIN_DECLS
 /** \brief Типы данных */
 typedef enum
 {
-  HYSCAN_DATA_INVALID,                                         /**< Недопустимый тип, ошибка. */
+  HYSCAN_DATA_INVALID                        = 0,              /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_DATA_STRING,                                          /**< Строка с нулём на конце. */
+  HYSCAN_DATA_STRING                         = 101,            /**< Строка с нулём на конце. */
 
-  HYSCAN_DATA_ADC_14LE,                                        /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
-  HYSCAN_DATA_ADC_16LE,                                        /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_ADC_24LE,                                        /**< Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
+  HYSCAN_DATA_ADC_14LE                       = 201,            /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
+  HYSCAN_DATA_ADC_16LE                       = 202,            /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_ADC_24LE                       = 203,            /**< Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_COMPLEX_ADC_14LE,                                /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
-  HYSCAN_DATA_COMPLEX_ADC_16LE,                                /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_COMPLEX_ADC_24LE,                                /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_14LE               = 301,            /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_16LE               = 302,            /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_24LE               = 303,            /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_FLOAT,                                           /**< Действительные float значения. */
-  HYSCAN_DATA_COMPLEX_FLOAT,                                   /**< Комплексные float значения. */
+  HYSCAN_DATA_FLOAT                          = 401,            /**< Действительные float значения. */
+
+  HYSCAN_DATA_COMPLEX_FLOAT                  = 501             /**< Комплексные float значения. */
 } HyScanDataType;
 
 /** \brief Комплексные float числа */

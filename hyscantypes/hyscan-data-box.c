@@ -285,7 +285,7 @@ hyscan_data_box_set (HyScanDataBox        *data_box,
   name_id = param->name_id;
 
   /* Сброс значения по умолчанию. */
-  if (size == 0)
+  if (value == NULL)
     {
       if (param->type == HYSCAN_DATA_SCHEMA_TYPE_STRING)
         g_free (*(gpointer*)(&param->value));
@@ -382,12 +382,21 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
   /* Определение размера значения параметра. */
   if (buffer == NULL)
     {
-      if (type != HYSCAN_DATA_SCHEMA_TYPE_STRING)
-        *buffer_size = hyscan_data_box_get_type_size (param->type);
-      else if (param->used)
-        *buffer_size = strlen (*(gpointer*)(&param->value)) + 1;
+      if (type == HYSCAN_DATA_SCHEMA_TYPE_STRING)
+        {
+          const gchar *str_value;
+
+          if (param->used)
+            str_value = *(gpointer*)(&param->value);
+          else
+            str_value = hyscan_data_schema_key_get_default_string (priv->schema, name);
+
+          *buffer_size = (str_value != NULL) ? strlen (str_value) + 1 : 0;
+        }
       else
-        *buffer_size = strlen (hyscan_data_schema_key_get_default_string (priv->schema, name)) + 1;
+        {
+          *buffer_size = hyscan_data_box_get_type_size (param->type);
+        }
 
       status = TRUE;
       goto exit;
@@ -434,10 +443,7 @@ hyscan_data_box_get (HyScanDataBox         *data_box,
         else
           str_value = hyscan_data_schema_key_get_default_string (priv->schema, name);
 
-        if (str_value == NULL)
-          *buffer_size = 0;
-        else
-          *buffer_size = g_snprintf (buffer, *buffer_size, "%s", str_value);
+        *buffer_size = (str_value != NULL) ? g_snprintf (buffer, *buffer_size, "%s", str_value) : 0;
       }
       break;
 
