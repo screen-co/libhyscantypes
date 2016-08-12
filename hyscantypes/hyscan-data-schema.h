@@ -79,6 +79,7 @@
  *
  * Включение одной схемы в другую осуществляется тегом &lt;node&gt;. Обязательными атрибутами, в этом случае,
  * являются:
+ *
  * - id - идентификатор ветки;
  * - schema - идентификатор дочерней схемы.
  *
@@ -87,6 +88,7 @@
  * поддерживает неограниченную вложенность.
  *
  * Параметры в схеме определяются тегом &lt;key&gt;. Обязательными атрибутами этого тега являются:
+ *
  * - id - идентификатор параметра;
  * - name - название параметра (может содержать перевод);
  * - type - тип параметра.
@@ -95,21 +97,26 @@
  * параметра нельзя изменять.
  *
  * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaType \endlink:
- * - "boolean" - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, логический тип;
+ *
+ * - "boolean" - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, логический тип - gboolean;
  * - "integer" - #HYSCAN_DATA_SCHEMA_TYPE_INTEGER, целые числа со знаком - gint64;
  * - "double" - #HYSCAN_DATA_SCHEMA_TYPE_DOUBLE, числа с плавающей точкой - gdouble;
- * - "string" - #HYSCAN_DATA_SCHEMA_TYPE_STRING, строка с нулём на конце;
- * - "enum" - #HYSCAN_DATA_SCHEMA_TYPE_ENUM, перечисляемый тип.
+ * - "string" - #HYSCAN_DATA_SCHEMA_TYPE_STRING, строка с нулём на конце - gchar*;
+ * - "enum" - #HYSCAN_DATA_SCHEMA_TYPE_ENUM, перечисляемый тип - gint64.
  *
  * Тэг &lt;key&gt; может содержать вложенные тэги:
+ *
  * - description - строка с описанием параметра (может содержать перевод);
  * - default - значение параметра по умолчанию;
  * - range - диапазон допустимых значений и рекомендуемый шаг изменения.
  *
  * Тэг &lt;range&gt; применим только для типов данных "integer" и "double" и может содержать следующие атрибуты:
+ *
  * - min - минимальное значение параметра;
  * - max - максимальное значение параметра;
  * - step - рекомендуемый шаг изменения параметра.
+ *
+ * Если для типа "string" не задано значение по умолчанию, в качестве такового будет использована пустая строка.
  *
  * При определении параметра перечисляемого типа, вместо атрибута "type" используется "enum", в котором
  * указывается идентификатор группы вариантов значений.
@@ -118,6 +125,7 @@
  * "id" - идентификатор группы значений.
  *
  * Значения в группе определяются тэгом &lt;value&gt;. Обязательными атрибутами этого тега являются:
+ *
  * - name - название значения (может содержать перевод);
  * - value - численный идентификатор значения.
  *
@@ -149,20 +157,22 @@
  * - #hyscan_data_schema_key_get_type - возвращает тип параметра;
  * - #hyscan_data_schema_key_get_name - возвращает название параметра;
  * - #hyscan_data_schema_key_get_description - возвращает описание параметра;
- * - #hyscan_data_schema_key_get_default_boolean - возвращает значение по умолчанию для параметра с типом BOOLEAN;
- * - #hyscan_data_schema_key_get_default_integer - возвращает значение по умолчанию для параметра с типом INTEGER;
- * - #hyscan_data_schema_key_get_default_double - возвращает значение по умолчанию для параметра с типом DOUBLE;
- * - #hyscan_data_schema_key_get_default_string - возвращает значение по умолчанию для параметра с типом STRING;
- * - #hyscan_data_schema_key_get_default_enum - возвращает значение по умолчанию для параметра с типом ENUM;
- * - #hyscan_data_schema_key_get_integer_range - возвращает диапазон допустимых значений для параметра с типом INTEGER;
- * - #hyscan_data_schema_key_get_double_range - возвращает диапазон допустимых значений для параметра с типом DOUBLE;
  * - #hyscan_data_schema_key_get_enum_values - возвращает варианты допустимых значений для параметра с типом ENUM.
- * - #hyscan_data_schema_key_get_integer_step - возвращает рекомендуемый шаг изменения значения для параметра с типом INTEGER;
- * - #hyscan_data_schema_key_get_double_step - возвращает рекомендуемый шаг изменения значения для параметра с типом DOUBLE;
+ * - #hyscan_data_schema_key_get_default - возвращает значение параметра по умолчанию;
+ * - #hyscan_data_schema_key_get_minimum - Функция возвращает минимальное значение параметра;
+ * - #hyscan_data_schema_key_get_maximum - Функция возвращает максимальное значение параметра;
+ * - #hyscan_data_schema_key_get_step - возвращает рекомендуемый шаг изменения значения параметра.
  *
- * Проверить значение параметра на предмет нахождения в допустимом диапазоне можно функциями
- * #hyscan_data_schema_key_check_integer, #hyscan_data_schema_key_check_double или
- * #hyscan_data_schema_key_check_enum.
+ * Проверить значение параметра на предмет нахождения в допустимом диапазоне можно функцией
+ * #hyscan_data_schema_key_check.
+ *
+ * Значения параметров определяются с помощью GVariant. Используются следующие типы GVariant:
+ *
+ * - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN - G_VARIANT_CLASS_BOOLEAN;
+ * - #HYSCAN_DATA_SCHEMA_TYPE_INTEGER - G_VARIANT_CLASS_INT64;
+ * - #HYSCAN_DATA_SCHEMA_TYPE_DOUBLE - G_VARIANT_CLASS_DOUBLE;
+ * - #HYSCAN_DATA_SCHEMA_TYPE_STRING - G_VARIANT_CLASS_STRING;
+ * - #HYSCAN_DATA_SCHEMA_TYPE_ENUM - G_VARIANT_CLASS_INT64.
  *
  */
 
@@ -364,7 +374,7 @@ gboolean               hyscan_data_schema_has_key                      (HyScanDa
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
  *
- * \return Тип параметра или HYSCAN_DATA_BOX_TYPE_INVALID - если такого параметра нет в схеме.
+ * \return Тип параметра или HYSCAN_DATA_SCHEMA_TYPE_INVALID - если такого параметра нет в схеме.
  *
  */
 HYSCAN_API
@@ -414,122 +424,6 @@ gboolean               hyscan_data_schema_key_is_readonly              (HyScanDa
 
 /**
  *
- * Функция возвращает значение по умолчанию для параметра с типом BOOLEAN.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для значения по умолчанию.
- *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_default_boolean      (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gboolean              *value);
-
-/**
- *
- * Функция возвращает значение по умолчанию для параметра с типом INTEGER.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для значения по умолчанию.
- *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_default_integer      (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gint64                *value);
-
-/**
- *
- * Функция возвращает значение по умолчанию для параметра с типом DOUBLE.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для значения по умолчанию.
- *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_default_double       (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gdouble               *value);
-
-/**
- *
- * Функция возвращает значение по умолчанию для параметра с типом STRING.
- *
- * Пользователь не должен изменять эту строку или освобождать память занимаемую ей.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра.
- *
- * \return значение по умолчанию или NULL - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-const gchar           *hyscan_data_schema_key_get_default_string       (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id);
-
-/**
- *
- * Функция возвращает значение по умолчанию для параметра с типом ENUM.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для значения по умолчанию.
- *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_default_enum         (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gint64                *value);
-
-/**
- *
- * Функция возвращает диапазон допустимых значений для параметра с типом INTEGER.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param minimum указатель на переменную для минимального значения;
- * \param maximum указатель на переменную для максимального значения.
- *
- * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_integer_range        (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gint64                *minimum,
-                                                                        gint64                *maximum);
-
-/**
- *
- * Функция возвращает диапазон допустимых значений для параметра с типом DOUBLE.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param minimum указатель на переменную для минимального значения;
- * \param maximum указатель на переменную для максимального значения.
- *
- * \return TRUE если значения определены, FALSE - если такого параметра нет в схеме или не совпадает тип.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_get_double_range         (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gdouble               *minimum,
-                                                                        gdouble               *maximum);
-
-/**
- *
  * Функция возвращает NULL терминированный список вариантов допустимых значений
  * для параметра с типом ENUM.
  *
@@ -547,39 +441,70 @@ HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDa
 
 /**
  *
- * Функция возвращает рекомендуемый шаг изменения значения для параметра с типом INTEGER.
+ * Функция возвращает значение параметра по умолчанию. Пользователь должен
+ * освободить память, занимаемую значением, функцией g_variant_unref.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для шага изменения значения.
+ * \param key_id идентификатор параметра.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
+ * \return GVariant или NULL - если такого параметра нет в схеме или не установлено значение по умолчанию.
  *
  */
 HYSCAN_API
-gboolean               hyscan_data_schema_key_get_integer_step         (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gint64                *value);
+GVariant              *hyscan_data_schema_key_get_default              (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
 
 /**
  *
- * Функция возвращает рекомендуемый шаг изменения значения для параметра с типом DOUBLE.
+ * Функция возвращает минимальное значение параметра. Данная функция возвращает
+ * значение только для параметров типа INTEGER и DOUBLE. Пользователь должен
+ * освободить память, занимаемую значением, функцией g_variant_unref.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value указатель на переменную для шага изменения значения.
+ * \param key_id идентификатор параметра.
  *
- * \return TRUE если значение определено, FALSE - если такого параметра нет в схеме или не совпадает тип.
+ * \return GVariant или NULL - если такого параметра нет в схеме или не совпадает его тип.
  *
  */
 HYSCAN_API
-gboolean               hyscan_data_schema_key_get_double_step          (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gdouble               *value);
+GVariant              *hyscan_data_schema_key_get_minimum              (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
 
 /**
  *
- * Функция проверяет значение параметра типа INTEGER на предмет нахождения в допустимом диапазоне.
+ * Функция возвращает максимальное значение параметра. Данная функция возвращает
+ * значение только для параметров типа INTEGER и DOUBLE. Пользователь должен
+ * освободить память, занимаемую значением, функцией g_variant_unref.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param key_id идентификатор параметра.
+ *
+ * \return GVariant или NULL - если такого параметра нет в схеме или не совпадает его тип.
+ *
+ */
+HYSCAN_API
+GVariant              *hyscan_data_schema_key_get_maximum              (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция возвращает рекомендуемый шаг изменения значения параметра. Данная функция возвращает
+ * значение только для параметров типа INTEGER и DOUBLE. Пользователь должен
+ * освободить память, занимаемую значением, функцией g_variant_unref.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param key_id идентификатор параметра.
+ *
+ * \return GVariant или NULL - если такого параметра нет в схеме или не совпадает его тип.
+ *
+ */
+HYSCAN_API
+GVariant              *hyscan_data_schema_key_get_step                 (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция проверяет значение параметра на предмет нахождения в допустимом диапазоне.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра;
@@ -589,41 +514,9 @@ gboolean               hyscan_data_schema_key_get_double_step          (HyScanDa
  *
  */
 HYSCAN_API
-gboolean               hyscan_data_schema_key_check_integer            (HyScanDataSchema      *schema,
+gboolean               hyscan_data_schema_key_check                    (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id,
-                                                                        gint64                 value);
-
-/**
- *
- * Функция проверяет значение параметра типа DOUBLE на предмет нахождения в допустимом диапазоне.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value значение параметра.
- *
- * \return TRUE если значение находится в допустимых пределах, иначе FALSE.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_check_double             (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gdouble                value);
-
-/**
- *
- * Функция проверяет значение параметра типа ENUM на предмет нахождения в допустимом диапазоне.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра;
- * \param value значение параметра.
- *
- * \return TRUE если значение находится в допустимых пределах, иначе FALSE.
- *
- */
-HYSCAN_API
-gboolean               hyscan_data_schema_key_check_enum               (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id,
-                                                                        gint64                 value);
+                                                                        GVariant              *value);
 
 /**
  *

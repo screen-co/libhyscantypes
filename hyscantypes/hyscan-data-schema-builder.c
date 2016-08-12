@@ -109,13 +109,13 @@ hyscan_data_schema_builder_object_constructed (GObject *object)
   priv->keys =  g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        NULL,
-                                       (GDestroyNotify)hyscan_data_schema_free_key);
+                                       (GDestroyNotify)hyscan_data_schema_internal_key_free);
 
   /* Таблица enum типов и их значений. */
   priv->enums = g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        NULL,
-                                       (GDestroyNotify)hyscan_data_schema_free_enum);
+                                       (GDestroyNotify)hyscan_data_schema_internal_enum_free);
 }
 
 static void
@@ -300,7 +300,7 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
     {
     case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
       {
-        gboolean default_value = hyscan_data_schema_value_get_boolean (&key->default_value);
+        gboolean default_value = g_variant_get_boolean (key->default_value);
 
         if (default_value)
           {
@@ -313,10 +313,10 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
 
     case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
       {
-        gint64 default_value = hyscan_data_schema_value_get_integer (&key->default_value);
-        gint64 minimum_value = hyscan_data_schema_value_get_integer (&key->minimum_value);
-        gint64 maximum_value = hyscan_data_schema_value_get_integer (&key->maximum_value);
-        gint64 value_step = hyscan_data_schema_value_get_integer (&key->value_step);
+        gint64 default_value = g_variant_get_int64 (key->default_value);
+        gint64 minimum_value = g_variant_get_int64 (key->minimum_value);
+        gint64 maximum_value = g_variant_get_int64 (key->maximum_value);
+        gint64 value_step = g_variant_get_int64 (key->value_step);
 
         if (default_value != 0)
           {
@@ -338,35 +338,57 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
 
     case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
       {
-        gdouble default_value = hyscan_data_schema_value_get_double (&key->default_value);
-        gdouble minimum_value = hyscan_data_schema_value_get_double (&key->minimum_value);
-        gdouble maximum_value = hyscan_data_schema_value_get_double (&key->maximum_value);
-        gdouble value_step = hyscan_data_schema_value_get_double (&key->value_step);
+        gdouble default_value = g_variant_get_double (key->default_value);
+        gdouble minimum_value = g_variant_get_double (key->minimum_value);
+        gdouble maximum_value = g_variant_get_double (key->maximum_value);
+        gdouble value_step = g_variant_get_double (key->value_step);
 
-        if (default_value != 0)
+        if (default_value != 0.0)
           {
+            gchar value_str [G_ASCII_DTOSTR_BUF_SIZE];
+
+            g_ascii_dtostr (value_str, G_ASCII_DTOSTR_BUF_SIZE, default_value);
             g_output_stream_printf (ostream, NULL, NULL, NULL,
-                                    "%s  <default>%f</default>\n",
-                                    indent, default_value);
+                                    "%s  <default>%s</default>\n",
+                                    indent, value_str);
           }
 
         if (minimum_value != -G_MAXDOUBLE || maximum_value != G_MAXDOUBLE || value_step != 1.0)
           {
-            g_output_stream_printf (ostream, NULL, NULL, NULL,
-                                    "%s  <range min=\"%f\" "
-                                    "max=\"%f\" "
-                                    "step=\"%f\"/>\n",
-                                    indent, minimum_value, maximum_value, value_step);
+            gchar value_str [G_ASCII_DTOSTR_BUF_SIZE];
+
+            g_output_stream_printf (ostream, NULL, NULL, NULL, "%s  <range", indent);
+
+            if (minimum_value != -G_MAXDOUBLE)
+              {
+                g_ascii_dtostr (value_str, G_ASCII_DTOSTR_BUF_SIZE, minimum_value);
+                g_output_stream_printf (ostream, NULL, NULL, NULL, " min=\"%s\"", value_str);
+              }
+
+            if (maximum_value != G_MAXDOUBLE)
+              {
+                g_ascii_dtostr (value_str, G_ASCII_DTOSTR_BUF_SIZE, maximum_value);
+                g_output_stream_printf (ostream, NULL, NULL, NULL, " max=\"%s\"", value_str);
+              }
+
+            if (value_step != 1.0)
+              {
+                g_ascii_dtostr (value_str, G_ASCII_DTOSTR_BUF_SIZE, value_step);
+                g_output_stream_printf (ostream, NULL, NULL, NULL, " step=\"%s\"", value_str);
+              }
+
+            g_output_stream_printf (ostream, NULL, NULL, NULL, "/>\n");
           }
       }
       break;
 
     case HYSCAN_DATA_SCHEMA_TYPE_STRING:
       {
-        const gchar *default_value = hyscan_data_schema_value_get_string (&key->default_value);
+        const gchar *default_value;
 
-        if (default_value != NULL)
+        if (key->default_value != NULL)
           {
+            default_value = g_variant_get_string (key->default_value, NULL);
             g_output_stream_printf (ostream, NULL, NULL, NULL,
                                     "%s  <default>%s</default>\n",
                                     indent, default_value);
@@ -376,7 +398,7 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
 
     case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
       {
-        gint64 default_value = hyscan_data_schema_value_get_integer (&key->default_value);
+        gint64 default_value = g_variant_get_int64 (key->default_value);
 
         if (default_value != 0)
           {
@@ -438,13 +460,13 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   priv = builder->priv;
 
   /* Структура параметров. */
-  nodes = hyscan_data_schema_new_node ("");
+  nodes = hyscan_data_schema_internal_node_new ("");
   g_hash_table_iter_init (&iter, priv->keys);
   while (g_hash_table_iter_next (&iter, &key, NULL))
     {
       gchar *key_id = key;
       HyScanDataSchemaInternalKey *key = g_hash_table_lookup (priv->keys, key_id);
-      hyscan_data_schema_insert_param (nodes, key->id, key->name, key->description, key->type, key->readonly);
+      hyscan_data_schema_internal_node_insert_key (nodes, key->id, key->name, key->description, key->type, key->readonly);
     }
 
   /* Виртуальный поток вывода данных в память. */
@@ -502,7 +524,7 @@ hyscan_data_schema_builder_enum_create (HyScanDataSchemaBuilder *builder,
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
-  if (!hyscan_data_schema_validate_name (enum_id))
+  if (!hyscan_data_schema_internal_validate_name (enum_id))
     return FALSE;
 
   if (g_hash_table_contains (builder->priv->enums, enum_id))
@@ -569,7 +591,7 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
   if (g_hash_table_contains (builder->priv->keys, key_id))
     return FALSE;
 
-  if (!hyscan_data_schema_validate_id (key_id))
+  if (!hyscan_data_schema_internal_validate_id (key_id))
     return FALSE;
 
   key = g_new0 (HyScanDataSchemaInternalKey, 1);
@@ -580,10 +602,7 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
   key->enum_values = NULL;
   key->readonly = readonly;
 
-  hyscan_data_schema_value_set_boolean (&key->default_value, default_value);
-  hyscan_data_schema_value_set_boolean (&key->minimum_value, FALSE);
-  hyscan_data_schema_value_set_boolean (&key->maximum_value, TRUE);
-  hyscan_data_schema_value_set_boolean (&key->value_step, FALSE);
+  key->default_value = g_variant_new_boolean (default_value);
 
   return g_hash_table_insert (builder->priv->keys, key->id, key);
 }
@@ -607,7 +626,7 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
   if (g_hash_table_contains (builder->priv->keys, key_id))
     return FALSE;
 
-  if (!hyscan_data_schema_validate_id (key_id))
+  if (!hyscan_data_schema_internal_validate_id (key_id))
     return FALSE;
 
   if ((minimum_value > maximum_value) ||
@@ -626,10 +645,10 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
   key->enum_values = NULL;
   key->readonly = readonly;
 
-  hyscan_data_schema_value_set_integer (&key->default_value, default_value);
-  hyscan_data_schema_value_set_integer (&key->minimum_value, minimum_value);
-  hyscan_data_schema_value_set_integer (&key->maximum_value, maximum_value);
-  hyscan_data_schema_value_set_integer (&key->value_step, value_step);
+  key->default_value = g_variant_new_int64 (default_value);
+  key->minimum_value = g_variant_new_int64 (minimum_value);
+  key->maximum_value = g_variant_new_int64 (maximum_value);
+  key->value_step = g_variant_new_int64 (value_step);
 
   return g_hash_table_insert (builder->priv->keys, key->id, key);
 }
@@ -653,7 +672,7 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
   if (g_hash_table_contains (builder->priv->keys, key_id))
     return FALSE;
 
-  if (!hyscan_data_schema_validate_id (key_id))
+  if (!hyscan_data_schema_internal_validate_id (key_id))
     return FALSE;
 
   if ((minimum_value > maximum_value) ||
@@ -672,10 +691,10 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
   key->enum_values = NULL;
   key->readonly = readonly;
 
-  hyscan_data_schema_value_set_double (&key->default_value, default_value);
-  hyscan_data_schema_value_set_double (&key->minimum_value, minimum_value);
-  hyscan_data_schema_value_set_double (&key->maximum_value, maximum_value);
-  hyscan_data_schema_value_set_double (&key->value_step, value_step);
+  key->default_value = g_variant_new_double (default_value);
+  key->minimum_value = g_variant_new_double (minimum_value);
+  key->maximum_value = g_variant_new_double (maximum_value);
+  key->value_step = g_variant_new_double (value_step);
 
   return g_hash_table_insert (builder->priv->keys, key->id, key);
 }
@@ -696,7 +715,7 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
   if (g_hash_table_contains (builder->priv->keys, key_id))
     return FALSE;
 
-  if (!hyscan_data_schema_validate_id (key_id))
+  if (!hyscan_data_schema_internal_validate_id (key_id))
     return FALSE;
 
   key = g_new0 (HyScanDataSchemaInternalKey, 1);
@@ -707,10 +726,8 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
   key->enum_values = NULL;
   key->readonly = readonly;
 
-  hyscan_data_schema_value_set_string (&key->default_value, default_value);
-  hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
-  hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
-  hyscan_data_schema_value_set_string (&key->value_step, NULL);
+  if (default_value != NULL)
+    key->default_value = g_variant_new_string (default_value);
 
   return g_hash_table_insert (builder->priv->keys, key->id, key);
 }
@@ -733,14 +750,14 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
   if (g_hash_table_contains (builder->priv->keys, key_id))
     return FALSE;
 
-  if (!hyscan_data_schema_validate_id (key_id))
+  if (!hyscan_data_schema_internal_validate_id (key_id))
     return FALSE;
 
   values = g_hash_table_lookup (builder->priv->enums, enum_id);
   if (values == NULL)
     return FALSE;
 
-  if (!hyscan_data_schema_check_enum (values, default_value))
+  if (!hyscan_data_schema_internal_enum_check (values, default_value))
     {
       g_warning ("HyScanDataBuilder: default value out of range in key '%s'", key_id);
       return FALSE;
@@ -754,10 +771,7 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
   key->enum_values = values;
   key->readonly = readonly;
 
-  hyscan_data_schema_value_set_integer (&key->default_value, default_value);
-  hyscan_data_schema_value_set_integer (&key->minimum_value, 0);
-  hyscan_data_schema_value_set_integer (&key->maximum_value, 0);
-  hyscan_data_schema_value_set_integer (&key->value_step, 0);
+  key->default_value = g_variant_new_int64 (default_value);
 
   return g_hash_table_insert (builder->priv->keys, key->id, key);
 }

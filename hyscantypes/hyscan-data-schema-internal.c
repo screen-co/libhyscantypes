@@ -10,72 +10,9 @@
 
 #include "hyscan-data-schema-internal.h"
 
-/* Функция записывает в область памяти data значение типа gboolean. */
-void
-hyscan_data_schema_value_set_boolean (gpointer data,
-                                      gboolean value)
-{
-  *(gboolean*)data = value;
-}
-
-/* Функция записывает в область памяти data значение типа gint64. */
-void
-hyscan_data_schema_value_set_integer (gpointer data,
-                                      gint64   value)
-{
-  *(gint64*)data = value;
-}
-
-/* Функция записывает в область памяти data значение типа gdouble. */
-void
-hyscan_data_schema_value_set_double (gpointer data,
-                                     gdouble  value)
-{
-  *(gdouble*)data = value;
-}
-
-/* Функция записывает в область памяти data указатель на копию строки. */
-void
-hyscan_data_schema_value_set_string (gpointer     data,
-                                     const gchar *value)
-{
-  gpointer *p = data;
-  g_free (*p);
-  *p = g_strdup (value);
-}
-
-/* Функция считывает из области памяти data значение типа gboolean. */
-gboolean
-hyscan_data_schema_value_get_boolean (gconstpointer data)
-{
-  return *(gboolean*)data;
-}
-
-/* Функция считывает из области памяти data значение типа gint64. */
-gint64
-hyscan_data_schema_value_get_integer (gconstpointer data)
-{
-  return *(gint64*)data;
-}
-
-/* Функция считывает из области памяти data значение типа gdouble. */
-gdouble
-hyscan_data_schema_value_get_double (gconstpointer data)
-{
-  return *(gdouble*)data;
-}
-
-/* Функция считывает из области памяти data указатель на строку. */
-const gchar *
-hyscan_data_schema_value_get_string (gconstpointer data)
-{
-  gconstpointer const *p = data;
-  return *p;
-}
-
 /* Функция проверяет имя на предмет допустимости. */
 gboolean
-hyscan_data_schema_validate_name (const gchar *name)
+hyscan_data_schema_internal_validate_name (const gchar *name)
 {
   gint i;
 
@@ -101,7 +38,7 @@ hyscan_data_schema_validate_name (const gchar *name)
 
 /* Функция проверяет идентификатор на предмет допустимости. */
 gboolean
-hyscan_data_schema_validate_id (const gchar *id)
+hyscan_data_schema_internal_validate_id (const gchar *id)
 {
   gchar **pathv;
   guint n_pathv;
@@ -113,7 +50,7 @@ hyscan_data_schema_validate_id (const gchar *id)
     return FALSE;
 
   for (i = 1; i < n_pathv - 1; i++)
-    if (!hyscan_data_schema_validate_name (pathv[i]))
+    if (!hyscan_data_schema_internal_validate_name (pathv[i]))
       {
         g_strfreev (pathv);
         return FALSE;
@@ -123,66 +60,29 @@ hyscan_data_schema_validate_id (const gchar *id)
   return TRUE;
 }
 
-
-/* Функция проверяет значение перечисляемого типа на допустимость. */
-gboolean
-hyscan_data_schema_check_enum (HyScanDataSchemaEnum *enums,
-                               gint64                value)
-{
-  guint i;
-
-  for (i = 0; enums->values[i] != NULL; i++)
-    {
-      if (enums->values[i]->value == value)
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
 /* Функция создаёт новый узел с параметрами. */
 HyScanDataSchemaNode *
-hyscan_data_schema_new_node (const gchar *path)
+hyscan_data_schema_internal_node_new (const gchar *path)
 {
   HyScanDataSchemaNode *node;
 
   node = g_new0 (HyScanDataSchemaNode, 1);
   node->path = g_strdup (path);
-  node->nodes = g_malloc0 (sizeof (HyScanDataSchemaNode*));
-  node->keys = g_malloc0 (sizeof (HyScanDataSchemaKey*));
 
   return node;
 }
 
-/* Функция создаёт новую структуру с описанием параметра. */
-HyScanDataSchemaKey *
-hyscan_data_schema_new_param (const gchar          *id,
-                              const gchar          *name,
-                              const gchar          *description,
-                              HyScanDataSchemaType  type,
-                              gboolean              readonly)
-{
-  HyScanDataSchemaKey *param;
-
-  param = g_new (HyScanDataSchemaKey, 1);
-  param->id = g_strdup (id);
-  param->name = g_strdup (name);
-  param->description = g_strdup (description);
-  param->type = type;
-  param->readonly = readonly;
-
-  return param;
-}
-
 /* Функция добавляет новый параметр в список. */
 void
-hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
-                                 const gchar          *id,
-                                 const gchar          *name,
-                                 const gchar          *description,
-                                 HyScanDataSchemaType  type,
-                                 gboolean              readonly)
+hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
+                                             const gchar          *id,
+                                             const gchar          *name,
+                                             const gchar          *description,
+                                             HyScanDataSchemaType  type,
+                                             gboolean              readonly)
 {
+  HyScanDataSchemaKey *key;
+
   gchar **pathv;
   guint n_pathv;
   guint i, j;
@@ -214,7 +114,7 @@ hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
       /* Или добавляем новый узел. */
       cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
       node->nodes = g_realloc (node->nodes, (node->n_nodes + 2) * sizeof (HyScanDataSchemaNode*));
-      node->nodes[node->n_nodes] = hyscan_data_schema_new_node (cur_path);
+      node->nodes[node->n_nodes] = hyscan_data_schema_internal_node_new (cur_path);
       node->n_nodes += 1;
       node->nodes[node->n_nodes] = NULL;
       node = node->nodes[j];
@@ -224,15 +124,38 @@ hyscan_data_schema_insert_param (HyScanDataSchemaNode *node,
   g_strfreev (pathv);
 
   /* Новый параметр. */
+  key = g_new (HyScanDataSchemaKey, 1);
+  key->id = g_strdup (id);
+  key->name = g_strdup (name);
+  key->description = g_strdup (description);
+  key->type = type;
+  key->readonly = readonly;
+
   node->keys = g_realloc (node->keys, (node->n_keys + 2) * sizeof (HyScanDataSchemaInternalKey*));
-  node->keys[node->n_keys] = hyscan_data_schema_new_param (id, name, description, type, readonly);
+  node->keys[node->n_keys] = key;
   node->n_keys += 1;
   node->keys[node->n_keys] = NULL;
 }
 
+/* Функция освобождает память занятую структурой с параметром. */
+void
+hyscan_data_schema_internal_key_free (HyScanDataSchemaInternalKey *key)
+{
+  g_free (key->id);
+  g_free (key->name);
+  g_free (key->description);
+
+  g_clear_pointer (&key->default_value, g_variant_unref);
+  g_clear_pointer (&key->minimum_value, g_variant_unref);
+  g_clear_pointer (&key->maximum_value, g_variant_unref);
+  g_clear_pointer (&key->value_step, g_variant_unref);
+
+  g_free (key);
+}
+
 /* Функция освобождает память занятую структурой со значениями типа enum. */
 void
-hyscan_data_schema_free_enum (HyScanDataSchemaEnum *values)
+hyscan_data_schema_internal_enum_free (HyScanDataSchemaEnum *values)
 {
   gint i;
 
@@ -248,21 +171,18 @@ hyscan_data_schema_free_enum (HyScanDataSchemaEnum *values)
   g_free (values);
 }
 
-/* Функция освобождает память занятую структурой с параметром. */
-void
-hyscan_data_schema_free_key (HyScanDataSchemaInternalKey *key)
+/* Функция проверяет значение перечисляемого типа на допустимость. */
+gboolean
+hyscan_data_schema_internal_enum_check (HyScanDataSchemaEnum *enums,
+                                        gint64                value)
 {
-  g_free (key->id);
-  g_free (key->name);
-  g_free (key->description);
+  guint i;
 
-  if (key->type == HYSCAN_DATA_SCHEMA_TYPE_STRING)
+  for (i = 0; enums->values[i] != NULL; i++)
     {
-      hyscan_data_schema_value_set_string (&key->default_value, NULL);
-      hyscan_data_schema_value_set_string (&key->minimum_value, NULL);
-      hyscan_data_schema_value_set_string (&key->maximum_value, NULL);
-      hyscan_data_schema_value_set_string (&key->value_step, NULL);
+      if (enums->values[i]->value == value)
+        return TRUE;
     }
 
-  g_free (key);
+  return FALSE;
 }

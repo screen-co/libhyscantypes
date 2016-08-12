@@ -100,6 +100,23 @@ test_schema_create_string (HyScanDataSchemaBuilder *builder,
 }
 
 static void
+test_schema_create_null_string (HyScanDataSchemaBuilder *builder,
+                                const gchar             *path,
+                                gboolean                 readonly,
+                                gint                     value)
+{
+  gchar *key_id = g_strdup_printf ("%s/null%d", path, value);
+  gchar *name = g_strdup_printf ("NULL string %d", value);
+  gchar *description = g_strdup_printf ("NULL string %d value", value);
+
+  hyscan_data_schema_builder_key_string_create (builder, key_id, name, description, readonly, NULL);
+
+  g_free (key_id);
+  g_free (name);
+  g_free (description);
+}
+
+static void
 test_schema_create_enum (HyScanDataSchemaBuilder *builder,
                          const gchar             *path,
                          gboolean                 readonly,
@@ -129,6 +146,7 @@ test_schema_create_complex (HyScanDataSchemaBuilder *builder,
   test_schema_create_integer (builder, path, FALSE, 2);
   test_schema_create_double (builder, path, FALSE, 2);
   test_schema_create_string (builder, path, FALSE, 2);
+  test_schema_create_null_string (builder, path, FALSE, 2);
   test_schema_create_enum (builder, path, FALSE, 2);
 
   node_path = g_strdup_printf ("%s/booleans", path);
@@ -150,17 +168,20 @@ test_schema_create_complex (HyScanDataSchemaBuilder *builder,
       test_schema_create_string (builder, node_path, FALSE, i);
       g_free (node_path);
 
+      node_path = g_strdup_printf ("%s/strings", path);
+      test_schema_create_null_string (builder, node_path, FALSE, i);
+      g_free (node_path);
+
       node_path = g_strdup_printf ("%s/enums", path);
       test_schema_create_enum (builder, node_path, FALSE, i);
       g_free (node_path);
     }
 }
 
-HyScanDataSchema *
+gchar *
 test_schema_create (const gchar *schema_id)
 {
   gchar *data;
-  HyScanDataSchema *schema;
   HyScanDataSchemaBuilder *builder;
 
   builder = hyscan_data_schema_builder_new (schema_id);
@@ -171,12 +192,14 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_integer (builder, "", FALSE, 1);
   test_schema_create_double (builder, "", FALSE, 1);
   test_schema_create_string (builder, "", FALSE, 1);
+  test_schema_create_null_string (builder, "", FALSE, 1);
   test_schema_create_enum (builder, "", FALSE, 1);
 
   test_schema_create_boolean (builder, "/readonly", TRUE, FALSE);
   test_schema_create_integer (builder, "/readonly", TRUE, 2);
   test_schema_create_double (builder, "/readonly", TRUE, 2);
   test_schema_create_string (builder, "/readonly", TRUE, 2);
+  test_schema_create_null_string (builder, "/readonly", TRUE, 2);
   test_schema_create_enum (builder, "/readonly", TRUE, 2);
 
   test_schema_create_complex (builder, "/complex1");
@@ -186,10 +209,8 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_complex (builder, "/complex5");
 
   data = hyscan_data_schema_builder_get_data (builder);
-  schema = hyscan_data_schema_new_from_string (data, schema_id);
-  g_free (data);
 
   g_object_unref (builder);
 
-  return schema;
+  return data;
 }

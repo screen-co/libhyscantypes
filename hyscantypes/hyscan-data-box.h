@@ -12,9 +12,9 @@
  * схемой \link HyScanDataSchema \endlink. Имеется возможность зарегистрировать обработчики,
  * вызываемые при изменении значений параметров, а также отслеживать наличие изменений.
  *
- * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_schema,
+ * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_string,
  * #hyscan_data_box_new_from_file и #hyscan_data_box_new_from_resource.
- * Описание используемой схемы можно получить функцией #hyscan_data_box_get_schema.
+ * Объект HyScanDataBox является наследуемым от \link HyScanDataSchema \endlink.
  *
  * Чтение и запись значений параметров осуществляется с использованием функций
  * #hyscan_data_box_set и #hyscan_data_box_get. В дополнение к ним существуют функции
@@ -31,15 +31,24 @@
  * - #hyscan_data_box_get_string - чтение значения параметра типа STRING;
  * - #hyscan_data_box_get_enum - чтение значения параметра типа ENUM.
  *
+ * Функция #hyscan_data_box_set_default устанавливает значение параметра по умолчанию.
+ *
  * При изменении значения любого параметра увеличивается счётчик, связанный с этим параметром,
  * а также глобальный счётчик. Получить текущее значение счётчика можно функцией
  * #hyscan_data_box_get_mod_count. Пользователь может узнать об изменениях в значениях параметров,
  * используя значения этих счётчиков.
  *
+ * Перед изменением объект посылает сигнал "set". В нём передаются названия изменяемых параметров
+ * и их новые значения. Пользователь может обработать этот сигнал и проверить валидность новых
+ * значений. Пользователь может зарегистрировать несколько обработчиков сигнала "set". Если любой
+ * из обработчиков сигнала вернёт значение FALSE, новые значения не будут установлены.
+ * Прототип callback функции для сигнала:
+ * - gboolean set_cb (HyDataBox *data, const gchar *const *names, GVarint *values, gpointer user_data);
+ *
  * Также, при изменении любого параметра, происходит отправка сигнала "changed". Сигнал поддерживает
  * возможность указания имени параметра, для которого будет происходить его отправка "changed::name".
  * Прототип callback функции для сигнала:
- * - void callback_function (HyDataBox *data, const gchar *name, gpointer user_data);
+ * - void changed_cb (HyDataBox *data, const gchar *name, gpointer user_data);
  *
  */
 
@@ -63,14 +72,14 @@ typedef struct _HyScanDataBoxClass HyScanDataBoxClass;
 
 struct _HyScanDataBox
 {
-  GObject parent_instance;
+  HyScanDataSchema parent_instance;
 
   HyScanDataBoxPrivate *priv;
 };
 
 struct _HyScanDataBoxClass
 {
-  GObjectClass parent_class;
+  HyScanDataSchemaClass parent_class;
 };
 
 HYSCAN_API
@@ -78,16 +87,17 @@ GType                  hyscan_data_box_get_type                (void);
 
 /**
  *
- * Функция создаёт новый объект \link HyScanDataBox \endlink. При создании объекта
- * будет увеличен счётчик ссылок на передаваемый объект \link HyScanDataSchema \endlink.
+ * Функция создаёт новый объект \link HyScanDataBox \endlink.
  *
- * \param schema объект \link HyScanDataSchema \endlink с описанием схемы параметров.
+ * \param schema_data строка с описанием схемы в формате XML;
+ * \param schema_id идентификатор загружаемой схемы.
  *
  * \return Указатель на объект \link HyScanDataBox \endlink.
  *
  */
 HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema      *schema);
+HyScanDataBox         *hyscan_data_box_new_from_string         (const gchar           *schema_data,
+                                                                const gchar           *schema_id);
 
 /**
  *
@@ -119,21 +129,6 @@ HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar     
 
 /**
  *
- * Функция возвращает указатель на объект \link HyScanDataSchema \endlink с описанием
- * используемой схемы данных. Владельцем объекта является \link HyScanDataBox \endlink.
- * Если пользователь хочет использовать этот объект отдельно от \link HyScanDataBox \endlink
- * необходимо явным образом увеличить число ссылок на объект функцией g_object_ref.
- *
- * \param data_box указатель на объект \link HyScanDataBox \endlink.
- *
- * \return Указатель на объект \link HyScanDataSchema \endlink.
- *
- */
-HYSCAN_API
-HyScanDataSchema      *hyscan_data_box_get_schema              (HyScanDataBox         *data_box);
-
-/**
- *
  * Функция возвращает значение счётчика изменений параметра. Если имя параметра
  * равно NULL, возвращается значение глобального счётчика изменений для всех параметров.
  *
@@ -149,45 +144,55 @@ guint32                hyscan_data_box_get_mod_count           (HyScanDataBox   
 
 /**
  *
- * Функция устанавливает значение параметра. Если в качестве значения параметра указать NULL,
- * будет установлено значение по умолчанию, определённое в схеме данных.
+ * Функция устанавливает значения параметров. Если в качестве значения параметра указать NULL,
+ * будет установлено значение по умолчанию, определённое в схеме данных. В случае успешной
+ * установки значений, объект \link HyScanDataBox \endlink становится владельцем всех объектов
+ * GVariant с новыми значениями.
  *
  * \param data_box указатель на объект \link HyScanDataBox \endlink;
- * \param name название параметра;
- * \param type тип параметра;
- * \param value указатель на переменную с новым значением;
- * \param size размер переменной с новым значением.
+ * \param names NULL терминированный список названий параметров;
+ * \param values список новых значений.
  *
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
  */
 HYSCAN_API
 gboolean               hyscan_data_box_set                     (HyScanDataBox         *data_box,
-                                                                const gchar           *name,
-                                                                HyScanDataSchemaType   type,
-                                                                gconstpointer          value,
-                                                                gint32                 size);
+                                                                const gchar    *const *names,
+                                                                GVariant             **values);
 
 /**
  *
- * Функция считывает значение параметра. Если в качестве указатель на буфер для данных передать NULL,
- * функция вернёт размер памяти требуемый для хранения значения параметра.
+ * Функция считывает значения параметров. Пользователь должен самостоятельно выделить
+ * память для переменной values, в которую будут записаны указатели на GVariant.
+ * После использования, пользователь должен освободить память, используемую
+ * объектами GVariant функцией g_variant_unref.
  *
  * \param data_box указатель на объект \link HyScanDataBox \endlink;
- * \param name название параметра;
- * \param type тип параметра;
- * \param buffer указатель на буфер для хранения значения параметра;
- * \param buffer_size размер буфера.
+ * \param names NULL терминированный список названий параметров;
+ * \param values список для значений параметров.
  *
  * \return TRUE если значение считано, FALSE - в случае ошибки.
  *
  */
 HYSCAN_API
 gboolean               hyscan_data_box_get                     (HyScanDataBox         *data_box,
-                                                                const gchar           *name,
-                                                                HyScanDataSchemaType   type,
-                                                                gpointer               buffer,
-                                                                gint32                *buffer_size);
+                                                                const gchar    *const *names,
+                                                                GVariant             **values);
+
+/**
+ *
+ * Функция устанавливает значение параметра по умолчанию.
+ *
+ * \param data_box указатель на объект \link HyScanDataBox \endlink;
+ * \param name название параметра.
+ *
+ * \return TRUE если значение установлено, FALSE - в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean               hyscan_data_box_set_default             (HyScanDataBox         *data_box,
+                                                                const gchar           *name);
 
 /**
  *
