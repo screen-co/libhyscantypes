@@ -23,6 +23,7 @@ typedef struct
 /* Типы данных и их названия. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
+  { 0, "blob", HYSCAN_DATA_BLOB },
   { 0, "string", HYSCAN_DATA_STRING },
 
   { 0, "adc14le", HYSCAN_DATA_ADC_14LE },
@@ -99,6 +100,7 @@ hyscan_data_get_point_size (HyScanDataType data_type)
 {
   switch (data_type)
     {
+    case HYSCAN_DATA_BLOB:
     case HYSCAN_DATA_STRING:
       return sizeof (gchar);
 

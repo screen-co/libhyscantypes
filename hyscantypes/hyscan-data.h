@@ -33,7 +33,8 @@ typedef enum
 {
   HYSCAN_DATA_INVALID                        = 0,              /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_DATA_STRING                         = 101,            /**< Строка с нулём на конце. */
+  HYSCAN_DATA_BLOB                           = 101,            /**< Неструктурированные двоичные данные. */
+  HYSCAN_DATA_STRING                         = 102,            /**< Строка с нулём на конце. */
 
   HYSCAN_DATA_ADC_14LE                       = 201,            /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
   HYSCAN_DATA_ADC_16LE                       = 202,            /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
