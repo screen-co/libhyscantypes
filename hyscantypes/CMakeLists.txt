@@ -12,14 +12,14 @@ include_directories (${CMAKE_BINARY_DIR}/marshallers)
 
 execute_process (COMMAND ${MARSHAL_COMPILER}
                          --header
-                         hyscan-marshallers.list
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-marshallers.h
+                         hyscan-types-marshallers.list
+                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.h
                          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 execute_process (COMMAND ${MARSHAL_COMPILER}
                          --body
-                         hyscan-marshallers.list
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-marshallers.c
+                         hyscan-types-marshallers.list
+                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c
                          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library (hyscantypes SHARED
@@ -28,6 +28,6 @@ add_library (hyscantypes SHARED
              hyscan-data-schema-builder.c
              hyscan-data-schema-internal.c
              hyscan-data-box.c
-             ${CMAKE_BINARY_DIR}/marshallers/hyscan-marshallers.c)
+             ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c)
 
 target_link_libraries (hyscantypes ${GLIB2_LIBRARIES} ${LIBXML2_LIBRARIES})

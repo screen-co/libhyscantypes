@@ -9,7 +9,7 @@
  */
 
 #include "hyscan-data-box.h"
-#include "hyscan-marshallers.h"
+#include "hyscan-types-marshallers.h"
 #include <gio/gio.h>
 #include <string.h>
 
