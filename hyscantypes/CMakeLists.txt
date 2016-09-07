@@ -10,17 +10,16 @@ endif ()
 file (MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/marshallers)
 include_directories (${CMAKE_BINARY_DIR}/marshallers)
 
-execute_process (COMMAND ${MARSHAL_COMPILER}
-                         --header
-                         hyscan-types-marshallers.list
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.h
-                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-execute_process (COMMAND ${MARSHAL_COMPILER}
-                         --body
-                         hyscan-types-marshallers.list
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c
-                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_custom_command (OUTPUT ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c
+                    COMMAND ${MARSHAL_COMPILER} --header
+                            hyscan-types-marshallers.list >
+                            ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.h
+                    COMMAND ${MARSHAL_COMPILER} --body
+                            hyscan-types-marshallers.list >
+                            ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    DEPENDS hyscan-types-marshallers.list
+                    VERBATIM)
 
 add_library (hyscantypes SHARED
              hyscan-data.c
