@@ -1,12 +1,9 @@
-#
-# Marshaller generation utility.
+
 find_program (MARSHAL_COMPILER glib-genmarshal)
 if (${MARSHAL_COMPILER} STREQUAL MARSHAL_COMPILER-NOTFOUND)
   message (FATAL_ERROR "GLib marshallers compiler not found.")
 endif ()
 
-#
-# Marshaller files.
 file (MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/marshallers)
 include_directories (${CMAKE_BINARY_DIR}/marshallers)
 
@@ -30,3 +27,5 @@ add_library (hyscantypes SHARED
              ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c)
 
 target_link_libraries (hyscantypes ${GLIB2_LIBRARIES} ${LIBXML2_LIBRARIES})
+
+set_target_properties (hyscantypes PROPERTIES DEFINE_SYMBOL "HYSCAN_API_EXPORTS")
