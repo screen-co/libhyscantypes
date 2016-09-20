@@ -1,5 +1,6 @@
 #include <gio/gio.h>
 #include <hyscan-data-box.h>
+#include <libxml/parser.h>
 
 gchar *test_schema_create (const gchar *schema_id);
 
@@ -492,6 +493,8 @@ main (int    argc,
 
   g_object_unref (data);
   g_free (schema_data);
+
+  xmlCleanupParser ();
 
   return 0;
 }
