@@ -9,6 +9,7 @@
  */
 
 #include "hyscan-data-schema-internal.h"
+#include <string.h>
 
 /* Функция проверяет имя на предмет допустимости. */
 gboolean
@@ -99,7 +100,8 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
       for (j = 0; node->nodes != NULL && node->nodes[j] != NULL; j++)
         {
           /* Если совпадают, мы на правильном пути:) */
-          if (g_str_has_prefix (id, node->nodes[j]->path))
+          if (g_str_has_prefix (id, node->nodes[j]->path) &&
+              (id[strlen (node->nodes[j]->path)] == '/'))
             {
               node = node->nodes[j];
               has_node = TRUE;
