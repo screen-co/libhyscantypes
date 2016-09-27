@@ -134,7 +134,7 @@ hyscan_data_get_point_size (HyScanDataType data_type)
 /* Функция преобразовывает данные из низкоуровневого формата в float размером data_size. */
 gboolean
 hyscan_data_import_float (HyScanDataType  data_type,
-                          gpointer        data,
+                          gconstpointer   data,
                           gint32          data_size,
                           gfloat         *buffer,
                           gint32         *buffer_size)
@@ -149,7 +149,7 @@ hyscan_data_import_float (HyScanDataType  data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points)) & 0x3fff;
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + i)) & 0x3fff;
           buffer[i] = 2.0 * (gfloat)(raw_re / 16383.0) - 1.0;
         }
       break;
@@ -159,7 +159,7 @@ hyscan_data_import_float (HyScanDataType  data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + n_points));
+          guint16 raw_re = GUINT16_FROM_LE (*((guint16 *)data + i));
           buffer[i] = 2.0 * (gfloat)(raw_re / 65535.0) - 1.0;
         }
       break;
@@ -169,7 +169,7 @@ hyscan_data_import_float (HyScanDataType  data_type,
       *buffer_size = n_points = (n_points > *buffer_size) ? *buffer_size : n_points;
       for (i = 0; i < n_points; i++)
         {
-          guint32 raw_re = GUINT32_FROM_LE (*((guint32 *)data + n_points)) & 0x00ffffff;
+          guint32 raw_re = GUINT32_FROM_LE (*((guint32 *)data + i)) & 0x00ffffff;
           buffer[i] = 2.0 * (gfloat)(raw_re / 16777215.0) - 1.0;
         }
       break;
@@ -191,7 +191,7 @@ hyscan_data_import_float (HyScanDataType  data_type,
 /* Функция преобразовывает данные из низкоуровневого формата в HyScanComplexFloat размером data_size. */
 gboolean
 hyscan_data_import_complex_float (HyScanDataType      data_type,
-                                  gpointer            data,
+                                  gconstpointer       data,
                                   gint32              data_size,
                                   HyScanComplexFloat *buffer,
                                   gint32             *buffer_size)
