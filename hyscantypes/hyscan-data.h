@@ -44,9 +44,15 @@ typedef enum
   HYSCAN_DATA_COMPLEX_ADC_16LE               = 302,            /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
   HYSCAN_DATA_COMPLEX_ADC_24LE               = 303,            /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_FLOAT                          = 401,            /**< Действительные float значения. */
+  HYSCAN_DATA_UINT8                          = 401,            /**< Действительные unsigned int8 значения. */
+  HYSCAN_DATA_UINT16                         = 402,            /**< Действительные unsigned int16 значения. */
+  HYSCAN_DATA_UINT32                         = 403,            /**< Действительные unsigned int32 значения. */
+  HYSCAN_DATA_FLOAT                          = 404,            /**< Действительные float значения. */
 
-  HYSCAN_DATA_COMPLEX_FLOAT                  = 501             /**< Комплексные float значения. */
+  HYSCAN_DATA_COMPLEX_UINT8                  = 501,            /**< Комплексные unsigned int8 значения. */
+  HYSCAN_DATA_COMPLEX_UINT16                 = 502,            /**< Комплексные unsigned int16 значения. */
+  HYSCAN_DATA_COMPLEX_UINT32                 = 503,            /**< Комплексные unsigned int32 значения. */
+  HYSCAN_DATA_COMPLEX_FLOAT                  = 504             /**< Комплексные float значения. */
 } HyScanDataType;
 
 /** \brief Комплексные float числа */
