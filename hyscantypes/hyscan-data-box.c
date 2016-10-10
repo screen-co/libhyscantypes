@@ -256,6 +256,7 @@ hyscan_data_box_get_mod_count (HyScanDataBox *data_box,
   return 0;
 }
 
+/* Функция устанавливает значения параметров. */
 gboolean
 hyscan_data_box_set (HyScanDataBox      *data_box,
                      const gchar *const *names,
@@ -331,7 +332,7 @@ exit:
   return status;
 }
 
-
+/* Функция считывает значения параметров. */
 gboolean
 hyscan_data_box_get (HyScanDataBox      *data_box,
                      const gchar *const *names,
@@ -373,6 +374,121 @@ hyscan_data_box_get (HyScanDataBox      *data_box,
   return TRUE;
 }
 
+/* Функция возвращает строку с текущими значениями параметров. */
+gchar *
+hyscan_data_box_serialize (HyScanDataBox *data_box)
+{
+  HyScanDataBoxPrivate *priv;
+  GVariantDict *dict;
+  GVariant *vdict;
+
+  gboolean has_params = FALSE;
+  gchar *sparams = NULL;
+  gsize i;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), NULL);
+
+  priv = data_box->priv;
+
+  if (priv->keys_list == NULL)
+    return NULL;
+
+  g_rw_lock_reader_lock (&priv->lock);
+
+  dict = g_variant_dict_new (NULL);
+
+  /* Проверяем все параметры на предмет установки значения
+   * отличного от значения по умолчанию. */
+  for (i = 0; priv->keys_list[i] != NULL; i++)
+    {
+      HyScanDataBoxParam *param;
+      GVariant *value;
+
+      param = g_hash_table_lookup (priv->params, priv->keys_list[i]);
+      if ((param == NULL) || param->readonly)
+        continue;
+
+      value = param->value;
+      if (value == NULL)
+        continue;
+
+      /* Добавляем изменённые значения в массив. */
+      g_variant_dict_insert_value (dict, priv->keys_list[i], value);
+      has_params = TRUE;
+    }
+
+  if (has_params)
+    {
+      vdict = g_variant_dict_end (dict);
+      sparams = g_variant_print (vdict, TRUE);
+      g_variant_unref (vdict);
+    }
+
+  g_variant_dict_unref (dict);
+
+  g_rw_lock_reader_unlock (&priv->lock);
+
+  return sparams;
+}
+
+/* Функция устанавливает значения параметров. */
+gboolean
+hyscan_data_box_deserialize (HyScanDataBox *data_box,
+                             const gchar   *svalues)
+{
+  GVariant *vdict;
+  gboolean status;
+
+  gchar **names;
+  GVariant **values;
+
+  gsize n_params;
+  gsize i;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
+
+  /* Загружаем значения из строки. */
+  vdict = g_variant_parse (NULL, svalues, NULL, NULL, NULL);
+  if (vdict == NULL)
+    return FALSE;
+
+  n_params = g_variant_n_children (vdict);
+  names = g_new0 (gchar*, n_params + 1);
+  values = g_new0 (GVariant*, n_params + 1);
+
+  /* Массивы имён параметров и их значения. */
+  for (i = 0; i < n_params; i++)
+    {
+      GVariant *param;
+      GVariant *value;
+      gchar *key;
+
+      param = g_variant_get_child_value (vdict, i);
+      g_variant_get (param, "{sv}", &key, &value);
+
+      names[i] = key;
+      values[i] = value;
+
+      g_variant_unref (param);
+    }
+
+  g_variant_unref (vdict);
+
+  /* Устанавливаем новые значения. */
+  status = hyscan_data_box_set (data_box, (const gchar* const*)names, values);
+  for (i = 0; i < n_params; i++)
+    {
+      g_free (names[i]);
+      g_variant_unref (values[i]);
+    }
+
+  g_free (names);
+  g_free (values);
+
+  return status;
+}
+
+/* Функция устанавливает значение параметра по умолчанию. */
 gboolean
 hyscan_data_box_set_default (HyScanDataBox *data_box,
                              const gchar   *name)

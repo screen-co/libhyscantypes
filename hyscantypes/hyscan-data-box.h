@@ -38,6 +38,10 @@
  * #hyscan_data_box_get_mod_count. Пользователь может узнать об изменениях в значениях параметров,
  * используя значения этих счётчиков.
  *
+ * Класс предоставляет возможность сохранить текущее значение всех параметров в виде
+ * строки и восстановить эти значения в дальнейшем. Для этих целей используются функции
+ * #hyscan_data_box_serialize и #hyscan_data_box_deserialize.
+ *
  * Перед изменением объект посылает сигнал "set". В нём передаются названия изменяемых параметров
  * и их новые значения. Пользователь может обработать этот сигнал и проверить валидность новых
  * значений. Пользователь может зарегистрировать несколько обработчиков сигнала "set". Если любой
@@ -153,7 +157,7 @@ guint32                hyscan_data_box_get_mod_count           (HyScanDataBox   
  * \param names NULL терминированный список названий параметров;
  * \param values список новых значений.
  *
- * \return TRUE если значение установлено, FALSE - в случае ошибки.
+ * \return TRUE если значения установлены, FALSE - в случае ошибки.
  *
  */
 HYSCAN_API
@@ -172,13 +176,43 @@ gboolean               hyscan_data_box_set                     (HyScanDataBox   
  * \param names NULL терминированный список названий параметров;
  * \param values список для значений параметров.
  *
- * \return TRUE если значение считано, FALSE - в случае ошибки.
+ * \return TRUE если значения считаны, FALSE - в случае ошибки.
  *
  */
 HYSCAN_API
 gboolean               hyscan_data_box_get                     (HyScanDataBox         *data_box,
                                                                 const gchar    *const *names,
                                                                 GVariant             **values);
+
+/**
+ *
+ * Функция возвращает строку с текущими значениями параметров. Эта строка
+ * может использоваться для начальной инициализации значений при создании
+ * объекта. Пользователь должен освободить память, занимаемую строкой,
+ * с помощью функции g_free.
+ *
+ * \param data_box указатель на объект \link HyScanDataBox \endlink.
+ *
+ * \return Строка с текущими значениями параметров или NULL.
+ *
+ */
+HYSCAN_API
+gchar                 *hyscan_data_box_serialize               (HyScanDataBox         *data_box);
+
+/**
+ *
+ * Функция устанавливает значения параметров в значения возвращаемые функцией
+ * #hyscan_data_box_serialize.
+ *
+ * \param data_box указатель на объект \link HyScanDataBox \endlink;
+ * \param svalues строка со значениями параметров.
+ *
+ * \return TRUE если значения установлены, FALSE - в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean               hyscan_data_box_deserialize             (HyScanDataBox         *data_box,
+                                                                const gchar           *svalues);
 
 /**
  *

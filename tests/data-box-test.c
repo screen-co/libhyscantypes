@@ -26,7 +26,7 @@ set_cb (HyScanDataBox       *data,
       return FALSE;
     }
 
-  if (cur_value == NULL && values[0] == NULL)
+  if (cur_value == NULL || values[0] == NULL)
     return TRUE;
 
   if (g_variant_compare (cur_value, values[0]) != 0)
@@ -115,6 +115,9 @@ check_boolean (HyScanDataBox *data,
     g_error ("%s: modification counter error", name);
 
   g_variant_unref (default_value);
+
+  if (!hyscan_data_box_set_boolean (data, name, g_random_int_range (0, 2)))
+      g_error ("%s: can't set value", name);
 }
 
 /* Функция проверки параметра типа INTEGER. */
@@ -200,6 +203,9 @@ check_integer (HyScanDataBox *data,
   g_variant_unref (minimum_value);
   g_variant_unref (maximum_value);
   g_variant_unref (value_step);
+
+  if (!hyscan_data_box_set_integer (data, name, g_random_int_range (min, max + 1)))
+      g_error ("%s: can't set value", name);
 }
 
 /* Функция проверки параметра типа DOUBLE. */
@@ -285,6 +291,9 @@ check_double (HyScanDataBox *data,
   g_variant_unref (minimum_value);
   g_variant_unref (maximum_value);
   g_variant_unref (value_step);
+
+  if (!hyscan_data_box_set_double (data, name, g_random_double_range (min, max)))
+      g_error ("%s: can't set value", name);
 }
 
 /* Функция проверки параметра типа STRING. */
@@ -362,6 +371,11 @@ check_string (HyScanDataBox *data,
     g_error ("%s: modification counter error", name);
 
   g_clear_pointer (&default_value, g_variant_unref);
+
+  value1 = g_strdup_printf ("string %d", g_random_int ());
+  if (!hyscan_data_box_set_string (data, name, value1))
+      g_error ("%s: can't set value", name);
+  g_free (value1);
 }
 
 /* Функция проверки параметра типа ENUM. */
@@ -434,15 +448,60 @@ check_enum (HyScanDataBox *data,
   g_variant_unref (default_value);
 }
 
+/* Функция сравнивает значения параметров двух объектов HyScanDataBox. */
+void
+compare_values (HyScanDataBox *data,
+                HyScanDataBox *data2)
+{
+  HyScanDataSchema *schema;
+  gchar **keys_list;
+  GVariant **values;
+  GVariant **values2;
+
+  gsize i;
+
+  schema = HYSCAN_DATA_SCHEMA (data);
+  keys_list = hyscan_data_schema_list_keys (schema);
+  if (keys_list == NULL)
+    g_error ("compare: empty schema");
+
+  values = g_new0 (GVariant*, g_strv_length (keys_list) + 1);
+  values2 = g_new0 (GVariant*, g_strv_length (keys_list) + 1);
+
+  if (!hyscan_data_box_get (data, (const gchar* const*)keys_list, values))
+    g_error ("compare: can't get values");
+
+  if (!hyscan_data_box_get (data, (const gchar* const*)keys_list, values2))
+    g_error ("compare: can't get values2");
+
+  for (i = 0; keys_list[i] != NULL; i++)
+    {
+      if ((values[i] == NULL) && (values2[i] == NULL))
+        continue;
+
+      if (g_variant_compare (values[i], values2[i]) != 0)
+        g_error ("compare: %s mismatch", keys_list[i]);
+
+      g_variant_unref (values[i]);
+      g_variant_unref (values2[i]);
+    }
+
+  g_strfreev (keys_list);
+  g_free (values);
+  g_free (values2);
+}
+
 int
 main (int    argc,
       char **argv)
 {
   HyScanDataBox *data;
+  HyScanDataBox *data2;
   HyScanDataSchema *schema;
   gchar *schema_data;
   gchar **keys_list;
-  guint i;
+  gchar *sparams;
+  gsize i;
 
   schema_data = test_schema_create ("test");
   data = hyscan_data_box_new_from_string (schema_data, "test");
@@ -491,8 +550,20 @@ main (int    argc,
   if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
     g_error ("modification counter error");
 
+  sparams = hyscan_data_box_serialize (data);
+  if (sparams == NULL)
+    g_error ("can't serialize values");
+
+  data2 = hyscan_data_box_new_from_string (schema_data, "test");
+  if (!hyscan_data_box_deserialize (data2, sparams))
+    g_error ("can't deserialize values");
+
+  compare_values (data, data2);
+
   g_object_unref (data);
+  g_object_unref (data2);
   g_free (schema_data);
+  g_free (sparams);
 
   xmlCleanupParser ();
 
