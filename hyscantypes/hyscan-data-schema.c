@@ -1112,7 +1112,7 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
 void
 hyscan_data_schema_free_nodes (HyScanDataSchemaNode *nodes)
 {
-  gint i;
+  guint i;
 
   for (i = 0; i < nodes->n_nodes; i++)
     hyscan_data_schema_free_nodes (nodes->nodes[i]);

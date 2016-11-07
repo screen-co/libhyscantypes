@@ -236,10 +236,10 @@ struct _HyScanDataSchemaNode
   gchar                               *path;           /**< Путь до узла. */
 
   HyScanDataSchemaNode               **nodes;          /**< Дочерние узлы. */
-  gint                                 n_nodes;        /**< Число дочерних узлов. */
+  guint                                n_nodes;        /**< Число дочерних узлов. */
 
   HyScanDataSchemaKey                **keys;           /**< Параметры. */
-  gint                                 n_keys;         /**< Число параметров. */
+  guint                                n_keys;         /**< Число параметров. */
 };
 
 /** \brief Описание параметра */

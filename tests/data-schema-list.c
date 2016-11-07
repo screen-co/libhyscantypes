@@ -5,7 +5,7 @@
 void print_node (HyScanDataSchema     *schema,
                  HyScanDataSchemaNode *nodes)
 {
-  gint i;
+  guint i;
 
   for (i = 0; i < nodes->n_nodes; i++)
     print_node (schema, nodes->nodes[i]);

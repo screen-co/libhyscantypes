@@ -180,7 +180,7 @@ hyscan_data_schema_builder_dump_node (GOutputStream        *ostream,
 {
   gchar *indent;
   gchar **pathv;
-  gint i;
+  guint i;
 
   indent = g_malloc0 (2 + 2 * level + 1);
   memset (indent, ' ', 2 + 2 * level);
