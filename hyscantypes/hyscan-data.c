@@ -102,7 +102,7 @@ hyscan_data_get_type_by_name (const gchar *data_name)
 }
 
 /* Функция возвращает размер одного элемента данных в байтах, для указанного типа. */
-gint32
+guint32
 hyscan_data_get_point_size (HyScanDataType data_type)
 {
   switch (data_type)

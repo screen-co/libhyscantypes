@@ -98,7 +98,7 @@ HyScanDataType         hyscan_data_get_type_by_name            (const gchar     
  *
  */
 HYSCAN_API
-gint32                 hyscan_data_get_point_size              (HyScanDataType                 data_type);
+guint32                hyscan_data_get_point_size              (HyScanDataType                 data_type);
 
 /**
  *
