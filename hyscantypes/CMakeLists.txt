@@ -24,6 +24,7 @@ add_library (hyscantypes SHARED
              hyscan-data-schema-builder.c
              hyscan-data-schema-internal.c
              hyscan-data-box.c
+             hyscan-slice-pool.c
              ${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c)
 
 target_link_libraries (hyscantypes ${GLIB2_LIBRARIES} ${LIBXML2_LIBRARIES})
