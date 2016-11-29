@@ -27,11 +27,12 @@ typedef struct
 {
   gchar                       *id;                             /* Идентификатор параметра. */
 
-  HyScanDataSchemaType         type;                           /* Тип параметра. */
+  HyScanDataSchemaKeyType      type;                           /* Тип параметра. */
+  HyScanDataSchemaViewType     view;                           /* Вид отображения параметра. */
   GVariantClass                value_type;                     /* Тип значения параметра. */
   gchar                       *name;                           /* Название параметра. */
   gchar                       *description;                    /* Описание параметра. */
-  gboolean                     readonly;                       /* Параметр доступен только для чтения. */
+  HyScanDataSchemaKeyAccess    access;                         /* Атрибуты доступа к параметру. */
 
   HyScanDataSchemaEnum        *enum_values;                    /* Варианты значений для перечисляемого типа. */
   GVariant                    *default_value;                  /* Значение по умолчанию. */
@@ -54,8 +55,9 @@ void                           hyscan_data_schema_internal_node_insert_key     (
                                                                                 const gchar                *id,
                                                                                 const gchar                *name,
                                                                                 const gchar                *description,
-                                                                                HyScanDataSchemaType        type,
-                                                                                gboolean                    readonly);
+                                                                                HyScanDataSchemaKeyType     type,
+                                                                                HyScanDataSchemaViewType    view,
+                                                                                HyScanDataSchemaKeyAccess   access);
 
 /* Функция освобождает память занятую структурой HyScanDataSchemaInternalKey. */
 void                           hyscan_data_schema_internal_key_free            (HyScanDataSchemaInternalKey *key);

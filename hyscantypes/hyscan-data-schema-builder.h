@@ -26,6 +26,14 @@
  * - #hyscan_data_schema_builder_key_string_create - для параметров типа STRING;
  * - #hyscan_data_schema_builder_key_enum_create - для параметров типа ENUM.
  *
+ * Для любого параметра можно задать рекомендуемый вид отображения функцией
+ * #hyscan_data_schema_builder_key_set_view и атрибут доступа функцией
+ * #hyscan_data_schema_builder_key_set_access.
+ *
+ * Для параметров типа INTEGER и DOUBLE можно задать диапазон допустимых значений и
+ * рекомендуемый шаг изменения значений. Для этих целей используются функции
+ * #hyscan_data_schema_builder_key_integer_range и #hyscan_data_schema_builder_key_double_range.
+ *
  * Для получения XML описания схемы, после определения параметров, необходимо
  * использовать функцию #hyscan_data_schema_builder_get_data.
  *
@@ -147,7 +155,6 @@ gboolean                  hyscan_data_schema_builder_enum_value_create   (HyScan
  * \param key_id идентификатор параметра;
  * \param name название параметра;
  * \param description описание параметра или NULL;
- * \param readonly признак только для чтения;
  * \param default_value значение по умолчанию.
  *
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
@@ -158,7 +165,6 @@ gboolean                  hyscan_data_schema_builder_key_boolean_create  (HyScan
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description,
-                                                                          gboolean                  readonly,
                                                                           gboolean                  default_value);
 
 /**
@@ -169,11 +175,7 @@ gboolean                  hyscan_data_schema_builder_key_boolean_create  (HyScan
  * \param key_id идентификатор параметра;
  * \param name название параметра;
  * \param description описание параметра или NULL;
- * \param readonly признак только для чтения;
- * \param default_value значение по умолчанию;
- * \param minimum_value минимально возможное значение параметра;
- * \param maximum_value максимально возможное значение параметра;
- * \param value_step рекомендуемый шаг изменения значения параметра.
+ * \param default_value значение по умолчанию.
  *
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
@@ -183,11 +185,7 @@ gboolean                  hyscan_data_schema_builder_key_integer_create  (HyScan
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description,
-                                                                          gboolean                  readonly,
-                                                                          gint64                    default_value,
-                                                                          gint64                    minimum_value,
-                                                                          gint64                    maximum_value,
-                                                                          gint64                    value_step);
+                                                                          gint64                    default_value);
 
 /**
  *
@@ -197,11 +195,7 @@ gboolean                  hyscan_data_schema_builder_key_integer_create  (HyScan
  * \param key_id идентификатор параметра;
  * \param name название параметра;
  * \param description описание параметра или NULL;
- * \param readonly признак только для чтения;
- * \param default_value значение по умолчанию;
- * \param minimum_value минимально возможное значение параметра;
- * \param maximum_value максимально возможное значение параметра;
- * \param value_step рекомендуемый шаг изменения значения параметра.
+ * \param default_value значение по умолчанию.
  *
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
  *
@@ -211,11 +205,7 @@ gboolean                  hyscan_data_schema_builder_key_double_create   (HyScan
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description,
-                                                                          gboolean                  readonly,
-                                                                          gdouble                   default_value,
-                                                                          gdouble                   minimum_value,
-                                                                          gdouble                   maximum_value,
-                                                                          gdouble                   value_step);
+                                                                          gdouble                   default_value);
 
 /**
  *
@@ -225,7 +215,6 @@ gboolean                  hyscan_data_schema_builder_key_double_create   (HyScan
  * \param key_id идентификатор параметра;
  * \param name название параметра;
  * \param description описание параметра или NULL;
- * \param readonly признак только для чтения;
  * \param default_value значение по умолчанию.
  *
  * \return TRUE если новый параметр создан, FALSE в случае ошибки.
@@ -236,7 +225,6 @@ gboolean                  hyscan_data_schema_builder_key_string_create   (HyScan
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description,
-                                                                          gboolean                  readonly,
                                                                           const gchar              *default_value);
 
 /**
@@ -247,7 +235,6 @@ gboolean                  hyscan_data_schema_builder_key_string_create   (HyScan
  * \param key_id идентификатор параметра;
  * \param name название параметра;
  * \param description описание параметра или NULL;
- * \param readonly признак только для чтения;
  * \param enum_id идентификатор списка возможных значений параметра;
  * \param default_value значение по умолчанию.
  *
@@ -259,9 +246,82 @@ gboolean                  hyscan_data_schema_builder_key_enum_create     (HyScan
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description,
-                                                                          gboolean                  readonly,
                                                                           const gchar              *enum_id,
                                                                           gint64                    default_value);
+
+/**
+ *
+ * Функция задаёт рекомендуемый вид отображения параметра.
+ *
+ * \param builder указатель на объект \link HyScanDataSchemaBuilder \endlink;
+ * \param key_id идентификатор параметра;
+ * \param view рекомендуемый вид отображения параметра.
+ *
+ * \return TRUE если вид отображения установлен, FALSE в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                  hyscan_data_schema_builder_key_set_view        (HyScanDataSchemaBuilder  *builder,
+                                                                          const gchar              *key_id,
+                                                                          HyScanDataSchemaViewType  view);
+
+/**
+ *
+ * Функция задаёт атрибут доступа к параметру.
+ *
+ * \param builder указатель на объект \link HyScanDataSchemaBuilder \endlink;
+ * \param key_id идентификатор параметра;
+ * \param access атрибут доступа к параметру.
+ *
+ * \return TRUE если атрибут доступа установлен, FALSE в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                  hyscan_data_schema_builder_key_set_access     (HyScanDataSchemaBuilder   *builder,
+                                                                         const gchar               *key_id,
+                                                                         HyScanDataSchemaKeyAccess  access);
+
+/**
+ *
+ * Функция задаёт диапазон допустимых значений и рекомендуемый шаг изменения значения
+ * параметра типа INTEGER.
+ *
+ * \param builder указатель на объект \link HyScanDataSchemaBuilder \endlink;
+ * \param key_id идентификатор параметра;
+ * \param minimum_value минимально возможное значение параметра;
+ * \param maximum_value максимально возможное значение параметра;
+ * \param value_step рекомендуемый шаг изменения значения параметра.
+ *
+ * \return TRUE если значения установлены, FALSE в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                  hyscan_data_schema_builder_key_integer_range   (HyScanDataSchemaBuilder  *builder,
+                                                                          const gchar              *key_id,
+                                                                          gint64                    minimum_value,
+                                                                          gint64                    maximum_value,
+                                                                          gint64                    value_step);
+
+/**
+ *
+ * Функция задаёт диапазон допустимых значений и рекомендуемый шаг изменения значения
+ * параметра типа DOUBLE.
+ *
+ * \param builder указатель на объект \link HyScanDataSchemaBuilder \endlink;
+ * \param key_id идентификатор параметра;
+ * \param minimum_value минимально возможное значение параметра;
+ * \param maximum_value максимально возможное значение параметра;
+ * \param value_step рекомендуемый шаг изменения значения параметра.
+ *
+ * \return TRUE если значения установлены, FALSE в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                  hyscan_data_schema_builder_key_double_range    (HyScanDataSchemaBuilder  *builder,
+                                                                          const gchar              *key_id,
+                                                                          gdouble                   minimum_value,
+                                                                          gdouble                   maximum_value,
+                                                                          gdouble                   value_step);
 
 G_END_DECLS
 

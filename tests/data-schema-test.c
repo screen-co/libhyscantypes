@@ -11,17 +11,29 @@ check_boolean (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  HyScanDataSchemaKeyAccess access;
+
   gchar *check_name;
   gchar *check_description;
+
   GVariant *default_value;
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN)
+  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
   description = hyscan_data_schema_key_get_description (schema, key_id);
   if (name == NULL || description == NULL)
     g_error ("%s: name or description error", key_id);
+
+  if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_BIN)
+    g_error ("%s: view error", key_id);
+
+  access = hyscan_data_schema_key_get_access (schema, key_id);
+  if (g_str_has_prefix (key_id, "/readonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+    g_error ("%s: access error", key_id);
+  if (g_str_has_prefix (key_id, "/writeonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY))
+    g_error ("%s: access error", key_id);
 
   default_value = hyscan_data_schema_key_get_default (schema, key_id);
   if (default_value == NULL)
@@ -48,6 +60,7 @@ check_integer (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  HyScanDataSchemaKeyAccess access;
 
   gchar *check_name;
   gchar *check_description;
@@ -57,13 +70,22 @@ check_integer (HyScanDataSchema *schema,
   GVariant *maximum_value;
   GVariant *value_step;
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_TYPE_INTEGER)
+  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
   description = hyscan_data_schema_key_get_description (schema, key_id);
   if (name == NULL || description == NULL)
     g_error ("%s: name or description error", key_id);
+
+  if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_HEX)
+    g_error ("%s: view error", key_id);
+
+  access = hyscan_data_schema_key_get_access (schema, key_id);
+  if (g_str_has_prefix (key_id, "/readonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+    g_error ("%s: access error", key_id);
+  if (g_str_has_prefix (key_id, "/writeonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY))
+    g_error ("%s: access error", key_id);
 
   default_value = hyscan_data_schema_key_get_default (schema, key_id);
   if (default_value == NULL)
@@ -114,6 +136,7 @@ check_double (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  HyScanDataSchemaKeyAccess access;
 
   gchar *check_name;
   gchar *check_description;
@@ -123,13 +146,22 @@ check_double (HyScanDataSchema *schema,
   GVariant *maximum_value;
   GVariant *value_step;
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_TYPE_DOUBLE)
+  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
   description = hyscan_data_schema_key_get_description (schema, key_id);
   if (name == NULL || description == NULL)
     g_error ("%s: name or description error", key_id);
+
+  if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_DEC)
+    g_error ("%s: view error", key_id);
+
+  access = hyscan_data_schema_key_get_access (schema, key_id);
+  if (g_str_has_prefix (key_id, "/readonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+    g_error ("%s: access error", key_id);
+  if (g_str_has_prefix (key_id, "/writeonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY))
+    g_error ("%s: access error", key_id);
 
   default_value = hyscan_data_schema_key_get_default (schema, key_id);
   if (default_value == NULL)
@@ -180,18 +212,29 @@ check_string (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  HyScanDataSchemaKeyAccess access;
+
   gchar *check_name;
   gchar *check_description;
 
   GVariant *default_value;
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_TYPE_STRING)
+  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_STRING)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
   description = hyscan_data_schema_key_get_description (schema, key_id);
   if (name == NULL || description == NULL)
     g_error ("%s: name or description error", key_id);
+
+  if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_SCHEMA)
+    g_error ("%s: view error", key_id);
+
+  access = hyscan_data_schema_key_get_access (schema, key_id);
+  if (g_str_has_prefix (key_id, "/readonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+    g_error ("%s: access error", key_id);
+  if (g_str_has_prefix (key_id, "/writeonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY))
+    g_error ("%s: access error", key_id);
 
   default_value = hyscan_data_schema_key_get_default (schema, key_id);
   if (g_pattern_match_simple ("*null*", key_id))
@@ -226,19 +269,30 @@ check_enum (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  HyScanDataSchemaKeyAccess access;
+
   gchar *check_name;
   gchar *check_description;
 
   GVariant *default_value;
   gint64 i;
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_TYPE_ENUM)
+  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_ENUM)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
   description = hyscan_data_schema_key_get_description (schema, key_id);
   if (name == NULL || description == NULL)
     g_error ("%s: name or description error", key_id);
+
+  if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_DATE)
+    g_error ("%s: view error", key_id);
+
+  access = hyscan_data_schema_key_get_access (schema, key_id);
+  if (g_str_has_prefix (key_id, "/readonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+    g_error ("%s: access error", key_id);
+  if (g_str_has_prefix (key_id, "/writeonly") && (access != HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY))
+    g_error ("%s: access error", key_id);
 
   default_value = hyscan_data_schema_key_get_default (schema, key_id);
   if (default_value == NULL)
@@ -283,27 +337,27 @@ main (int argc, char **argv)
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
+      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
 
       switch (type)
         {
-        case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
           check_boolean (schema, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
           check_integer (schema, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
           check_double (schema, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
           check_string (schema, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
           check_enum (schema, keys_list[i]);
           break;
 
@@ -318,6 +372,8 @@ main (int argc, char **argv)
   g_free (schema_data);
 
   xmlCleanupParser ();
+
+  g_message ("All done");
 
   return 0;
 }

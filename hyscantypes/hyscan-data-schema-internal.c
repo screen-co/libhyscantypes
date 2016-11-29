@@ -75,12 +75,13 @@ hyscan_data_schema_internal_node_new (const gchar *path)
 
 /* Функция добавляет новый параметр в список. */
 void
-hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
-                                             const gchar          *id,
-                                             const gchar          *name,
-                                             const gchar          *description,
-                                             HyScanDataSchemaType  type,
-                                             gboolean              readonly)
+hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode     *node,
+                                             const gchar              *id,
+                                             const gchar              *name,
+                                             const gchar              *description,
+                                             HyScanDataSchemaKeyType   type,
+                                             HyScanDataSchemaViewType  view,
+                                             HyScanDataSchemaKeyAccess access)
 {
   HyScanDataSchemaKey *key;
 
@@ -131,7 +132,8 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
   key->name = g_strdup (name);
   key->description = g_strdup (description);
   key->type = type;
-  key->readonly = readonly;
+  key->view = view;
+  key->access = access;
 
   node->keys = g_realloc (node->keys, (node->n_keys + 2) * sizeof (HyScanDataSchemaInternalKey*));
   node->keys[node->n_keys] = key;
