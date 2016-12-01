@@ -24,11 +24,11 @@ enum
 typedef struct
 {
   GQuark                       id;                     /* Идентификатор названия параметра. */
-  HyScanDataSchemaType         type;                   /* Тип параметра. */
+  HyScanDataSchemaKeyType      type;                   /* Тип параметра. */
   GVariant                    *value;                  /* Значение параметра. */
   GVariantClass                value_type;             /* Тип значения параметра. */
   guint32                      mod_count;              /* Счётчик изменений значений параметра. */
-  gboolean                     readonly;               /* Параметр доступен только для чтения. */
+  HyScanDataSchemaKeyAccess    access;                 /* Атрибут доступа к параметру. */
 } HyScanDataBoxParam;
 
 struct _HyScanDataBoxPrivate
@@ -108,27 +108,27 @@ hyscan_data_box_object_constructed (GObject *object)
 
       param->type = hyscan_data_schema_key_get_type (schema, priv->keys_list[i]);
       param->id = g_quark_from_string (priv->keys_list[i]);
-      param->readonly = hyscan_data_schema_key_is_readonly (schema, priv->keys_list[i]);
+      param->access = hyscan_data_schema_key_get_access (schema, priv->keys_list[i]);
 
       switch (param->type)
         {
-        case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
           param->value_type = G_VARIANT_CLASS_BOOLEAN;
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
           param->value_type = G_VARIANT_CLASS_INT64;
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
           param->value_type = G_VARIANT_CLASS_DOUBLE;
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
           param->value_type = G_VARIANT_CLASS_STRING;
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
           param->value_type = G_VARIANT_CLASS_INT64;
           break;
 
@@ -283,7 +283,7 @@ hyscan_data_box_set (HyScanDataBox      *data_box,
         return FALSE;
 
       /* Параметр только для чтения. */
-      if (param->readonly)
+      if (param->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
         return FALSE;
 
       /* Установка значения по умолчанию. */
@@ -352,8 +352,17 @@ hyscan_data_box_get (HyScanDataBox      *data_box,
 
   /* Проверяем параметы. */
   for (i = 0; names[i] != NULL; i++)
-    if (!g_hash_table_contains (priv->params, names[i]))
-      return FALSE;
+    {
+      HyScanDataBoxParam *param;
+
+      param = g_hash_table_lookup (priv->params, names[i]);
+      if (param == NULL)
+        return FALSE;
+
+      /* Параметр только для записи. */
+      if (param->access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+        return FALSE;
+    }
 
   g_rw_lock_reader_lock (&priv->lock);
 
@@ -405,7 +414,7 @@ hyscan_data_box_serialize (HyScanDataBox *data_box)
       GVariant *value;
 
       param = g_hash_table_lookup (priv->params, priv->keys_list[i]);
-      if ((param == NULL) || param->readonly)
+      if ((param == NULL) || (param->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
         continue;
 
       value = param->value;

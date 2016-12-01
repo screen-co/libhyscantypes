@@ -11,7 +11,7 @@
 #ifndef __HYSCAN_DATA_SCHEMA_INTERNAL_H__
 #define __HYSCAN_DATA_SCHEMA_INTERNAL_H__
 
-#include "hyscan-data-schema.h"
+#include "hyscan-data-schema-builder.h"
 
 /* Варианты значений перечисляемого типа. */
 typedef struct
@@ -27,11 +27,12 @@ typedef struct
 {
   gchar                       *id;                             /* Идентификатор параметра. */
 
-  HyScanDataSchemaType         type;                           /* Тип параметра. */
+  HyScanDataSchemaKeyType      type;                           /* Тип параметра. */
+  HyScanDataSchemaViewType     view;                           /* Вид отображения параметра. */
   GVariantClass                value_type;                     /* Тип значения параметра. */
   gchar                       *name;                           /* Название параметра. */
   gchar                       *description;                    /* Описание параметра. */
-  gboolean                     readonly;                       /* Параметр доступен только для чтения. */
+  HyScanDataSchemaKeyAccess    access;                         /* Атрибуты доступа к параметру. */
 
   HyScanDataSchemaEnum        *enum_values;                    /* Варианты значений для перечисляемого типа. */
   GVariant                    *default_value;                  /* Значение по умолчанию. */
@@ -54,8 +55,9 @@ void                           hyscan_data_schema_internal_node_insert_key     (
                                                                                 const gchar                *id,
                                                                                 const gchar                *name,
                                                                                 const gchar                *description,
-                                                                                HyScanDataSchemaType        type,
-                                                                                gboolean                    readonly);
+                                                                                HyScanDataSchemaKeyType     type,
+                                                                                HyScanDataSchemaViewType    view,
+                                                                                HyScanDataSchemaKeyAccess   access);
 
 /* Функция освобождает память занятую структурой HyScanDataSchemaInternalKey. */
 void                           hyscan_data_schema_internal_key_free            (HyScanDataSchemaInternalKey *key);
@@ -67,5 +69,10 @@ gboolean                       hyscan_data_schema_internal_enum_check          (
 /* Функция освобождает память занятую структурой со значениями типа enum. */
 void                           hyscan_data_schema_internal_enum_free           (HyScanDataSchemaEnum       *values);
 
+/* Функция добавляет схему или её часть в HyScanDataSchemaBuilder по указанному пути. */
+gboolean                       hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder    *builder,
+                                                                                const gchar                *dst_root,
+                                                                                HyScanDataSchema           *schema,
+                                                                                const gchar                *src_root);
 
 #endif /* __HYSCAN_SCHEMA_INTERNAL_H__ */

@@ -15,6 +15,7 @@
  * - название параметра;
  * - описание параметра;
  * - тип параметра;
+ * - вид отображения;
  * - значение по умолчанию;
  * - минимальное и максимальное значения параметра;
  * - рекомендуемый шаг изменения параметра;
@@ -26,42 +27,34 @@
  *
  * <schemalist gettext-domain="domain">
  *
- *   <enum id="modes">
- *     <value name="Fill" value="1">
- *       <description>Filled figure</description>
+ *   <enum id="sex">
+ *     <value name="unknown" value="0">
+ *       <description>Unknown</description>
  *     </value>
- *     <value name="Empty" value="2">
- *       <description>Empty figure</description>
+ *     <value name="male" value="1">
+ *       <description>Male</description>
+ *     </value>
+ *     <value name="female" value="2">
+ *       <description>Female</description>
  *     </value>
  *   </enum>
  *
- *   <schema id="color">
- *     <key id="red" name="Red" type="double">
- *       <range min="0.0" max="1.0" step="0.05"/>
- *       <default>0.5</default>
- *       <description>Red component</description>
- *     </key>
- *     <key id="green" name="Green" type="double">
- *       <range min="0.0" max="1.0" step="0.05"/>
- *       <default>0.5</default>
- *       <description>Green component</description>
- *     </key>
- *     <key id="blue" name="Blue" type="double">
- *       <range min="0.0" max="1.0" step="0.05"/>
- *       <default>0.5</default>
- *       <description>Blue component</description>
- *     </key>
- *     <key id="alpha" name="Alpha" type="double" flags="readonly">
- *       <default>0.5</default>
- *       <description>Alpha component</description>
- *     </key>
+ *   <schema id="name">
+ *     <key id="first" name="First name" type="string"/>
+ *     <key id="middle" name="Middle name" type="string"/>
+ *     <key id="Last" name="Last name" type="string"/>
  *   </schema>
  *
- *   <schema id="circle">
- *     <node id="color" schema="color">
- *     <key id="mode" name="Mode" enum="modes">
- *       <default>1</default>
- *       <description>Filling modee</description>
+ *   <schema id="person">
+ *     <node id="name" schema="name">
+ *     <key id="sex" name="Sex" enum="sex"/>
+ *       <description>Gender identity</description>
+ *       <default>0</default>
+ *     </key>
+ *     <key id="birthdate" name="Birth date" type="integer" view="date" access="readonly"/>
+ *     <key id="weight" name="Weight" type="double">
+ *       <description>Weight in kilogramms</description>
+ *       <range min="0" max="1000" step="0.1"/>
  *     </key>
  *   </schema>
  *
@@ -93,16 +86,31 @@
  * - name - название параметра (может содержать перевод);
  * - type - тип параметра.
  *
- * Дополнительным атрибутом может быть "flags". Если его значение установлено в "readonly", значение этого
- * параметра нельзя изменять.
+ * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaKeyType \endlink:
  *
- * В схеме данных поддерживаются следующие типы параметров - \link HyScanDataSchemaType \endlink:
+ * - "boolean" - #HYSCAN_DATA_SCHEMA_KEY_BOOLEAN, логический тип - gboolean;
+ * - "integer" - #HYSCAN_DATA_SCHEMA_KEY_INTEGER, целые числа со знаком - gint64;
+ * - "double" - #HYSCAN_DATA_SCHEMA_KEY_DOUBLE, числа с плавающей точкой - gdouble;
+ * - "string" - #HYSCAN_DATA_SCHEMA_KEY_STRING, строка с нулём на конце - gchar*;
+ * - "enum" - #HYSCAN_DATA_SCHEMA_KEY_ENUM, перечисляемый тип - gint64.
  *
- * - "boolean" - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN, логический тип - gboolean;
- * - "integer" - #HYSCAN_DATA_SCHEMA_TYPE_INTEGER, целые числа со знаком - gint64;
- * - "double" - #HYSCAN_DATA_SCHEMA_TYPE_DOUBLE, числа с плавающей точкой - gdouble;
- * - "string" - #HYSCAN_DATA_SCHEMA_TYPE_STRING, строка с нулём на конце - gchar*;
- * - "enum" - #HYSCAN_DATA_SCHEMA_TYPE_ENUM, перечисляемый тип - gint64.
+ * Дополнительный атрибуты:
+ *
+ * - view - рекомендуемый вид отображения;
+ * - access - атрибуты доступа к параметру.
+ *
+ * Поддерживаются следующие виды отображения значения параметра - \link HyScanDataSchemaViewType \endlink:
+ *
+ * - "bin" - #HYSCAN_DATA_SCHEMA_VIEW_BIN, двоичный вид;
+ * - "dec" - #HYSCAN_DATA_SCHEMA_VIEW_DEC, десятичный вид;
+ * - "hex" - #HYSCAN_DATA_SCHEMA_VIEW_HEX, шестнадцатиричный вид;
+ * - "date" - #HYSCAN_DATA_SCHEMA_VIEW_DATE, дата и время, UTC unix time;
+ * - "schema" - #HYSCAN_DATA_SCHEMA_VIEW_SCHEMA, схема параметров.
+ *
+ * Возможны следующие атрибуты доступа к параметру - \link HyScanDataSchemaKeyAccess \endlink:
+ *
+ * - "readonly" - #HYSCAN_DATA_SCHEMA_ACCESS_READONLY, параметр только для чтения;
+ * - "writeonly" - #HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY, параметр только для записи.
  *
  * Тэг &lt;key&gt; может содержать вложенные тэги:
  *
@@ -150,14 +158,13 @@
  * После использования необходимо освободить память, занятую этой структурой, с помощью функции
  * #hyscan_data_schema_free_nodes.
  *
- * Функция #hyscan_data_schema_key_is_readonly предназначена для проверки доступности параметра на запись.
+ * Функция #hyscan_data_schema_key_get_access предназначена для получения атрибутов доступа к параметру.
  *
  * Следующая группа функций предназначена для получения атрибутов параметров:
  *
  * - #hyscan_data_schema_key_get_type - возвращает тип параметра;
  * - #hyscan_data_schema_key_get_name - возвращает название параметра;
  * - #hyscan_data_schema_key_get_description - возвращает описание параметра;
- * - #hyscan_data_schema_key_get_enum_values - возвращает варианты допустимых значений для параметра с типом ENUM.
  * - #hyscan_data_schema_key_get_default - возвращает значение параметра по умолчанию;
  * - #hyscan_data_schema_key_get_minimum - Функция возвращает минимальное значение параметра;
  * - #hyscan_data_schema_key_get_maximum - Функция возвращает максимальное значение параметра;
@@ -166,13 +173,17 @@
  * Проверить значение параметра на предмет нахождения в допустимом диапазоне можно функцией
  * #hyscan_data_schema_key_check.
  *
+ * Варианты допустимых значений для параметров с типом ENUM можно получить с помощью функции
+ * #hyscan_data_schema_key_get_enum_values. Предварительно необходимо получить идентификатор
+ * списка значений для ENUM параметра с помощью функции #hyscan_data_schema_key_get_enum_id.
+ *
  * Значения параметров определяются с помощью GVariant. Используются следующие типы GVariant:
  *
- * - #HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN - G_VARIANT_CLASS_BOOLEAN;
- * - #HYSCAN_DATA_SCHEMA_TYPE_INTEGER - G_VARIANT_CLASS_INT64;
- * - #HYSCAN_DATA_SCHEMA_TYPE_DOUBLE - G_VARIANT_CLASS_DOUBLE;
- * - #HYSCAN_DATA_SCHEMA_TYPE_STRING - G_VARIANT_CLASS_STRING;
- * - #HYSCAN_DATA_SCHEMA_TYPE_ENUM - G_VARIANT_CLASS_INT64.
+ * - #HYSCAN_DATA_SCHEMA_KEY_BOOLEAN - G_VARIANT_CLASS_BOOLEAN;
+ * - #HYSCAN_DATA_SCHEMA_KEY_INTEGER - G_VARIANT_CLASS_INT64;
+ * - #HYSCAN_DATA_SCHEMA_KEY_DOUBLE - G_VARIANT_CLASS_DOUBLE;
+ * - #HYSCAN_DATA_SCHEMA_KEY_STRING - G_VARIANT_CLASS_STRING;
+ * - #HYSCAN_DATA_SCHEMA_KEY_ENUM - G_VARIANT_CLASS_INT64.
  *
  */
 
@@ -207,17 +218,38 @@ struct _HyScanDataSchemaClass
   GObjectClass parent_class;
 };
 
-/** \brief Типы параметров */
+/** \brief Тип параметра */
 typedef enum
 {
-  HYSCAN_DATA_SCHEMA_TYPE_INVALID      = 0,            /**< Недопустимый тип, ошибка. */
+  HYSCAN_DATA_SCHEMA_KEY_INVALID       = 0,            /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN      = 101,          /**< Логический тип. */
-  HYSCAN_DATA_SCHEMA_TYPE_INTEGER      = 102,          /**< Целые числа со знаком - gint64. */
-  HYSCAN_DATA_SCHEMA_TYPE_DOUBLE       = 103,          /**< Числа с плавающей точкой - gdouble. */
-  HYSCAN_DATA_SCHEMA_TYPE_STRING       = 104,          /**< Строка с нулём на конце. */
-  HYSCAN_DATA_SCHEMA_TYPE_ENUM         = 105,          /**< Перечисляемый тип. */
-} HyScanDataSchemaType;
+  HYSCAN_DATA_SCHEMA_KEY_BOOLEAN       = 101,          /**< Логический тип. */
+  HYSCAN_DATA_SCHEMA_KEY_INTEGER       = 102,          /**< Целые числа со знаком - gint64. */
+  HYSCAN_DATA_SCHEMA_KEY_DOUBLE        = 103,          /**< Числа с плавающей точкой - gdouble. */
+  HYSCAN_DATA_SCHEMA_KEY_STRING        = 104,          /**< Строка с нулём на конце. */
+  HYSCAN_DATA_SCHEMA_KEY_ENUM          = 105,          /**< Перечисляемый тип. */
+} HyScanDataSchemaKeyType;
+
+/** \brief Рекомендуемый вид отображения значения параметра */
+typedef enum
+{
+  HYSCAN_DATA_SCHEMA_VIEW_DEFAULT      = 0,            /**< По умолчанию. */
+
+  HYSCAN_DATA_SCHEMA_VIEW_BIN          = 101,          /**< Двоичный вид. */
+  HYSCAN_DATA_SCHEMA_VIEW_DEC          = 102,          /**< Десятичный вид. */
+  HYSCAN_DATA_SCHEMA_VIEW_HEX          = 103,          /**< Шестнадцатиричный вид. */
+  HYSCAN_DATA_SCHEMA_VIEW_DATE         = 104,          /**< Дата и время, UTC unix time. */
+  HYSCAN_DATA_SCHEMA_VIEW_SCHEMA       = 105           /**< Схема данных. */
+} HyScanDataSchemaViewType;
+
+/** \brief Атрибуты доступа к параметру */
+typedef enum
+{
+  HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT    = 0,            /**< По умолчанию. */
+
+  HYSCAN_DATA_SCHEMA_ACCESS_READONLY   = 101,          /**< Только чтение. */
+  HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY  = 102           /**< Только запись. */
+} HyScanDataSchemaKeyAccess;
 
 /** \brief Значение перечисляемого типа */
 typedef struct
@@ -248,8 +280,9 @@ struct _HyScanDataSchemaKey
   gchar                               *id;             /**< Идентификатор параметров. */
   gchar                               *name;           /**< Название параметра. */
   gchar                               *description;    /**< Описание параметра. */
-  HyScanDataSchemaType                 type;           /**< Тип параметра. */
-  gboolean                             readonly;       /**< Параметр доступен только для чтения. */
+  HyScanDataSchemaKeyType              type;           /**< Тип параметра. */
+  HyScanDataSchemaViewType             view;           /**< Рекомендуемый вид отображения параметра. */
+  HyScanDataSchemaKeyAccess            access;         /**< Атрибуты доступа к параметру. */
 };
 
 HYSCAN_API
@@ -299,17 +332,21 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
 
 /**
  *
- * Функция возвращает описание схемы данных в фомате XML.
+ * Функция возвращает описание схемы данных в фомате XML. Пользователь может
+ * указать корневой путь схемы, в этом случае функция вернёт описание схемы
+ * ТОЛЬКО ОТНОСИТЕЛЬНО этого пути.
  *
  * Пользователь должен освободить память, занимаемую схемой данных, функцией g_free.
  *
- * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param root корневой путь схемы или NULL.
  *
  * \return Описание схемы данных.
  *
  */
 HYSCAN_API
-gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema);
+gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema,
+                                                                        const gchar           *root);
 
 /**
  *
@@ -369,20 +406,6 @@ gboolean               hyscan_data_schema_has_key                      (HyScanDa
 
 /**
  *
- * Функция возвращает тип параметра.
- *
- * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param key_id идентификатор параметра.
- *
- * \return Тип параметра или HYSCAN_DATA_SCHEMA_TYPE_INVALID - если такого параметра нет в схеме.
- *
- */
-HYSCAN_API
-HyScanDataSchemaType   hyscan_data_schema_key_get_type                 (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id);
-
-/**
- *
  * Функция возвращает название параметра.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
@@ -408,36 +431,79 @@ const gchar           *hyscan_data_schema_key_get_name                 (HyScanDa
 HYSCAN_API
 const gchar           *hyscan_data_schema_key_get_description          (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
+
 /**
  *
- * Функция возвращает доступность параметра на запись.
+ * Функция возвращает тип параметра.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
  *
- * \return TRUE - если параметр доступен только для чтения, FALSE - если доступен на запись.
+ * \return Тип параметра или HYSCAN_DATA_SCHEMA_KEY_INVALID - если такого параметра нет в схеме.
  *
  */
 HYSCAN_API
-gboolean               hyscan_data_schema_key_is_readonly              (HyScanDataSchema      *schema,
+HyScanDataSchemaKeyType hyscan_data_schema_key_get_type                (HyScanDataSchema      *schema,
                                                                         const gchar           *key_id);
 
 /**
  *
- * Функция возвращает NULL терминированный список вариантов допустимых значений
- * для параметра с типом ENUM.
- *
- * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_enum_values.
+ * Функция возвращает рекомендуемый вид отображения параметра.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
  *
- * \return Список допустимых значений параметра или NULL если такого параметра нет в схеме или не совпадает тип.
+ * \return Рекомендуемый вид отображения параметра.
+ *
+ */
+HYSCAN_API
+HyScanDataSchemaViewType hyscan_data_schema_key_get_view               (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция возвращает атрибуты доступа к параметру.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param key_id идентификатор параметра.
+ *
+ * \return Атрибуты доступа к параметру.
+ *
+ */
+HYSCAN_API
+HyScanDataSchemaKeyAccess hyscan_data_schema_key_get_access            (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param key_id идентификатор параметра.
+ *
+ * \return Идентификатор списка значений или NULL.
+ *
+ */
+HYSCAN_API
+const gchar                  *hyscan_data_schema_key_get_enum_id       (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция возвращает NULL терминированный список вариантов допустимых значений для
+ * указанного идентификатора списка значений.
+ *
+ * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_enum_values.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param enum_id идентификатор списка значений для ENUM параметра.
+ *
+ * \return Список допустимых значений параметра или NULL.
  *
  */
 HYSCAN_API
 HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id);
+                                                                        const gchar           *enum_id);
 
 /**
  *

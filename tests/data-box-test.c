@@ -51,6 +51,7 @@ check_boolean (HyScanDataBox *data,
                const gchar   *name)
 {
   HyScanDataSchema *schema;
+  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   gboolean value;
@@ -59,12 +60,20 @@ check_boolean (HyScanDataBox *data,
   schema = HYSCAN_DATA_SCHEMA (data);
   local_mod_counter = mod_counter;
 
-  if (hyscan_data_schema_key_is_readonly (schema, name))
+  access = hyscan_data_schema_key_get_access (schema, name);
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
     {
       cur_value = NULL;
 
       if (hyscan_data_box_set_default (data, name))
-        g_error ("%s: can set read only value", name);
+        g_error ("%s: can set readonly value", name);
+
+      return;
+    }
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+    {
+      if (hyscan_data_box_get_boolean (data, name, &value))
+        g_error ("%s: can get writeonly value", name);
 
       return;
     }
@@ -126,6 +135,7 @@ check_integer (HyScanDataBox *data,
                const gchar   *name)
 {
   HyScanDataSchema *schema;
+  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   GVariant *minimum_value;
@@ -139,12 +149,20 @@ check_integer (HyScanDataBox *data,
   schema = HYSCAN_DATA_SCHEMA (data);
   local_mod_counter = mod_counter;
 
-  if (hyscan_data_schema_key_is_readonly (schema, name))
+  access = hyscan_data_schema_key_get_access (schema, name);
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
     {
       cur_value = NULL;
 
       if (hyscan_data_box_set_default (data, name))
         g_error ("%s: can set read only value", name);
+
+      return;
+    }
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+    {
+      if (hyscan_data_box_get_integer (data, name, &value))
+        g_error ("%s: can get writeonly value", name);
 
       return;
     }
@@ -214,6 +232,7 @@ check_double (HyScanDataBox *data,
               const gchar   *name)
 {
   HyScanDataSchema *schema;
+  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   GVariant *minimum_value;
@@ -227,12 +246,20 @@ check_double (HyScanDataBox *data,
   schema = HYSCAN_DATA_SCHEMA (data);
   local_mod_counter = mod_counter;
 
-  if (hyscan_data_schema_key_is_readonly (schema, name))
+  access = hyscan_data_schema_key_get_access (schema, name);
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
     {
       cur_value = NULL;
 
       if (hyscan_data_box_set_default (data, name))
         g_error ("%s: can set read only value", name);
+
+      return;
+    }
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+    {
+      if (hyscan_data_box_get_double (data, name, &value))
+        g_error ("%s: can get writeonly value", name);
 
       return;
     }
@@ -302,6 +329,7 @@ check_string (HyScanDataBox *data,
               const gchar   *name)
 {
   HyScanDataSchema *schema;
+  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   gchar *value1;
@@ -312,12 +340,20 @@ check_string (HyScanDataBox *data,
   schema = HYSCAN_DATA_SCHEMA (data);
   local_mod_counter = mod_counter;
 
-  if (hyscan_data_schema_key_is_readonly (schema, name))
+  access = hyscan_data_schema_key_get_access (schema, name);
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
     {
       cur_value = NULL;
 
       if (hyscan_data_box_set_default (data, name))
         g_error ("%s: can set read only value", name);
+
+      return;
+    }
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+    {
+      if (hyscan_data_box_get_string (data, name) != NULL)
+        g_error ("%s: can get writeonly value", name);
 
       return;
     }
@@ -384,7 +420,9 @@ check_enum (HyScanDataBox *data,
             const gchar   *name)
 {
   HyScanDataSchema *schema;
+  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
+  const gchar *enum_id;
   HyScanDataSchemaEnumValue **values;
   GVariant *default_value;
   gint64 value;
@@ -394,7 +432,8 @@ check_enum (HyScanDataBox *data,
   schema = HYSCAN_DATA_SCHEMA (data);
   local_mod_counter = mod_counter;
 
-  if (hyscan_data_schema_key_is_readonly (schema, name))
+  access = hyscan_data_schema_key_get_access (schema, name);
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
     {
       cur_value = NULL;
 
@@ -403,12 +442,20 @@ check_enum (HyScanDataBox *data,
 
       return;
     }
+  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+    {
+      if (hyscan_data_box_get_enum (data, name, &value))
+        g_error ("%s: can get writeonly value", name);
+
+      return;
+    }
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (default_value == NULL)
     g_error ("%s: can't get default value", name);
 
-  values = hyscan_data_schema_key_get_enum_values (schema, name);
+  enum_id = hyscan_data_schema_key_get_enum_id (schema, name);
+  values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
   if (values == NULL)
     g_error ("%s: can't get default value", name);
 
@@ -455,9 +502,6 @@ compare_values (HyScanDataBox *data,
 {
   HyScanDataSchema *schema;
   gchar **keys_list;
-  GVariant **values;
-  GVariant **values2;
-
   gsize i;
 
   schema = HYSCAN_DATA_SCHEMA (data);
@@ -465,30 +509,38 @@ compare_values (HyScanDataBox *data,
   if (keys_list == NULL)
     g_error ("compare: empty schema");
 
-  values = g_new0 (GVariant*, g_strv_length (keys_list) + 1);
-  values2 = g_new0 (GVariant*, g_strv_length (keys_list) + 1);
-
-  if (!hyscan_data_box_get (data, (const gchar* const*)keys_list, values))
-    g_error ("compare: can't get values");
-
-  if (!hyscan_data_box_get (data, (const gchar* const*)keys_list, values2))
-    g_error ("compare: can't get values2");
-
   for (i = 0; keys_list[i] != NULL; i++)
     {
-      if ((values[i] == NULL) && (values2[i] == NULL))
+      HyScanDataSchemaKeyAccess access;
+      const gchar *names[2];
+      const gchar *names2[2];
+      GVariant *values[1];
+      GVariant *values2[1];
+
+      access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
+      if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
         continue;
 
-      if (g_variant_compare (values[i], values2[i]) != 0)
+      names[0] = names2[0] = keys_list[i];
+      names[1] = names2[1] = NULL;
+
+      if (!hyscan_data_box_get (data, names, values))
+        g_error ("compare: can't get values");
+
+      if (!hyscan_data_box_get (data, names2, values2))
+        g_error ("compare: can't get values2");
+
+      if ((values[0] == NULL) && (values2[0] == NULL))
+        continue;
+
+      if (g_variant_compare (values[0], values2[0]) != 0)
         g_error ("compare: %s mismatch", keys_list[i]);
 
-      g_variant_unref (values[i]);
-      g_variant_unref (values2[i]);
+      g_variant_unref (values[0]);
+      g_variant_unref (values2[0]);
     }
 
   g_strfreev (keys_list);
-  g_free (values);
-  g_free (values2);
 }
 
 int
@@ -516,27 +568,27 @@ main (int    argc,
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
+      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
 
       switch (type)
         {
-        case HYSCAN_DATA_SCHEMA_TYPE_BOOLEAN:
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
           check_boolean (data, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_INTEGER:
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
           check_integer (data, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_DOUBLE:
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
           check_double (data, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_STRING:
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
           check_string (data, keys_list[i]);
           break;
 
-        case HYSCAN_DATA_SCHEMA_TYPE_ENUM:
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
           check_enum (data, keys_list[i]);
           break;
 
@@ -566,6 +618,8 @@ main (int    argc,
   g_free (sparams);
 
   xmlCleanupParser ();
+
+  g_message ("All done");
 
   return 0;
 }
