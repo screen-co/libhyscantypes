@@ -8,7 +8,6 @@
  *
  */
 
-#include "hyscan-data-schema.h"
 #include "hyscan-data-schema-internal.h"
 
 #include <gio/gio.h>
@@ -865,11 +864,39 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
 
 /* Функция возвращает описание схемы данных в фомате XML. */
 gchar *
-hyscan_data_schema_get_data (HyScanDataSchema *schema)
+hyscan_data_schema_get_data (HyScanDataSchema *schema,
+                             const gchar      *root)
 {
+  HyScanDataSchemaBuilder *builder;
+  gchar *schema_root = NULL;
+  gchar *data = NULL;
+  gboolean status;
+
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return g_strdup (schema->priv->schema_data);
+  if (root != NULL)
+    {
+      if (root[strlen (root) - 1] == '/')
+        schema_root = g_strdup (root);
+      else
+        schema_root = g_strdup_printf ("%s/", root);
+    }
+  else
+    {
+      schema_root = g_strdup ("/");
+    }
+
+  builder = hyscan_data_schema_builder_new (schema->priv->schema_id);
+
+  status = hyscan_data_schema_internal_builder_join_schema (builder, "/",
+                                                            schema, schema_root);
+  if (status)
+    data = hyscan_data_schema_builder_get_data (builder);
+
+  g_object_unref (builder);
+  g_free (schema_root);
+
+  return data;
 }
 
 /* Функция возвращает идентификатор используемой схемы данных. */
@@ -1010,15 +1037,12 @@ hyscan_data_schema_key_get_access (HyScanDataSchema *schema,
   return key->access;
 }
 
-/* Функция возвращает варианты допустимых значений для параметра с типом ENUM. */
-HyScanDataSchemaEnumValue **
-hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
-                                        const gchar           *key_id)
+/* Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM. */
+const gchar *
+hyscan_data_schema_key_get_enum_id (HyScanDataSchema *schema,
+                                    const gchar      *key_id)
 {
-  HyScanDataSchemaEnumValue **values;
   HyScanDataSchemaInternalKey *key;
-  gint n_values;
-  gint i;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
@@ -1026,16 +1050,35 @@ hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
   if (key == NULL || key->type != HYSCAN_DATA_SCHEMA_KEY_ENUM)
     return NULL;
 
-  for (i = 0, n_values = 0; key->enum_values->values[i] != NULL; i++)
+  return key->enum_values->id;
+}
+
+/* Функция возвращает варианты допустимых значений для указанного идентификатора списка значений. */
+HyScanDataSchemaEnumValue **
+hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
+                                        const gchar           *enum_id)
+{
+  HyScanDataSchemaEnum *enum_values;
+  HyScanDataSchemaEnumValue **values;
+  gint n_values;
+  gint i;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  enum_values = g_hash_table_lookup (schema->priv->enums, enum_id);
+  if (enum_values == NULL)
+    return NULL;
+
+  for (i = 0, n_values = 0; enum_values->values[i] != NULL; i++)
     n_values += 1;
 
   values = g_malloc0 (sizeof (HyScanDataSchemaEnumValue*) * (n_values + 1));
   for (i = 0; i < n_values; i++)
     {
       values[i] = g_new0 (HyScanDataSchemaEnumValue, 1);
-      values[i]->value = key->enum_values->values[i]->value;
-      values[i]->name = g_strdup (key->enum_values->values[i]->name);
-      values[i]->description = g_strdup (key->enum_values->values[i]->description);
+      values[i]->value = enum_values->values[i]->value;
+      values[i]->name = g_strdup (enum_values->values[i]->name);
+      values[i]->description = g_strdup (enum_values->values[i]->description);
     }
 
   return values;

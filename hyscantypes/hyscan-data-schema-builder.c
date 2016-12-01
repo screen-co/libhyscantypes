@@ -327,26 +327,40 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
 
     case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
       {
-        gint64 default_value = g_variant_get_int64 (key->default_value);
+        gint64 default_value = 0;
+        gint64 minimum_value = G_MININT64;
+        gint64 maximum_value = G_MAXINT64;
+        gint64 value_step = 1;
 
-        if (short_view && ((default_value != 0) || (key->value_step != NULL)))
-          {
-            short_view = FALSE;
-            g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
-          }
+        if (key->default_value != NULL)
+          default_value = g_variant_get_int64 (key->default_value);
+        if (key->minimum_value != NULL)
+          minimum_value = g_variant_get_int64 (key->minimum_value);
+        if (key->maximum_value != NULL)
+          maximum_value = g_variant_get_int64 (key->maximum_value);
+        if (key->value_step != NULL)
+          value_step = g_variant_get_int64 (key->value_step);
 
         if (default_value != 0)
           {
+            if (short_view)
+              {
+                short_view = FALSE;
+                g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
+              }
+
             g_output_stream_printf (ostream, NULL, NULL, NULL,
                                     "%s  <default>%" G_GINT64_FORMAT "</default>\n",
                                     indent, default_value);
           }
 
-        if (key->value_step != NULL)
+        if ((minimum_value != G_MININT64) || (maximum_value != G_MAXINT64) || (value_step != 1))
           {
-            gint64 minimum_value = g_variant_get_int64 (key->minimum_value);
-            gint64 maximum_value = g_variant_get_int64 (key->maximum_value);
-            gint64 value_step = g_variant_get_int64 (key->value_step);
+            if (short_view)
+              {
+                short_view = FALSE;
+                g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
+              }
 
             g_output_stream_printf (ostream, NULL, NULL, NULL, "%s  <range", indent);
 
@@ -375,17 +389,29 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
 
     case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
       {
-        gdouble default_value = g_variant_get_double (key->default_value);
+        gdouble default_value = 0.0;
+        gdouble minimum_value = -G_MAXDOUBLE;
+        gdouble maximum_value = G_MAXDOUBLE;
+        gdouble value_step = 1.0;
 
-        if (short_view && ((default_value != 0.0) || (key->value_step != NULL)))
-          {
-            short_view = FALSE;
-            g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
-          }
+        if (key->default_value != NULL)
+          default_value = g_variant_get_double (key->default_value);
+        if (key->minimum_value != NULL)
+          minimum_value = g_variant_get_double (key->minimum_value);
+        if (key->maximum_value != NULL)
+          maximum_value = g_variant_get_double (key->maximum_value);
+        if (key->value_step != NULL)
+          value_step = g_variant_get_double (key->value_step);
 
         if (default_value != 0.0)
           {
             gchar value_str [G_ASCII_DTOSTR_BUF_SIZE];
+
+            if (short_view)
+              {
+                short_view = FALSE;
+                g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
+              }
 
             g_ascii_dtostr (value_str, G_ASCII_DTOSTR_BUF_SIZE, default_value);
             g_output_stream_printf (ostream, NULL, NULL, NULL,
@@ -393,12 +419,15 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
                                     indent, value_str);
           }
 
-        if (key->value_step != NULL)
+        if ((minimum_value != -G_MAXDOUBLE) || (maximum_value != G_MAXDOUBLE) || (value_step != 1.0))
           {
-            gdouble minimum_value = g_variant_get_double (key->minimum_value);
-            gdouble maximum_value = g_variant_get_double (key->maximum_value);
-            gdouble value_step = g_variant_get_double (key->value_step);
             gchar value_str [G_ASCII_DTOSTR_BUF_SIZE];
+
+            if (short_view)
+              {
+                short_view = FALSE;
+                g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
+              }
 
             g_output_stream_printf (ostream, NULL, NULL, NULL, "%s  <range", indent);
 
@@ -434,6 +463,7 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
                 short_view = FALSE;
                 g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
               }
+
             g_output_stream_printf (ostream, NULL, NULL, NULL,
                                     "%s  <default>%s</default>\n",
                                     indent, g_variant_get_string (key->default_value, NULL));
@@ -452,6 +482,7 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
                 short_view = FALSE;
                 g_output_stream_printf (ostream, NULL, NULL, NULL, ">\n");
               }
+
             g_output_stream_printf (ostream, NULL, NULL, NULL,
                                     "%s  <default>%" G_GINT64_FORMAT "</default>\n",
                                     indent, default_value);
@@ -890,4 +921,48 @@ hyscan_data_schema_builder_key_double_range (HyScanDataSchemaBuilder *builder,
   key->value_step = g_variant_new_double (value_step);
 
   return TRUE;
+}
+
+/* Функция добавляет содержимое другой схемы. */
+gboolean
+hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
+                                        const gchar             *dst_root,
+                                        HyScanDataSchema        *schema,
+                                        const gchar             *src_root)
+{
+  gchar *builder_dst_root;
+  gchar *schema_src_root;
+  gboolean status;
+
+  if (dst_root != NULL)
+    {
+      if (dst_root[strlen (dst_root) - 1] == '/')
+        builder_dst_root = g_strdup (dst_root);
+      else
+        builder_dst_root = g_strdup_printf ("%s/", dst_root);
+    }
+  else
+    {
+      builder_dst_root = g_strdup ("/");
+    }
+
+  if (src_root != NULL)
+    {
+      if (src_root[strlen (src_root) - 1] == '/')
+        schema_src_root = g_strdup (src_root);
+      else
+        schema_src_root = g_strdup_printf ("%s/", src_root);
+    }
+  else
+    {
+      schema_src_root = g_strdup ("/");
+    }
+
+  status = hyscan_data_schema_internal_builder_join_schema (builder, builder_dst_root,
+                                                            schema, schema_src_root);
+
+  g_free (builder_dst_root);
+  g_free (schema_src_root);
+
+  return status;
 }

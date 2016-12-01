@@ -165,7 +165,6 @@
  * - #hyscan_data_schema_key_get_type - возвращает тип параметра;
  * - #hyscan_data_schema_key_get_name - возвращает название параметра;
  * - #hyscan_data_schema_key_get_description - возвращает описание параметра;
- * - #hyscan_data_schema_key_get_enum_values - возвращает варианты допустимых значений для параметра с типом ENUM.
  * - #hyscan_data_schema_key_get_default - возвращает значение параметра по умолчанию;
  * - #hyscan_data_schema_key_get_minimum - Функция возвращает минимальное значение параметра;
  * - #hyscan_data_schema_key_get_maximum - Функция возвращает максимальное значение параметра;
@@ -173,6 +172,10 @@
  *
  * Проверить значение параметра на предмет нахождения в допустимом диапазоне можно функцией
  * #hyscan_data_schema_key_check.
+ *
+ * Варианты допустимых значений для параметров с типом ENUM можно получить с помощью функции
+ * #hyscan_data_schema_key_get_enum_values. Предварительно необходимо получить идентификатор
+ * списка значений для ENUM параметра с помощью функции #hyscan_data_schema_key_get_enum_id.
  *
  * Значения параметров определяются с помощью GVariant. Используются следующие типы GVariant:
  *
@@ -329,17 +332,21 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
 
 /**
  *
- * Функция возвращает описание схемы данных в фомате XML.
+ * Функция возвращает описание схемы данных в фомате XML. Пользователь может
+ * указать корневой путь схемы, в этом случае функция вернёт описание схемы
+ * ТОЛЬКО ОТНОСИТЕЛЬНО этого пути.
  *
  * Пользователь должен освободить память, занимаемую схемой данных, функцией g_free.
  *
- * \param schema указатель на объект \link HyScanDataSchema \endlink.
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param root корневой путь схемы или NULL.
  *
  * \return Описание схемы данных.
  *
  */
 HYSCAN_API
-gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema);
+gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema,
+                                                                        const gchar           *root);
 
 /**
  *
@@ -469,20 +476,34 @@ HyScanDataSchemaKeyAccess hyscan_data_schema_key_get_access            (HyScanDa
 
 /**
  *
- * Функция возвращает NULL терминированный список вариантов допустимых значений
- * для параметра с типом ENUM.
- *
- * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_enum_values.
+ * Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
  * \param key_id идентификатор параметра.
  *
- * \return Список допустимых значений параметра или NULL если такого параметра нет в схеме или не совпадает тип.
+ * \return Идентификатор списка значений или NULL.
+ *
+ */
+HYSCAN_API
+const gchar                  *hyscan_data_schema_key_get_enum_id       (HyScanDataSchema      *schema,
+                                                                        const gchar           *key_id);
+
+/**
+ *
+ * Функция возвращает NULL терминированный список вариантов допустимых значений для
+ * указанного идентификатора списка значений.
+ *
+ * Пользователь должен освободить память, занимаемую списком, функцией #hyscan_data_schema_free_enum_values.
+ *
+ * \param schema указатель на объект \link HyScanDataSchema \endlink;
+ * \param enum_id идентификатор списка значений для ENUM параметра.
+ *
+ * \return Список допустимых значений параметра или NULL.
  *
  */
 HYSCAN_API
 HyScanDataSchemaEnumValue   **hyscan_data_schema_key_get_enum_values   (HyScanDataSchema      *schema,
-                                                                        const gchar           *key_id);
+                                                                        const gchar           *enum_id);
 
 /**
  *

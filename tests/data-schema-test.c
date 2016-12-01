@@ -18,6 +18,9 @@ check_boolean (HyScanDataSchema *schema,
 
   GVariant *default_value;
 
+  if (!g_str_has_prefix (key_id, "/test/"))
+    g_error ("%s: name error", key_id);
+
   if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
     g_error ("%s: type error", key_id);
 
@@ -69,6 +72,9 @@ check_integer (HyScanDataSchema *schema,
   GVariant *minimum_value;
   GVariant *maximum_value;
   GVariant *value_step;
+
+  if (!g_str_has_prefix (key_id, "/test/"))
+    g_error ("%s: name error", key_id);
 
   if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
     g_error ("%s: type error", key_id);
@@ -146,6 +152,9 @@ check_double (HyScanDataSchema *schema,
   GVariant *maximum_value;
   GVariant *value_step;
 
+  if (!g_str_has_prefix (key_id, "/test/"))
+    g_error ("%s: name error", key_id);
+
   if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
     g_error ("%s: type error", key_id);
 
@@ -219,6 +228,9 @@ check_string (HyScanDataSchema *schema,
 
   GVariant *default_value;
 
+  if (!g_str_has_prefix (key_id, "/test/"))
+    g_error ("%s: name error", key_id);
+
   if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_STRING)
     g_error ("%s: type error", key_id);
 
@@ -277,6 +289,9 @@ check_enum (HyScanDataSchema *schema,
   GVariant *default_value;
   gint64 i;
 
+  if (!g_str_has_prefix (key_id, "/test/"))
+    g_error ("%s: name error", key_id);
+
   if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_ENUM)
     g_error ("%s: type error", key_id);
 
@@ -329,7 +344,15 @@ main (int argc, char **argv)
   guint i;
 
   schema_data = test_schema_create ("test");
+
   schema = hyscan_data_schema_new_from_string (schema_data, "test");
+  g_free (schema_data);
+
+  schema_data = hyscan_data_schema_get_data (schema, "/orig");
+  g_object_unref (schema);
+
+  schema = hyscan_data_schema_new_from_string (schema_data, "test");
+  g_free (schema_data);
 
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
@@ -369,7 +392,6 @@ main (int argc, char **argv)
   g_strfreev (keys_list);
 
   g_object_unref (schema);
-  g_free (schema_data);
 
   xmlCleanupParser ();
 

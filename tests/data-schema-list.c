@@ -54,7 +54,8 @@ void print_node (HyScanDataSchema     *schema,
                 if (g_variant_get_int64 (maximum_value) != G_MAXINT64)
                   printf (", maximum value %" G_GINT64_FORMAT, g_variant_get_int64 (maximum_value));
 
-                printf (", step %" G_GINT64_FORMAT, g_variant_get_int64 (value_step));
+                if (g_variant_get_int64 (value_step) != 1)
+                  printf (", step %" G_GINT64_FORMAT, g_variant_get_int64 (value_step));
               }
 
             printf ("\n");
@@ -85,7 +86,8 @@ void print_node (HyScanDataSchema     *schema,
                 if (g_variant_get_double (maximum_value) != G_MAXDOUBLE)
                   printf (", maximum value %.03lf", g_variant_get_double (maximum_value));
 
-                printf (", step %.03lf", g_variant_get_double (value_step));
+                if (g_variant_get_double (value_step) != 1.0)
+                  printf (", step %.03lf", g_variant_get_double (value_step));
               }
 
             printf ("\n");
@@ -111,16 +113,18 @@ void print_node (HyScanDataSchema     *schema,
 
         case HYSCAN_DATA_SCHEMA_KEY_ENUM:
           {
+            const gchar *enum_id;
             HyScanDataSchemaEnumValue **values;
             GVariant *default_value;
             gint j;
 
-            values = hyscan_data_schema_key_get_enum_values (schema, nodes->keys[i]->id);
+            enum_id = hyscan_data_schema_key_get_enum_id (schema, nodes->keys[i]->id);
+            values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
             default_value = hyscan_data_schema_key_get_default (schema, nodes->keys[i]->id);
 
             for (j = 0; values != NULL && values[j] != NULL; j++)
               {
-                if ((nodes->keys[i]->access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY) &&
+                if ((nodes->keys[i]->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY) &&
                     (values[j]->value != g_variant_get_int64 (default_value)))
                   continue;
 

@@ -422,6 +422,7 @@ check_enum (HyScanDataBox *data,
   HyScanDataSchema *schema;
   HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
+  const gchar *enum_id;
   HyScanDataSchemaEnumValue **values;
   GVariant *default_value;
   gint64 value;
@@ -453,7 +454,8 @@ check_enum (HyScanDataBox *data,
   if (default_value == NULL)
     g_error ("%s: can't get default value", name);
 
-  values = hyscan_data_schema_key_get_enum_values (schema, name);
+  enum_id = hyscan_data_schema_key_get_enum_id (schema, name);
+  values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
   if (values == NULL)
     g_error ("%s: can't get default value", name);
 

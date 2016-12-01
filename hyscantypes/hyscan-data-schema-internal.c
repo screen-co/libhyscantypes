@@ -157,6 +157,22 @@ hyscan_data_schema_internal_key_free (HyScanDataSchemaInternalKey *key)
   g_free (key);
 }
 
+/* Функция проверяет значение перечисляемого типа на допустимость. */
+gboolean
+hyscan_data_schema_internal_enum_check (HyScanDataSchemaEnum *enums,
+                                        gint64                value)
+{
+  guint i;
+
+  for (i = 0; enums->values[i] != NULL; i++)
+    {
+      if (enums->values[i]->value == value)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 /* Функция освобождает память занятую структурой со значениями типа enum. */
 void
 hyscan_data_schema_internal_enum_free (HyScanDataSchemaEnum *values)
@@ -175,18 +191,160 @@ hyscan_data_schema_internal_enum_free (HyScanDataSchemaEnum *values)
   g_free (values);
 }
 
-/* Функция проверяет значение перечисляемого типа на допустимость. */
+/* Функция добавляет схему или её часть в HyScanDataSchemaBuilder по указанному пути. */
 gboolean
-hyscan_data_schema_internal_enum_check (HyScanDataSchemaEnum *enums,
-                                        gint64                value)
+hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder *builder,
+                                                 const gchar             *dst_root,
+                                                 HyScanDataSchema        *schema,
+                                                 const gchar             *src_root)
 {
-  guint i;
+  gchar **keys;
+  GHashTable *enums;
+  gboolean status = FALSE;
+  guint src_offset;
+  guint i, j;
 
-  for (i = 0; enums->values[i] != NULL; i++)
+  /* Идентификаторов списков ENUM значений. */
+  enums = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+  /* Список всех параметров схемы. */
+  keys = hyscan_data_schema_list_keys (schema);
+  if (keys == NULL)
+    goto exit;
+
+  /* Смещение до имени параметра относительно исходного пути. */
+  src_offset = strlen (src_root);
+
+  for (i = 0; keys[i] != NULL; i++)
     {
-      if (enums->values[i]->value == value)
-        return TRUE;
+      gchar *key_id;
+      const gchar *name;
+      const gchar *description;
+      HyScanDataSchemaKeyType type;
+      HyScanDataSchemaViewType view;
+      HyScanDataSchemaKeyAccess access;
+      GVariant *default_value;
+      GVariant *minimum_value;
+      GVariant *maximum_value;
+      GVariant *value_step;
+
+      /* Обрабатываем только параметры из нужной ветки. */
+      if (!g_str_has_prefix (keys[i], src_root))
+        continue;
+
+      /* Свойства параметра. */
+      key_id = g_strdup_printf ("%s%s", dst_root, keys[i] + src_offset);
+      name = hyscan_data_schema_key_get_name (schema, keys[i]);
+      description = hyscan_data_schema_key_get_description (schema, keys[i]);
+      type = hyscan_data_schema_key_get_type (schema, keys[i]);
+      view = hyscan_data_schema_key_get_view (schema, keys[i]);
+      access = hyscan_data_schema_key_get_access (schema, keys[i]);
+      default_value = hyscan_data_schema_key_get_default (schema, keys[i]);
+      minimum_value = hyscan_data_schema_key_get_minimum (schema, keys[i]);
+      maximum_value = hyscan_data_schema_key_get_maximum (schema, keys[i]);
+      value_step = hyscan_data_schema_key_get_step (schema, keys[i]);
+
+      switch (type)
+        {
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+          {
+            status = hyscan_data_schema_builder_key_boolean_create (builder, key_id, name, description,
+                                                                    g_variant_get_boolean (default_value));
+          }
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+          {
+            status = hyscan_data_schema_builder_key_integer_create (builder, key_id, name, description,
+                                                                    g_variant_get_int64 (default_value));
+            if (status)
+              {
+                status = hyscan_data_schema_builder_key_integer_range (builder, key_id,
+                                                                       g_variant_get_int64 (minimum_value),
+                                                                       g_variant_get_int64 (maximum_value),
+                                                                       g_variant_get_int64 (value_step));
+              }
+          }
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+          {
+            hyscan_data_schema_builder_key_double_create (builder, key_id, name, description,
+                                                          g_variant_get_double (default_value));
+            if (status)
+              {
+                status = hyscan_data_schema_builder_key_double_range (builder, key_id,
+                                                                      g_variant_get_double (minimum_value),
+                                                                      g_variant_get_double (maximum_value),
+                                                                      g_variant_get_double (value_step));
+              }
+          }
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
+          {
+            hyscan_data_schema_builder_key_string_create (builder, key_id, name, description,
+                                                          (default_value == NULL) ? NULL :
+                                                          g_variant_get_string (default_value, NULL));
+
+          }
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+          {
+            const gchar *enum_id;
+
+            /* Создаём список вариантов возможных значений дя ENUM параметра,
+             * если он еще не был создан. */
+            enum_id = hyscan_data_schema_key_get_enum_id (schema, keys[i]);
+            if (!g_hash_table_contains (enums, enum_id))
+              {
+                HyScanDataSchemaEnumValue **values;
+
+                hyscan_data_schema_builder_enum_create (builder, enum_id);
+                values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
+                for (j = 0; values != NULL && values[j] != NULL; j++)
+                  {
+                    status = hyscan_data_schema_builder_enum_value_create (builder, enum_id,
+                                                                           values[j]->value,
+                                                                           values[j]->name,
+                                                                           values[j]->description);
+                    if (!status)
+                      break;
+                  }
+                hyscan_data_schema_free_enum_values (values);
+
+                g_hash_table_insert (enums, g_strdup (enum_id), NULL);
+              }
+
+            if (status)
+              {
+                status = hyscan_data_schema_builder_key_enum_create (builder, key_id, name, description, enum_id,
+                                                                     g_variant_get_int64 (default_value));
+              }
+          }
+          break;
+
+        default:
+          break;
+        }
+
+      hyscan_data_schema_builder_key_set_view (builder, key_id, view);
+      hyscan_data_schema_builder_key_set_access (builder, key_id, access);
+
+      g_clear_pointer (&default_value, g_variant_unref);
+      g_clear_pointer (&minimum_value, g_variant_unref);
+      g_clear_pointer (&maximum_value, g_variant_unref);
+      g_clear_pointer (&value_step, g_variant_unref);
+      g_free (key_id);
+
+      if (!status)
+        break;
     }
 
-  return FALSE;
+exit:
+  g_hash_table_unref (enums);
+  g_strfreev (keys);
+
+  return status;
 }

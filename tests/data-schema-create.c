@@ -194,42 +194,51 @@ gchar *
 test_schema_create (const gchar *schema_id)
 {
   gchar *data;
+  HyScanDataSchema *schema;
   HyScanDataSchemaBuilder *builder;
 
   builder = hyscan_data_schema_builder_new (schema_id);
 
   test_schema_create_enums_values (builder);
 
-  test_schema_create_boolean (builder, "", TRUE, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
-  test_schema_create_integer (builder, "", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
-  test_schema_create_double (builder, "", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
-  test_schema_create_string (builder, "", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
-  test_schema_create_null_string (builder, "", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
-  test_schema_create_enum (builder, "", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_boolean (builder, "/builder/test", TRUE, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_integer (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_double (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_string (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_null_string (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_create_enum (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
 
-  test_schema_create_boolean (builder, "/readonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  test_schema_create_integer (builder, "/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  test_schema_create_double (builder, "/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  test_schema_create_string (builder, "/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  test_schema_create_null_string (builder, "/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
-  test_schema_create_enum (builder, "/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_boolean (builder, "/builder/test/readonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_integer (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_double (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_string (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_null_string (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_create_enum (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
 
-  test_schema_create_boolean (builder, "/writeonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
-  test_schema_create_integer (builder, "/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
-  test_schema_create_double (builder, "/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
-  test_schema_create_string (builder, "/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
-  test_schema_create_null_string (builder, "/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
-  test_schema_create_enum (builder, "/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_boolean (builder, "/builder/test/writeonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_integer (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_double (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_string (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_null_string (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_create_enum (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
 
-  test_schema_create_complex (builder, "/complex1");
-  test_schema_create_complex (builder, "/complex2");
-  test_schema_create_complex (builder, "/complex3");
-  test_schema_create_complex (builder, "/complex4");
-  test_schema_create_complex (builder, "/complex5");
+  test_schema_create_complex (builder, "/builder/test/complex1");
+  test_schema_create_complex (builder, "/builder/test/complex2");
+  test_schema_create_complex (builder, "/builder/test/complex3");
+  test_schema_create_complex (builder, "/builder/test/complex4");
+  test_schema_create_complex (builder, "/builder/test/complex5");
 
   data = hyscan_data_schema_builder_get_data (builder);
-
   g_object_unref (builder);
+
+  schema = hyscan_data_schema_new_from_string (data, schema_id);
+  g_free (data);
+
+  builder = hyscan_data_schema_builder_new (schema_id);
+  hyscan_data_schema_builder_schema_join (builder, "/orig", schema, "/builder");
+  data = hyscan_data_schema_builder_get_data (builder);
+  g_object_unref (builder);
+  g_object_unref (schema);
 
   return data;
 }

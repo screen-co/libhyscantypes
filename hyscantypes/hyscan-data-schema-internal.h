@@ -11,7 +11,7 @@
 #ifndef __HYSCAN_DATA_SCHEMA_INTERNAL_H__
 #define __HYSCAN_DATA_SCHEMA_INTERNAL_H__
 
-#include "hyscan-data-schema.h"
+#include "hyscan-data-schema-builder.h"
 
 /* Варианты значений перечисляемого типа. */
 typedef struct
@@ -69,5 +69,10 @@ gboolean                       hyscan_data_schema_internal_enum_check          (
 /* Функция освобождает память занятую структурой со значениями типа enum. */
 void                           hyscan_data_schema_internal_enum_free           (HyScanDataSchemaEnum       *values);
 
+/* Функция добавляет схему или её часть в HyScanDataSchemaBuilder по указанному пути. */
+gboolean                       hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder    *builder,
+                                                                                const gchar                *dst_root,
+                                                                                HyScanDataSchema           *schema,
+                                                                                const gchar                *src_root);
 
 #endif /* __HYSCAN_SCHEMA_INTERNAL_H__ */

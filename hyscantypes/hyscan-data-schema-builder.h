@@ -34,6 +34,9 @@
  * рекомендуемый шаг изменения значений. Для этих целей используются функции
  * #hyscan_data_schema_builder_key_integer_range и #hyscan_data_schema_builder_key_double_range.
  *
+ * Функция #hyscan_data_schema_builder_schema_join может использоваться для добавления
+ * параметров их другой схемы в создаваемую.
+ *
  * Для получения XML описания схемы, после определения параметров, необходимо
  * использовать функцию #hyscan_data_schema_builder_get_data.
  *
@@ -322,6 +325,27 @@ gboolean                  hyscan_data_schema_builder_key_double_range    (HyScan
                                                                           gdouble                   minimum_value,
                                                                           gdouble                   maximum_value,
                                                                           gdouble                   value_step);
+
+/**
+ *
+ * Функция добавляет содержимое другой схемы. Параметры из пути src_root схемы
+ * добавляются в путь dst_root. Например если src_root = "/src/root", а
+ * dst_root = "/dst/root", параметр схемы "/src/root/param" будет создан с
+ * идентификатором "/dst/root/param".
+ *
+ * \param builder указатель на объект \link HyScanDataSchemaBuilder \endlink;
+ * \param dst_root префикс пути для новых параметров из другой схемы или NULL;
+ * \param schema схема с добавляемыми параметрами;
+ * \param src_root исходный путь в схеме.
+ *
+ * \return TRUE если новые параметры добавлены, FALSE в случае ошибки.
+ *
+ */
+HYSCAN_API
+gboolean                  hyscan_data_schema_builder_schema_join         (HyScanDataSchemaBuilder  *builder,
+                                                                          const gchar              *dst_root,
+                                                                          HyScanDataSchema         *schema,
+                                                                          const gchar              *src_root);
 
 G_END_DECLS
 
