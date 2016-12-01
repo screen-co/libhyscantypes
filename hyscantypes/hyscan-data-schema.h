@@ -339,14 +339,16 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
  * Пользователь должен освободить память, занимаемую схемой данных, функцией g_free.
  *
  * \param schema указатель на объект \link HyScanDataSchema \endlink;
- * \param root корневой путь схемы или NULL.
+ * \param root корневой путь схемы или NULL;
+ * \param schema_id новый идентификатор схемы или NULL;
  *
  * \return Описание схемы данных.
  *
  */
 HYSCAN_API
 gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema,
-                                                                        const gchar           *root);
+                                                                        const gchar           *root,
+                                                                        const gchar           *schmea_id);
 
 /**
  *

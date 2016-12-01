@@ -343,12 +343,12 @@ main (int argc, char **argv)
   gchar **keys_list;
   guint i;
 
-  schema_data = test_schema_create ("test");
+  schema_data = test_schema_create ("orig");
 
-  schema = hyscan_data_schema_new_from_string (schema_data, "test");
+  schema = hyscan_data_schema_new_from_string (schema_data, "orig");
   g_free (schema_data);
 
-  schema_data = hyscan_data_schema_get_data (schema, "/orig");
+  schema_data = hyscan_data_schema_get_data (schema, "/orig", "test");
   g_object_unref (schema);
 
   schema = hyscan_data_schema_new_from_string (schema_data, "test");

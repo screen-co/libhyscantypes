@@ -865,7 +865,8 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
 /* Функция возвращает описание схемы данных в фомате XML. */
 gchar *
 hyscan_data_schema_get_data (HyScanDataSchema *schema,
-                             const gchar      *root)
+                             const gchar      *root,
+                             const gchar      *schema_id)
 {
   HyScanDataSchemaBuilder *builder;
   gchar *schema_root = NULL;
@@ -886,7 +887,7 @@ hyscan_data_schema_get_data (HyScanDataSchema *schema,
       schema_root = g_strdup ("/");
     }
 
-  builder = hyscan_data_schema_builder_new (schema->priv->schema_id);
+  builder = hyscan_data_schema_builder_new ((schema_id == NULL) ? schema->priv->schema_id : schema_id);
 
   status = hyscan_data_schema_internal_builder_join_schema (builder, "/",
                                                             schema, schema_root);
