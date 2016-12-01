@@ -283,9 +283,9 @@ hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder *builde
 
         case HYSCAN_DATA_SCHEMA_KEY_STRING:
           {
-            hyscan_data_schema_builder_key_string_create (builder, key_id, name, description,
-                                                          (default_value == NULL) ? NULL :
-                                                          g_variant_get_string (default_value, NULL));
+            status = hyscan_data_schema_builder_key_string_create (builder, key_id, name, description,
+                                                                   (default_value == NULL) ? NULL :
+                                                                   g_variant_get_string (default_value, NULL));
 
           }
           break;
@@ -329,8 +329,12 @@ hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder *builde
           break;
         }
 
-      hyscan_data_schema_builder_key_set_view (builder, key_id, view);
-      hyscan_data_schema_builder_key_set_access (builder, key_id, access);
+      if (status)
+        {
+          status = hyscan_data_schema_builder_key_set_view (builder, key_id, view);
+          if (status)
+            status = hyscan_data_schema_builder_key_set_access (builder, key_id, access);
+        }
 
       g_clear_pointer (&default_value, g_variant_unref);
       g_clear_pointer (&minimum_value, g_variant_unref);
