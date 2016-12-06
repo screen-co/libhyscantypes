@@ -118,7 +118,7 @@ gboolean               hyscan_data_import_float                (HyScanDataType  
                                                                 gconstpointer                  data,
                                                                 gint32                         data_size,
                                                                 gfloat                        *buffer,
-                                                                gint32                        *buffer_size);
+                                                                guint32                       *buffer_size);
 
 /**
  *
@@ -138,7 +138,7 @@ gboolean               hyscan_data_import_complex_float        (HyScanDataType  
                                                                 gconstpointer                  data,
                                                                 gint32                         data_size,
                                                                 HyScanComplexFloat            *buffer,
-                                                                gint32                        *buffer_size);
+                                                                guint32                       *buffer_size);
 
 G_END_DECLS
 

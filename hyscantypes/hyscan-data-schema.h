@@ -348,7 +348,7 @@ HyScanDataSchema      *hyscan_data_schema_new_from_resource            (const gc
 HYSCAN_API
 gchar                 *hyscan_data_schema_get_data                     (HyScanDataSchema      *schema,
                                                                         const gchar           *root,
-                                                                        const gchar           *schmea_id);
+                                                                        const gchar           *schema_id);
 
 /**
  *

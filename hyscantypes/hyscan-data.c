@@ -152,10 +152,10 @@ hyscan_data_import_float (HyScanDataType  data_type,
                           gconstpointer   data,
                           gint32          data_size,
                           gfloat         *buffer,
-                          gint32         *buffer_size)
+                          guint32        *buffer_size)
 {
-  gint32 i;
-  gint32 n_points;
+  guint32 i;
+  guint32 n_points;
 
   switch (data_type)
     {
@@ -239,10 +239,10 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
                                   gconstpointer       data,
                                   gint32              data_size,
                                   HyScanComplexFloat *buffer,
-                                  gint32             *buffer_size)
+                                  guint32            *buffer_size)
 {
-  gint32 i;
-  gint32 n_points;
+  guint32 i;
+  guint32 n_points;
 
   switch (data_type)
     {
