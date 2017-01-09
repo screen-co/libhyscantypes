@@ -479,12 +479,12 @@ hyscan_data_box_set (HyScanParam         *param,
         return FALSE;
     }
 
-  g_rw_lock_writer_lock (&priv->lock);
-
   /* Сигнал перед изменением параметров. */
   g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_SET], 0, names, values, &cancel);
   if (cancel)
-    goto exit;
+    return FALSE;
+
+  g_rw_lock_writer_lock (&priv->lock);
 
   /* Изменяем параметы. */
   for (i = 0; names[i] != NULL; i++)
