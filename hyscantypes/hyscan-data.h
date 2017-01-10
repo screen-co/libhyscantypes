@@ -116,7 +116,7 @@ guint32                hyscan_data_get_point_size              (HyScanDataType  
 HYSCAN_API
 gboolean               hyscan_data_import_float                (HyScanDataType                 data_type,
                                                                 gconstpointer                  data,
-                                                                gint32                         data_size,
+                                                                guint32                        data_size,
                                                                 gfloat                        *buffer,
                                                                 guint32                       *buffer_size);
 
@@ -136,7 +136,7 @@ gboolean               hyscan_data_import_float                (HyScanDataType  
 HYSCAN_API
 gboolean               hyscan_data_import_complex_float        (HyScanDataType                 data_type,
                                                                 gconstpointer                  data,
-                                                                gint32                         data_size,
+                                                                guint32                        data_size,
                                                                 HyScanComplexFloat            *buffer,
                                                                 guint32                       *buffer_size);
 
