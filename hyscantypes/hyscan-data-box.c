@@ -506,7 +506,6 @@ hyscan_data_box_set (HyScanParam         *param,
   priv->mod_count += 1;
   status = TRUE;
 
-exit:
   g_rw_lock_writer_unlock (&priv->lock);
 
   return status;
