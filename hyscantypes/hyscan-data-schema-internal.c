@@ -21,13 +21,13 @@ hyscan_data_schema_internal_validate_name (const gchar *name)
     {
       gboolean match = FALSE;
 
-      if (name[i] >= 'a' && name[i] <= 'z')
+      if ((name[i] >= 'a') && (name[i] <= 'z'))
         match = TRUE;
-      if (name[i] >= 'A' && name[i] <= 'Z')
+      if ((name[i] >= 'A') && (name[i] <= 'Z'))
         match = TRUE;
-      if (name[i] >= '0' && name[i] <= '9')
+      if ((name[i] >= '0') && (name[i] <= '9'))
         match = TRUE;
-      if (name[i] == '-' || name[i] == '.')
+      if ((name[i] == '-') || (name[i] == '_') || (name[i] == '.'))
         match = TRUE;
 
       if (!match)
@@ -42,15 +42,13 @@ gboolean
 hyscan_data_schema_internal_validate_id (const gchar *id)
 {
   gchar **pathv;
-  guint n_pathv;
   guint i;
 
   pathv = g_strsplit (id, "/", -1);
-  n_pathv = g_strv_length (pathv);
-  if (n_pathv < 2)
+  if (g_strv_length (pathv) < 2)
     return FALSE;
 
-  for (i = 1; i < n_pathv - 1; i++)
+  for (i = 1; pathv[i] != NULL; i++)
     if (!hyscan_data_schema_internal_validate_name (pathv[i]))
       {
         g_strfreev (pathv);
