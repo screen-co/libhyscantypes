@@ -535,6 +535,7 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   HyScanDataSchemaNode *nodes;
 
   GOutputStream *ostream;
+  gchar zero = 0;
   gchar *data;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
@@ -589,6 +590,8 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
 
   g_output_stream_printf (ostream, NULL, NULL, NULL,
                           "</schemalist>\n");
+
+  g_output_stream_write (ostream, &zero, sizeof (zero), NULL, NULL);
 
   g_output_stream_close (ostream, NULL, NULL);
   data = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (ostream));
