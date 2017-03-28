@@ -515,15 +515,22 @@ hyscan_data_box_set (HyScanParam         *param,
       if (values[i] != NULL)
         param->value = g_variant_ref_sink (values[i]);
       param->mod_count += 1;
-
-      /* Сигнал об изменении параметра. */
-      g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_CHANGED], param->id, names[i]);
     }
 
   priv->mod_count += 1;
   status = TRUE;
 
   g_rw_lock_writer_unlock (&priv->lock);
+
+  /* Сигнал об изменении параметров. */
+  for (i = 0; i < n_names; i++)
+    {
+      HyScanDataBoxParam *param;
+
+      param = g_hash_table_lookup (priv->params, names[i]);
+
+      g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_CHANGED], param->id, names[i]);
+    }
 
 exit:
   g_free (defaults);
