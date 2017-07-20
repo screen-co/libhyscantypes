@@ -160,12 +160,16 @@ hyscan_param_set_string (HyScanParam *param,
   names[0] = name;
   names[1] = NULL;
 
-  values[0] = g_variant_new_string (value);
+  if (value != NULL)
+    values[0] = g_variant_new_string (value);
+  else
+    values[0] = NULL;
 
   if (hyscan_param_set (param, names, values))
     return TRUE;
 
-  g_variant_unref (values[0]);
+  if (values[0] != NULL)
+    g_variant_unref (values[0]);
 
   return FALSE;
 }

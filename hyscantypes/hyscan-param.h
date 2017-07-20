@@ -184,7 +184,7 @@ gboolean               hyscan_param_set_double                 (HyScanParam     
  *
  * \param param указатель на интерфейс \link HyScanParam \endlink;
  * \param name название параметра;
- * \param value новое значение параметра.
+ * \param value новое значение параметра или NULL.
  *
  * \return TRUE если значение установлено, FALSE - в случае ошибки.
  *
