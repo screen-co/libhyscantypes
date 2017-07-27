@@ -94,7 +94,7 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
   hyscan_data_box_signals[SIGNAL_SET] =
     g_signal_new ("set", HYSCAN_TYPE_DATA_BOX, G_SIGNAL_RUN_LAST, 0,
                   hyscan_data_box_signal_accumulator, NULL,
-                  g_cclosure_user_marshal_BOOLEAN__POINTER_POINTER,
+                  hyscan_types_marshal_BOOLEAN__POINTER_POINTER,
                   G_TYPE_BOOLEAN,
                   2, G_TYPE_POINTER, G_TYPE_POINTER);
 
