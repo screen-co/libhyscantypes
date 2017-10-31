@@ -21,7 +21,7 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshal
                     VERBATIM)
 
 add_library (${HYSCAN_TYPES_LIBRARY} SHARED
-             hyscan-data.c
+             hyscan-types.c
              hyscan-data-schema.c
              hyscan-data-schema-builder.c
              hyscan-data-schema-internal.c
@@ -52,7 +52,7 @@ install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscantypes-${HYSCAN_MAJOR_VER
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 install (FILES hyscan-api.h
-               hyscan-data.h
+               hyscan-types.h
                hyscan-data-schema.h
                hyscan-data-schema-builder.h
                hyscan-param.h
