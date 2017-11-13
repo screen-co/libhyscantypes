@@ -48,6 +48,17 @@
  * Функции #hyscan_track_get_name_by_type и #hyscan_track_get_type_by_name используются для
  * преобразования типа галсов в строковое представление и наоборот.
  *
+ * В структуре \link HyScanAntennaPosition \endlink присутствует информация о местоположении
+ * приёмных антенн. Смещения приёмной антенны указываются относительно центра масс судна.
+ * При этом ось X направлена в нос, ось Y на правый борт, ось Z вверх.
+ *
+ * Углы установки антенны указываются для вектора, перпиндикулярного её рабочей
+ * плоскости. Угол psi учитывает разворот антенны по курсу от её нормального положения.
+ * Угол gamma учитывает разворот антенны по крену. Угол theta учитывает разворот
+ * антенны по дифференту от её нормального положения.
+ *
+ * Положительные значения указываются для углов отсчитываемых против часовой стрелки.
+ *
  */
 
 #ifndef __HYSCAN_TYPES_H__
@@ -61,81 +72,128 @@ G_BEGIN_DECLS
 /** \brief Типы данных */
 typedef enum
 {
-  HYSCAN_DATA_INVALID                        = 0,              /**< Недопустимый тип, ошибка. */
+  HYSCAN_DATA_INVALID                      = 0,                /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_DATA_BLOB                           = 101,            /**< Неструктурированные двоичные данные. */
-  HYSCAN_DATA_STRING                         = 102,            /**< Строка с нулём на конце. */
-  HYSCAN_DATA_FLOAT                          = 103,            /**< Действительные float значения. */
-  HYSCAN_DATA_COMPLEX_FLOAT                  = 104,            /**< Комплексные float значения. */
+  HYSCAN_DATA_BLOB                         = 101,              /**< Неструктурированные двоичные данные. */
+  HYSCAN_DATA_STRING                       = 102,              /**< Строка с нулём на конце. */
 
-  HYSCAN_DATA_ADC_14LE                       = 201,            /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
-  HYSCAN_DATA_ADC_16LE                       = 202,            /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_ADC_24LE                       = 203,            /**< Действительные отсчёты АЦП младшие 24 бита из 32, формат little endian. */
+  HYSCAN_DATA_ADC_14LE                     = 201,              /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
+  HYSCAN_DATA_ADC_16LE                     = 202,              /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_ADC_24LE                     = 203,              /**< Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_COMPLEX_ADC_14LE               = 301,            /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
-  HYSCAN_DATA_COMPLEX_ADC_16LE               = 302,            /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_COMPLEX_ADC_24LE               = 303,            /**< Комплексные отсчёты АЦП младшие 24 бита из 32, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_14LE             = 301,              /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_16LE             = 302,              /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_24LE             = 303,              /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
 
-  HYSCAN_DATA_AMPLITUDE_INT_8LE              = 401,            /**< Амплитудные значения целые 8 бит, формат little endian. */
-  HYSCAN_DATA_AMPLITUDE_INT_16LE             = 402,            /**< Амплитудные значения целые 16 бит, формат little endian. */
-  HYSCAN_DATA_AMPLITUDE_INT_24LE             = 403,            /**< Амплитудные значения целые младшие 24 бита из 32, формат little endian. */
-  HYSCAN_DATA_AMPLITUDE_INT_32LE             = 404,            /**< Амплитудные значения целые 32 бита, формат little endian. */
-  HYSCAN_DATA_AMPLITUDE_FLOAT                = 405,            /**< Амплитудные float значения. */
+  HYSCAN_DATA_UINT8                        = 401,              /**< Действительные unsigned int8 значения. */
+  HYSCAN_DATA_UINT16                       = 402,              /**< Действительные unsigned int16 значения. */
+  HYSCAN_DATA_UINT32                       = 403,              /**< Действительные unsigned int32 значения. */
+  HYSCAN_DATA_FLOAT                        = 404,              /**< Действительные float значения. */
+
+  HYSCAN_DATA_COMPLEX_UINT8                = 501,              /**< Комплексные unsigned int8 значения. */
+  HYSCAN_DATA_COMPLEX_UINT16               = 502,              /**< Комплексные unsigned int16 значения. */
+  HYSCAN_DATA_COMPLEX_UINT32               = 503,              /**< Комплексные unsigned int32 значения. */
+  HYSCAN_DATA_COMPLEX_FLOAT                = 504               /**< Комплексные float значения. */
 } HyScanDataType;
 
 /** \brief Типы источников данных */
 typedef enum
 {
-  HYSCAN_SOURCE_INVALID                        = 0,            /**< Недопустимый тип, ошибка. */
+  HYSCAN_SOURCE_INVALID                    = 0,                /**< Недопустимый тип, ошибка. */
 
-  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD            = 101,          /**< Боковой обзор, правый борт. */
-  HYSCAN_SOURCE_SIDE_SCAN_PORT                 = 102,          /**< Боковой обзор, левый борт. */
-  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI         = 103,          /**< Боковой обзор, правый борт, высокое разрешение. */
-  HYSCAN_SOURCE_SIDE_SCAN_PORT_HI              = 104,          /**< Боковой обзор, левый борт, высокое разрешение. */
-  HYSCAN_SOURCE_INTERFEROMETRY_STARBOARD       = 105,          /**< Интерферометрия, правый борт. */
-  HYSCAN_SOURCE_INTERFEROMETRY_PORT            = 106,          /**< Интерферометрия, левый борт. */
-  HYSCAN_SOURCE_ECHOSOUNDER                    = 107,          /**< Эхолот. */
-  HYSCAN_SOURCE_PROFILER                       = 108,          /**< Профилограф. */
-  HYSCAN_SOURCE_LOOK_AROUND_STARBOARD          = 109,          /**< Круговой обзор, правый борт. */
-  HYSCAN_SOURCE_LOOK_AROUND_PORT               = 110,          /**< Круговой обзор, левый борт. */
-  HYSCAN_SOURCE_FORWARD_LOOK                   = 111,          /**< Вперёдсмотрящий гидролокатор. */
+  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD        = 101,              /**< Боковой обзор, правый борт. */
+  HYSCAN_SOURCE_SIDE_SCAN_PORT             = 102,              /**< Боковой обзор, левый борт. */
+  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI     = 103,              /**< Боковой обзор, правый борт, высокое разрешение. */
+  HYSCAN_SOURCE_SIDE_SCAN_PORT_HI          = 104,              /**< Боковой обзор, левый борт, высокое разрешение. */
+  HYSCAN_SOURCE_INTERFEROMETRY_STARBOARD   = 105,              /**< Интерферометрия, правый борт. */
+  HYSCAN_SOURCE_INTERFEROMETRY_PORT        = 106,              /**< Интерферометрия, левый борт. */
+  HYSCAN_SOURCE_ECHOSOUNDER                = 107,              /**< Эхолот. */
+  HYSCAN_SOURCE_PROFILER                   = 108,              /**< Профилограф. */
+  HYSCAN_SOURCE_LOOK_AROUND_STARBOARD      = 109,              /**< Круговой обзор, правый борт. */
+  HYSCAN_SOURCE_LOOK_AROUND_PORT           = 110,              /**< Круговой обзор, левый борт. */
+  HYSCAN_SOURCE_FORWARD_LOOK               = 111,              /**< Вперёдсмотрящий гидролокатор. */
 
-  HYSCAN_SOURCE_SAS                            = 201,          /**< Сообщения САД. */
-  HYSCAN_SOURCE_SAS_V2                         = 202,          /**< Сообщения САД, версия 2. */
+  HYSCAN_SOURCE_SAS                        = 201,              /**< Сообщения САД. */
+  HYSCAN_SOURCE_SAS_V2                     = 202,              /**< Сообщения САД, версия 2. */
 
-  HYSCAN_SOURCE_NMEA_ANY                       = 301,          /**< Любые сообщения NMEA. */
-  HYSCAN_SOURCE_NMEA_GGA                       = 302,          /**< Сообщения NMEA GGA. */
-  HYSCAN_SOURCE_NMEA_RMC                       = 303,          /**< Сообщения NMEA RMC. */
-  HYSCAN_SOURCE_NMEA_DPT                       = 304           /**< Сообщения NMEA DPT. */
+  HYSCAN_SOURCE_NMEA_ANY                   = 301,              /**< Любые сообщения NMEA. */
+  HYSCAN_SOURCE_NMEA_GGA                   = 302,              /**< Сообщения NMEA GGA. */
+  HYSCAN_SOURCE_NMEA_RMC                   = 303,              /**< Сообщения NMEA RMC. */
+  HYSCAN_SOURCE_NMEA_DPT                   = 304               /**< Сообщения NMEA DPT. */
 } HyScanSourceType;
 
 /** \brief Типы информационных сообщений */
 typedef enum
 {
-  HYSCAN_LOG_LEVEL_DEBUG                       = (1),          /**< Отладочное сообщение. */
-  HYSCAN_LOG_LEVEL_INFO                        = (1 << 1),     /**< Информационное сообщение. */
-  HYSCAN_LOG_LEVEL_MESSAGE                     = (1 << 2),     /**< Обычное сообщение. */
-  HYSCAN_LOG_LEVEL_WARNING                     = (1 << 3),     /**< Предупреждающее сообщение. */
-  HYSCAN_LOG_LEVEL_CRITICAL                    = (1 << 4),     /**< Критически важное сообщение. */
-  HYSCAN_LOG_LEVEL_ERROR                       = (1 << 5)      /**< Сообщение об ошибке. */
+  HYSCAN_LOG_LEVEL_DEBUG                   = (1),              /**< Отладочное сообщение. */
+  HYSCAN_LOG_LEVEL_INFO                    = (1 << 1),         /**< Информационное сообщение. */
+  HYSCAN_LOG_LEVEL_MESSAGE                 = (1 << 2),         /**< Обычное сообщение. */
+  HYSCAN_LOG_LEVEL_WARNING                 = (1 << 3),         /**< Предупреждающее сообщение. */
+  HYSCAN_LOG_LEVEL_CRITICAL                = (1 << 4),         /**< Критически важное сообщение. */
+  HYSCAN_LOG_LEVEL_ERROR                   = (1 << 5)          /**< Сообщение об ошибке. */
 } HyScanLogLevel;
 
 /** \brief Типы галсов */
 typedef enum
 {
-  HYSCAN_TRACK_UNSPECIFIED                     = 0,            /**< Неопределённый тип. */
+  HYSCAN_TRACK_UNSPECIFIED                 = 0,                /**< Неопределённый тип. */
 
-  HYSCAN_TRACK_CALIBRATION                     = 101,          /**< Галс с данными калибровки. */
-  HYSCAN_TRACK_SURVEY                          = 102,          /**< Галс с данными съёмки. */
-  HYSCAN_TRACK_TACK                            = 103,          /**< Лавировочный галс. */
+  HYSCAN_TRACK_CALIBRATION                 = 101,              /**< Галс с данными калибровки. */
+  HYSCAN_TRACK_SURVEY                      = 102,              /**< Галс с данными съёмки. */
+  HYSCAN_TRACK_TACK                        = 103,              /**< Лавировочный галс. */
 } HyScanTrackType;
 
 /** \brief Комплексные float числа */
 typedef struct
 {
-  gfloat                                       re;             /**< Действительная часть. */
-  gfloat                                       im;             /**< Мнимая часть. */
+  gfloat                                   re;                 /**< Действительная часть. */
+  gfloat                                   im;                 /**< Мнимая часть. */
 } HyScanComplexFloat;
+
+/** \brief Элемент таблицы профиля скорости звука */
+typedef struct {
+  gdouble                                  depth;              /**< Глубина, м. */
+  gdouble                                  velocity;           /**< Скорость звука, м/c. */
+} HyScanSoundVelocity;
+
+/** \brief Параметры местоположения приёмной антенны */
+typedef struct
+{
+  gdouble                                  x;                  /**< Смещение антенны по оси X, м. */
+  gdouble                                  y;                  /**< Смещение антенны по оси Y, м. */
+  gdouble                                  z;                  /**< Смещение антенны по оси Z, м. */
+
+  gdouble                                  psi;                /**< Поворот антенны по курсу, рад. */
+  gdouble                                  gamma;              /**< Поворот антенны по крену, рад. */
+  gdouble                                  theta;              /**< Поворот антенны по дифференту, рад. */
+} HyScanAntennaPosition;
+
+/** \brief Параметры сырых гидролокационных данных */
+typedef struct
+{
+  HyScanDataType                           data_type;          /**< Тип данных. */
+  gdouble                                  data_rate;          /**< Частота дискретизации, Гц. */
+
+  gdouble                                  antenna_voffset;    /**< Смещение антенны в "решётке" в вертикальной плоскости, м. */
+  gdouble                                  antenna_hoffset;    /**< Смещение антенны в "решётке" в горизонтальной плоскости, м. */
+  gdouble                                  antenna_vpattern;   /**< Диаграмма направленности в вертикальной плоскости, рад. */
+  gdouble                                  antenna_hpattern;   /**< Диаграмма направленности в горизонтальной плоскости, рад. */
+  gdouble                                  antenna_frequency;  /**< Центральная частота, Гц. */
+  gdouble                                  antenna_bandwidth;  /**< Полоса пропускания, Гц. */
+
+  gdouble                                  adc_vref;           /**< Опорное напряжение, В. */
+  gint                                     adc_offset;         /**< Смещение нуля, отсчёты. */
+} HyScanRawDataInfo;
+
+/** \brief Параметры акустических данных */
+typedef struct
+{
+  HyScanDataType                           data_type;          /**< Тип данных. */
+  gdouble                                  data_rate;          /**< Частота дискретизации, Гц. */
+
+  gdouble                                  antenna_vpattern;   /**< Диаграмма направленности в вертикальной плоскости, рад. */
+  gdouble                                  antenna_hpattern;   /**< Диаграмма направленности в горизонтальной плоскости, рад. */
+} HyScanAcousticDataInfo;
 
 /**
  *
