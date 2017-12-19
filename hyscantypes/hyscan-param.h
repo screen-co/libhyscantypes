@@ -1,20 +1,35 @@
-/**
- * \file hyscan-param.h
+/* hyscan-param.h
  *
- * \brief Заголовочный файл интерфейса для работы с именованными параметрами.
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
- * \defgroup HyScanParam HyScanParam - интерфейс для работы с именованными параметрами
+ * This file is part of HyScanTypes.
  *
- * Интерфейс обеспечивает унифицированный доступ к именованным параметрам.
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Схему параметрв можно получить с помощью функции #hyscan_param_schema.
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Чтение и запись значений параметров осуществляется с использованием функций
- * #hyscan_param_set и #hyscan_param_get.
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
  */
 
 #ifndef __HYSCAN_PARAM_H__
@@ -33,6 +48,13 @@ G_BEGIN_DECLS
 typedef struct _HyScanParam HyScanParam;
 typedef struct _HyScanParamInterface HyScanParamInterface;
 
+/**
+ * HyScanParamInterface:
+ * @g_iface: Базовый интерфейс.
+ * @schema: Возврашает текущую схему данных.
+ * @set: Устанавливает значения параметров.
+ * @get: Считывает значения параметров.
+ */
 struct _HyScanParamInterface
 {
   GTypeInterface       g_iface;
@@ -49,46 +71,13 @@ struct _HyScanParamInterface
 HYSCAN_API
 GType                  hyscan_param_get_type                   (void);
 
-/**
- *
- * Функция возвращает указатель на объект \link HyScanDataSchema \endlink, с описанием текущей
- * схемы параметров. После использования пользователь должен освободить этот объект функцией
- * g_object_unref.
- *
- * \param param указатель на интерфейс \link HyScanParam \endlink.
- *
- * \return Указатель на \link HyScanDataSchema \endlink или NULL.
- *
- */
 HYSCAN_API
 HyScanDataSchema      *hyscan_param_schema                     (HyScanParam           *param);
 
-/**
- *
- * Функция записывает значения параметров. Если в списке присутствует параметр без значения,
- * будет установлено значение по умолчанию, определённое в схеме данных.
- *
- * \param param указатель на интерфейс \link HyScanParam \endlink;
- * \param list список параметров для записи.
- *
- * \return TRUE если значения установлены, FALSE - в случае ошибки.
- *
- */
 HYSCAN_API
 gboolean               hyscan_param_set                        (HyScanParam           *param,
                                                                 HyScanParamList       *list);
 
-/**
- *
- * Функция считывает значения параметров. Функция считывает только параметры
- * присутствующие в списке.
- *
- * \param param указатель на интерфейс \link HyScanParam \endlink;
- * \param list список параметров для чтения.
- *
- * \return TRUE если значения считаны, FALSE - в случае ошибки.
- *
- */
 HYSCAN_API
 gboolean               hyscan_param_get                        (HyScanParam           *param,
                                                                 HyScanParamList       *list);

@@ -1,12 +1,107 @@
-/*
- * \file hyscan-types.c
+/* hyscan-types.c
  *
- * \brief Исходный файл базовых типов данных HyScan
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2015
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2015-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
-*/
+ * This file is part of HyScanTypes.
+ *
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
+/**
+ * SECTION: hyscan-types
+ * @Short_description: базовые типы данных HyScan
+ * @Title: HyScanTypes
+ *
+ * #HyScanTypes содержит определения базовых типов данных HyScan и функции
+ * для работы с ними.
+ *
+ * Все данные в HyScan имеют определённый тип #HyScanDataType. Для определения
+ * типа данных и его характеристик используются следующие функции:
+ *
+ * - #hyscan_data_get_type_by_name - функция определяет тип данных по имени;
+ * - #hyscan_data_get_type_name - функция возвращает название данных для указанного типа;
+ * - #hyscan_data_get_point_size - функция возвращает размер одного элемента данных в байтах.
+ *
+ * Эти типы используются только для данных записанных в системе хранения. В самом
+ * HyScan обработка данных производится в виде действительных данных (тип gfloat)
+ * или комплексных (тип #HyScanComplexFloat). Для преобразования данных предназначены
+ * функции #hyscan_data_import_float и #hyscan_data_import_complex_float.
+ *
+ * Кроме этого вводится понятие - источник данных #HyScanSourceType. Все источники
+ * данных разделены на два основных вида:
+ *
+ * - датчики
+ * - источники гидролокационных данных.
+ *
+ * Источники гидролокационных данных разделяются на следующие виды:
+ *
+ * - источники сырых гидролокационных данных;
+ * - источники акустических данных;
+ * - источники батиметрических данных.
+ *
+ * Источники сырых гидролокационных данных содержат информацию об амплитуде эхо сигнала
+ * дискретизированной во времени. Это вид первичной информации, получаемой от приёмников
+ * гидролокатора. В зависимости от типа гидролокатора, информация данного типа требует
+ * специализированной обработки, например свёртки или вычисления амплитуды. Кроме этого
+ * источники сырых данных могут иметь несколько каналов. Индексирование каналов начинается
+ * с единицы. Обычно несколько каналов данных имеют гидролокаторы использующие фазовую
+ * обработку, например интерферометры.
+ *
+ * Источники акустических данных содержат обработанную амплитудную информацию от
+ * гидролокаторов бокового обзора, эхолота, профилографа и т.п.
+ *
+ * Источники батиметрических данных содержат обработанную информацию о глубине.
+ *
+ * Функции #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name используются
+ * для получения названия источника данных по его типу и наоборот.
+ *
+ * Функции #hyscan_source_is_sensor, #hyscan_source_is_raw и #hyscan_source_is_acoustic
+ * используются для проверки принадлежности источника данных к определённому типу.
+ *
+ * Совокупность источника данных, его типа и номера канала образует логический канал
+ * данных в системе хранения. Функции #hyscan_channel_get_name_by_types и
+ * #hyscan_channel_get_types_by_name используются для преобразования типа источников
+ * данных в название канала данных и наоборот.
+ *
+ * Запись гидролокационных данных ведётся в так называемые галсы. Исторически, галсом
+ * называется прямолинейный участок движения судна, на котором производиится
+ * гидроакустическая съёмка. Несколько галсов объединяются в проекты, которые
+ * находятся в системе хранения - #HyScanDB.
+ *
+ * При записи галса, пользователь должен выбрать один из типов #HyScanTrackType в
+ * качестве вспомогательной информации. Функции #hyscan_track_get_name_by_type и
+ * #hyscan_track_get_type_by_name используются для преобразования типа галсов в
+ * строковое представление и наоборот.
+ *
+ * Данные, записанные в каналы системы хранения, имеют дополнительную метаинформацию.
+ * Для её представления используются структуры: #HyScanSoundVelocity, #HyScanAntennaPosition,
+ * #HyScanRawDataInfo и #HyScanAcousticDataInfo.
+ */
 
 #include "hyscan-types.h"
 
@@ -52,12 +147,14 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
 
   { 0, "complex-adc14le", HYSCAN_DATA_COMPLEX_ADC_14LE },
   { 0, "complex-adc16le", HYSCAN_DATA_COMPLEX_ADC_16LE },
-  { 0, "complex-adc24le", HYSCAN_DATA_COMPLEX_ADC_16LE },
+  { 0, "complex-adc24le", HYSCAN_DATA_COMPLEX_ADC_24LE },
 
   { 0, "uint8",  HYSCAN_DATA_UINT8 },
   { 0, "uint16", HYSCAN_DATA_UINT16 },
   { 0, "uint32", HYSCAN_DATA_UINT32 },
   { 0, "float",  HYSCAN_DATA_FLOAT },
+  { 0, "normal8",  HYSCAN_DATA_NORMAL8 },
+  { 0, "normal16",  HYSCAN_DATA_NORMAL16 },
 
   { 0, "complex-uint8",  HYSCAN_DATA_COMPLEX_UINT8 },
   { 0, "complex-uint16", HYSCAN_DATA_COMPLEX_UINT16 },
@@ -80,6 +177,8 @@ static HyScanTrackTypeInfo hyscan_track_type_info[] =
 /* Типы каналов и их названия. */
 static HyScanChannelTypeInfo hyscan_channel_types_info[] =
 {
+  { 0, "log",                  HYSCAN_SOURCE_LOG,                      FALSE, 1 },
+
   { 0, "ss-starboard",         HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,      FALSE, 1 },
   { 0, "ss-starboard-raw",     HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,      TRUE,  1 },
   { 0, "ss-starboard-raw-2",   HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,      TRUE,  2 },
@@ -96,11 +195,14 @@ static HyScanChannelTypeInfo hyscan_channel_types_info[] =
   { 0, "ss-port-hi",           HYSCAN_SOURCE_SIDE_SCAN_PORT_HI,        FALSE, 1 },
   { 0, "ss-port-hi-raw",       HYSCAN_SOURCE_SIDE_SCAN_PORT_HI,        TRUE,  1 },
 
-  { 0, "bathy-starboard",      HYSCAN_SOURCE_INTERFEROMETRY_STARBOARD, FALSE, 1 },
-  { 0, "bathy-port",           HYSCAN_SOURCE_INTERFEROMETRY_PORT,      FALSE, 1 },
-
   { 0, "echosounder",          HYSCAN_SOURCE_ECHOSOUNDER,              FALSE, 1 },
   { 0, "echosounder-raw",      HYSCAN_SOURCE_ECHOSOUNDER,              TRUE,  1 },
+
+  { 0, "echosounder-hi",       HYSCAN_SOURCE_ECHOSOUNDER_HI,           FALSE, 1 },
+  { 0, "echosounder-hi-raw",   HYSCAN_SOURCE_ECHOSOUNDER_HI,           TRUE,  1 },
+
+  { 0, "bathy-starboard",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD,     FALSE, 1 },
+  { 0, "bathy-port",           HYSCAN_SOURCE_BATHYMETRY_PORT,          FALSE, 1 },
 
   { 0, "profiler",             HYSCAN_SOURCE_PROFILER,                 FALSE, 1 },
   { 0, "profiler-raw",         HYSCAN_SOURCE_PROFILER,                 TRUE,  1 },
@@ -176,9 +278,16 @@ hyscan_types_initialize (void)
   hyscan_types_initialized = TRUE;
 }
 
-/* Функция преобразовывает нумерованное значение типа данных в название типа. */
+/**
+ * hyscan_data_get_name_by_type:
+ * @type: тип данныx
+ *
+ * Функция преобразовывает нумерованное значение типа данных в название типа.
+ *
+ * Returns: Строка с названием типа данных.
+ */
 const gchar *
-hyscan_data_get_type_name (HyScanDataType data_type)
+hyscan_data_get_name_by_type (HyScanDataType data_type)
 {
   gint i;
 
@@ -193,7 +302,14 @@ hyscan_data_get_type_name (HyScanDataType data_type)
   return NULL;
 }
 
-/* Функция преобразовывает строку с названием типа данных в нумерованное значение. */
+/**
+ * hyscan_data_get_type_by_name:
+ * @name: название типа данныx
+ *
+ * Функция преобразовывает строку с названием типа данных в нумерованное значение.
+ *
+ * Returns: Тип данных.
+ */
 HyScanDataType
 hyscan_data_get_type_by_name (const gchar *data_name)
 {
@@ -214,7 +330,14 @@ hyscan_data_get_type_by_name (const gchar *data_name)
   return HYSCAN_DATA_INVALID;
 }
 
-/* Функция возвращает размер одного элемента данных в байтах, для указанного типа. */
+/**
+ * hyscan_data_get_point_size:
+ * @type: тип данныx
+ *
+ * Функция возвращает размер одного элемента данных в байтах, для указанного типа.
+ *
+ * Returns: Размер одного елемента данных в байтах.
+ */
 guint32
 hyscan_data_get_point_size (HyScanDataType data_type)
 {
@@ -223,11 +346,13 @@ hyscan_data_get_point_size (HyScanDataType data_type)
     case HYSCAN_DATA_BLOB:
     case HYSCAN_DATA_STRING:
     case HYSCAN_DATA_UINT8:
-      return sizeof (gchar);
+    case HYSCAN_DATA_NORMAL8:
+      return sizeof (guint8);
 
     case HYSCAN_DATA_ADC_14LE:
     case HYSCAN_DATA_ADC_16LE:
     case HYSCAN_DATA_UINT16:
+    case HYSCAN_DATA_NORMAL16:
       return sizeof (guint16);
 
     case HYSCAN_DATA_ADC_24LE:
@@ -259,7 +384,18 @@ hyscan_data_get_point_size (HyScanDataType data_type)
   return 0;
 }
 
-/* Функция преобразовывает данные из низкоуровневого формата в float размером data_size. */
+/**
+ * hyscan_data_import_float:
+ * @data_type: тип данныx
+ * @data: указатель на преобразовываемые данные
+ * @data_size: размер преобразовываемых данныx
+ * @buffer: указатель на буфер для преобразованных данныx
+ * @buffer_size: размер буфера для преобразованных данных, в точкаx
+ *
+ * Функция преобразовывает данные из низкоуровневого формата в float.
+ *
+ * Returns: %TRUE если преобразование выполнено, иначе FALSE.
+ */
 gboolean
 hyscan_data_import_float (HyScanDataType  data_type,
                           gconstpointer   data,
@@ -346,7 +482,18 @@ hyscan_data_import_float (HyScanDataType  data_type,
   return TRUE;
 }
 
-/* Функция преобразовывает данные из низкоуровневого формата в HyScanComplexFloat размером data_size. */
+/**
+ * hyscan_data_import_complex_float:
+ * @data_type: тип данныx
+ * @data: указатель на преобразовываемые данные
+ * @data_size: размер преобразовываемых данныx
+ * @buffer: указатель на буфер для преобразованных данныx
+ * @buffer_size: размер буфера для преобразованных данных, в точкаx
+ *
+ * Функция преобразовывает данные из низкоуровневого формата в HyScanComplexFloat.
+ *
+ * Returns: %TRUE если преобразование выполнено, иначе FALSE.
+ */
 gboolean
 hyscan_data_import_complex_float (HyScanDataType      data_type,
                                   gconstpointer       data,
@@ -445,7 +592,47 @@ hyscan_data_import_complex_float (HyScanDataType      data_type,
   return TRUE;
 }
 
-/* Функция проверяет тип источника данных на соответствие одному из типов датчиков. */
+/**
+ * hyscan_source_get_name_by_type:
+ * @source: тип источника данныx
+ *
+ * Функция возвращает название источника данных по его типу.
+ *
+ * Returns: Название источника данных или NULL.
+ */
+const gchar *
+hyscan_source_get_name_by_type (HyScanSourceType source)
+{
+  return hyscan_channel_get_name_by_types (source, FALSE, 1);
+}
+
+/**
+ * hyscan_source_get_type_by_name:
+ * @name: название источника данныx
+ *
+ * Функция возвращает тип источника данных по его названию.
+ *
+ * Returns: Тип источника данных.
+ */
+HyScanSourceType
+hyscan_source_get_type_by_name (const gchar *name)
+{
+  HyScanSourceType source;
+
+  if (!hyscan_channel_get_types_by_name (name, &source, NULL, NULL))
+    return HYSCAN_SOURCE_INVALID;
+
+  return source;
+}
+
+/**
+ * hyscan_source_is_sensor:
+ * @source: тип источника данныx
+ *
+ * Функция проверяет тип источника данных на соответствие одному из типов датчиков.
+ *
+ * Returns: %TRUE если источник данных является датчиком, иначе %FALSE.
+ */
 gboolean
 hyscan_source_is_sensor (HyScanSourceType source)
 {
@@ -466,7 +653,14 @@ hyscan_source_is_sensor (HyScanSourceType source)
   return FALSE;
 }
 
-/* Функция проверяет тип источника данных на соответствие "сырым" гидролокационным данным. */
+/**
+ * hyscan_source_is_raw:
+ * @source: тип источника данныx
+ *
+ * Функция проверяет тип источника данных на соответствие сырым гидролокационным данным.
+ *
+ * Returns: %TRUE если источник данных является источником сырых данных, иначе %FALSE.
+ */
 gboolean
 hyscan_source_is_raw (HyScanSourceType source)
 {
@@ -477,6 +671,7 @@ hyscan_source_is_raw (HyScanSourceType source)
     case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI:
     case HYSCAN_SOURCE_SIDE_SCAN_PORT_HI:
     case HYSCAN_SOURCE_ECHOSOUNDER:
+    case HYSCAN_SOURCE_ECHOSOUNDER_HI:
     case HYSCAN_SOURCE_PROFILER:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
@@ -490,7 +685,14 @@ hyscan_source_is_raw (HyScanSourceType source)
   return FALSE;
 }
 
-/* Функция проверяет тип источника данных на соответствие акустическим данным. */
+/**
+ * hyscan_source_is_acoustic:
+ * @source: тип источника данныx
+ *
+ * Функция проверяет тип источника данных на соответствие акустическим данным.
+ *
+ * Returns: %TRUE если источник данных является источником акустических данных, иначе %FALSE.
+ */
 gboolean
 hyscan_source_is_acoustic (HyScanSourceType source)
 {
@@ -501,6 +703,7 @@ hyscan_source_is_acoustic (HyScanSourceType source)
     case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI:
     case HYSCAN_SOURCE_SIDE_SCAN_PORT_HI:
     case HYSCAN_SOURCE_ECHOSOUNDER:
+    case HYSCAN_SOURCE_ECHOSOUNDER_HI:
     case HYSCAN_SOURCE_PROFILER:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
@@ -513,46 +716,17 @@ hyscan_source_is_acoustic (HyScanSourceType source)
   return FALSE;
 }
 
-/* Функция возвращает название типа галса. */
-const gchar *
-hyscan_track_get_name_by_type (HyScanTrackType type)
-{
-  guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
-  /* Ищем название типа. */
-  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
-    {
-      if (hyscan_track_type_info[i].type != type)
-        continue;
-      return hyscan_track_type_info[i].name;
-    }
-
-  return NULL;
-}
-
-/* Функция возвращает тип галса по его названию. */
-HyScanTrackType
-hyscan_track_get_type_by_name (const gchar *name)
-{
-  GQuark quark;
-  guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
-  /* Ищем тип по названию. */
-  quark = g_quark_try_string (name);
-  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
-    if (hyscan_track_type_info[i].quark == quark)
-      return hyscan_track_type_info[i].type;
-
-  return HYSCAN_TRACK_UNSPECIFIED;
-}
-
-/* Функция возвращает название канала для указанных характеристик. */
+/**
+ * hyscan_channel_get_name_by_types:
+ * @source: тип источника данныx
+ * @raw: признак сырых данныx
+ * @channel: индекс канала данных, начиная с 1
+ *
+ * Функция возвращает название канала для указанных характеристик.
+ * Строка, возвращаемая этой функцией, не должна изменяться пользователем.
+ *
+ * Returns: Название канала данных или NULL.
+ */
 const gchar *
 hyscan_channel_get_name_by_types (HyScanSourceType source,
                                   gboolean         raw,
@@ -578,7 +752,17 @@ hyscan_channel_get_name_by_types (HyScanSourceType source,
   return NULL;
 }
 
-/* Функция возвращает характеристики канала данных по его имени. */
+/**
+ * hyscan_channel_get_types_by_name:
+ * @name: название канала данныx
+ * @source: (out) (allow-none): тип источника данныx
+ * @raw: (out) (allow-none): признак сырых данныx
+ * @channel: (out) (allow-none): индекс канала данныx
+ *
+ * Функция возвращает характеристики канала данных по его имени.
+ *
+ * Returns: %TRUE если характеристики канала определены, иначе %FALSE.
+ */
 gboolean
 hyscan_channel_get_types_by_name (const gchar      *name,
                                   HyScanSourceType *source,
@@ -608,4 +792,57 @@ hyscan_channel_get_types_by_name (const gchar      *name,
     }
 
   return FALSE;
+}
+
+/**
+ * hyscan_track_get_name_by_type:
+ * @type: тип галса
+ *
+ * Функция возвращает название типа галса.
+ *
+ * Returns: Название типа галса или NULL.
+ */
+const gchar *
+hyscan_track_get_name_by_type (HyScanTrackType type)
+{
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем название типа. */
+  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
+    {
+      if (hyscan_track_type_info[i].type != type)
+        continue;
+      return hyscan_track_type_info[i].name;
+    }
+
+  return NULL;
+}
+
+/**
+ * hyscan_track_get_type_by_name:
+ * @name: название типа галса
+ *
+ * Функция возвращает тип галса по его названию.
+ *
+ * Returns: Тип галса.
+ */
+HyScanTrackType
+hyscan_track_get_type_by_name (const gchar *name)
+{
+  GQuark quark;
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем тип по названию. */
+  quark = g_quark_try_string (name);
+  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
+    if (hyscan_track_type_info[i].quark == quark)
+      return hyscan_track_type_info[i].type;
+
+  return HYSCAN_TRACK_UNSPECIFIED;
 }
