@@ -1,11 +1,228 @@
-/*
- * \file hyscan-data-schema.c
+/* hyscan-data-schema.c
  *
- * \brief Исходный файл класса схемы данных.
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
+ * This file is part of HyScanTypes.
+ *
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
+/**
+ * SECTION: hyscan-data-schema
+ * @Short_description: класс схем данных HyScan
+ * @Title: HyScanDataSchema
+ *
+ * Класс предназначен для описания модели данных. Под моделью данных подразумевается
+ * список параметров имеющих следующие атрибуты:
+ *
+ * - уникальный идентификатор параметра;
+ * - название параметра;
+ * - описание параметра;
+ * - тип параметра;
+ * - вид отображения;
+ * - значение по умолчанию;
+ * - минимальное и максимальное значения параметра;
+ * - рекомендуемый шаг изменения параметра;
+ * - варианты значений параметра для перечисляемых типов.
+ *
+ * Схема данных приводится в формате XML. Описание схемы имеет следующий вид:
+ *
+ * [
+ * <schemalist gettext-domain="domain">
+ *
+ *   <enum id="sex">
+ *     <value name="unknown" value="0">
+ *       <description>Unknown</description>
+ *     </value>
+ *     <value name="male" value="1">
+ *       <description>Male</description>
+ *     </value>
+ *     <value name="female" value="2">
+ *       <description>Female</description>
+ *     </value>
+ *   </enum>
+ *
+ *   <schema id="name">
+ *     <key id="first" name="First name" type="string"/>
+ *     <key id="middle" name="Middle name" type="string"/>
+ *     <key id="Last" name="Last name" type="string"/>
+ *   </schema>
+ *
+ *   <schema id="person">
+ *     <node id="name" schema="name">
+ *     <key id="sex" name="Sex" enum="sex"/>
+ *       <description>Gender identity</description>
+ *       <default>0</default>
+ *     </key>
+ *     <key id="birthdate" name="Birth date" type="integer" view="date" access="readonly"/>
+ *     <key id="weight" name="Weight" type="double">
+ *       <description>Weight in kilogramms</description>
+ *       <range min="0" max="1000" step="0.1"/>
+ *     </key>
+ *   </schema>
+ *
+ * </schemalist>
+ * ]
+ *
+ * Все данные с описанием схем хранятся в теге &lt;schemalist&gt;. Опциональным
+ * атрибутом этого тега является "gettext-domain" - имя домена с переводами для
+ * имён и описаний параметров схем. При загрузке схемы классом #HyScanDataSchema,
+ * будет использован этот домен для поиска переводов.
+ *
+ * Описание может хранить несколько схем одновременно. Для определения схемы
+ * используется тег &lt;schema&gt;. Тег содержит обязательный атрибут "id" -
+ * идентификатор схемы. По этому идентификатору схема загружается классом
+ * #HyScanDataSchema или может использоваться в составе другой схемы.
+ *
+ * Включение одной схемы в другую осуществляется тегом &lt;node&gt;. Обязательными
+ * атрибутами, в этом случае, являются:
+ *
+ * - id - идентификатор ветки;
+ * - schema - идентификатор дочерней схемы.
+ *
+ * Тэг &lt;node&gt; также может использоваться для создания вложенных структур.
+ * В этом случае атрибут "schema" не указывается, а необходимые параметры
+ * объявляются в этом теге. Класс #HyScanDataSchema поддерживает неограниченную
+ * вложенность.
+ *
+ * Параметры в схеме определяются тегом &lt;key&gt;. Обязательными атрибутами
+ * этого тега являются:
+ *
+ * - id - идентификатор параметра;
+ * - name - название параметра (может содержать перевод);
+ * - type - тип параметра.
+ *
+ * В схеме данных поддерживаются параметры следующих типов (#HyScanDataSchemaKeyType):
+ *
+ * - "boolean" - #HYSCAN_DATA_SCHEMA_KEY_BOOLEAN;
+ * - "integer" - #HYSCAN_DATA_SCHEMA_KEY_INTEGER;
+ * - "double" - #HYSCAN_DATA_SCHEMA_KEY_DOUBLE;
+ * - "string" - #HYSCAN_DATA_SCHEMA_KEY_STRING;
+ * - "enum" - #HYSCAN_DATA_SCHEMA_KEY_ENUM.
+ *
+ * Дополнительные атрибуты:
+ *
+ * - view - рекомендуемый вид отображения;
+ * - access - атрибуты доступа к параметру.
+ *
+ * Поддерживаются следующие виды отображения значения параметра (#HyScanDataSchemaViewType):
+ *
+ * - "bin" - #HYSCAN_DATA_SCHEMA_VIEW_BIN;
+ * - "dec" - #HYSCAN_DATA_SCHEMA_VIEW_DEC;
+ * - "hex" - #HYSCAN_DATA_SCHEMA_VIEW_HEX;
+ * - "date" - #HYSCAN_DATA_SCHEMA_VIEW_DATE;
+ * - "time" - #HYSCAN_DATA_SCHEMA_VIEW_TIME;
+ * - "datetime" - #HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME;
+ * - "schema" - #HYSCAN_DATA_SCHEMA_VIEW_SCHEMA.
+ *
+ * Возможны следующие атрибуты доступа к параметру (#HyScanDataSchemaKeyAccess):
+ *
+ * - "readonly" - #HYSCAN_DATA_SCHEMA_ACCESS_READONLY;
+ * - "writeonly" - #HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY.
+ *
+ * Тэг &lt;key&gt; может содержать вложенные тэги:
+ *
+ * - description - строка с описанием параметра (может содержать перевод);
+ * - default - значение параметра по умолчанию;
+ * - range - диапазон допустимых значений и рекомендуемый шаг изменения.
+ *
+ * Тэг &lt;range&gt; применим только для типов данных "integer" и "double" и
+ * может содержать следующие атрибуты:
+ *
+ * - min - минимальное значение параметра;
+ * - max - максимальное значение параметра;
+ * - step - рекомендуемый шаг изменения параметра.
+ *
+ * Если для типа "string" не задано значение по умолчанию, в качестве такового
+ * будет использован NULL.
+ *
+ * При определении параметра перечисляемого типа, вместо атрибута "type"
+ * используется "enum", в котором указывается идентификатор группы вариантов
+ * значений.
+ *
+ * Группы вариантов значение определяется тегом &lt;enum&gt;. Тег содержит
+ * обязательный атрибут "id" - идентификатор группы значений.
+ *
+ * Значения в группе определяются тэгом &lt;value&gt;. Обязательными атрибутами
+ * этого тега являются:
+ *
+ * - name - название значения (может содержать перевод);
+ * - value - численный идентификатор значения.
+ *
+ * Тэг &lt;value&gt; может содержать вложенный тег &lt;description&gt; с описанием
+ * значения. Описание значения может содержать перевод.
+ *
+ * Функции этого класса предназначены, в первую очередь, для классов реализующих
+ * доступ к данным или для программ исследующих струкутуру данных. Разработчик
+ * должен знать схему данных с которой он работает.
+ *
+ * Создание объекта со схемой данных осуществляется функциями #hyscan_data_schema_new_from_string,
+ * #hyscan_data_schema_new_from_file и #hyscan_data_schema_new_from_resource.
+ *
+ * Получить описание загруженной схемы данных можно с помощью функции #hyscan_data_schema_get_data,
+ * а её идентификатор #hyscan_data_schema_get_id.
+ *
+ * Список всех параметров схемы можно получить с помощью функции #hyscan_data_schema_list_keys.
+ * Проверить существование параметра в схеме можно функцией #hyscan_data_schema_has_key.
+ *
+ * Структурированный список параметров и их описаний можно получить функцией
+ * #hyscan_data_schema_list_nodes. Функция возвращает указатель на вновь созданую
+ * структуру #HyScanDataSchemaNode.
+ *
+ * Функция #hyscan_data_schema_key_get_access предназначена для получения атрибутов
+ * доступа к параметру.
+ *
+ * Следующая группа функций предназначена для получения атрибутов параметров:
+ *
+ * - #hyscan_data_schema_key_get_value_type - возвращает тип параметра;
+ * - #hyscan_data_schema_key_get_name - возвращает название параметра;
+ * - #hyscan_data_schema_key_get_description - возвращает описание параметра;
+ * - #hyscan_data_schema_key_get_default - возвращает значение параметра по умолчанию;
+ * - #hyscan_data_schema_key_get_minimum - Функция возвращает минимальное значение параметра;
+ * - #hyscan_data_schema_key_get_maximum - Функция возвращает максимальное значение параметра;
+ * - #hyscan_data_schema_key_get_step - возвращает рекомендуемый шаг изменения значения параметра.
+ *
+ * Проверить значение параметра на предмет нахождения в допустимом диапазоне
+ * можно функцией #hyscan_data_schema_key_check.
+ *
+ * Варианты допустимых значений для параметров с типом ENUM можно получить с
+ * помощью функции #hyscan_data_schema_key_get_enum_values. Предварительно
+ * необходимо получить идентификатор списка значений для ENUM параметра с
+ * помощью функции #hyscan_data_schema_key_get_enum_id.
+ *
+ * Значения параметров определяются с помощью GVariant. Используются следующие
+ * типы GVariant:
+ *
+ * - #HYSCAN_DATA_SCHEMA_KEY_BOOLEAN - G_VARIANT_CLASS_BOOLEAN;
+ * - #HYSCAN_DATA_SCHEMA_KEY_INTEGER - G_VARIANT_CLASS_INT64;
+ * - #HYSCAN_DATA_SCHEMA_KEY_DOUBLE - G_VARIANT_CLASS_DOUBLE;
+ * - #HYSCAN_DATA_SCHEMA_KEY_STRING - G_VARIANT_CLASS_STRING;
+ * - #HYSCAN_DATA_SCHEMA_KEY_ENUM - G_VARIANT_CLASS_INT64.
  */
 
 #include "hyscan-data-schema-internal.h"
@@ -41,15 +258,11 @@ static void            hyscan_data_schema_set_property         (GObject         
 static void            hyscan_data_schema_object_constructed   (GObject                    *object);
 static void            hyscan_data_schema_object_finalize      (GObject                    *object);
 
-static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaInternalKey *key1,
-                                                                HyScanDataSchemaInternalKey *key2,
+static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaInternalKey *ikey1,
+                                                                HyScanDataSchemaInternalKey *ikey2,
                                                                 gpointer                     user_data);
 
-static HyScanDataSchemaEnumValue
-                      *hyscan_data_schema_parse_enum_value     (xmlNodePtr                  node,
-                                                                const gchar                *gettext_domain);
-static HyScanDataSchemaEnum
-                      *hyscan_data_schema_parse_enum_values    (xmlNodePtr                  node,
+static GList *         hyscan_data_schema_parse_enum_values    (xmlNodePtr                  node,
                                                                 const gchar                *gettext_domain);
 
 static HyScanDataSchemaInternalKey *
@@ -70,6 +283,15 @@ static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr       
                                                                 GHashTable                 *keys,
                                                                 GHashTable                 *enums,
                                                                 const gchar                *gettext_domain);
+
+G_DEFINE_BOXED_TYPE (HyScanDataSchemaEnumValue, hyscan_data_schema_enum_value,
+                     hyscan_data_schema_enum_value_copy, hyscan_data_schema_enum_value_free)
+
+G_DEFINE_BOXED_TYPE (HyScanDataSchemaNode, hyscan_data_schema_node,
+                     hyscan_data_schema_node_copy, hyscan_data_schema_node_free)
+
+G_DEFINE_BOXED_TYPE (HyScanDataSchemaKey, hyscan_data_schema_key,
+                     hyscan_data_schema_key_copy, hyscan_data_schema_key_free)
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanDataSchema, hyscan_data_schema, G_TYPE_OBJECT);
 
@@ -144,7 +366,7 @@ hyscan_data_schema_object_constructed (GObject *object)
   /* Таблица enum типов и их значений. */
   priv->enums = g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
-                                       NULL,
+                                       g_free,
                                        (GDestroyNotify)hyscan_data_schema_internal_enum_free);
 
   /* Разбор описания схемы. */
@@ -188,11 +410,16 @@ hyscan_data_schema_object_constructed (GObject *object)
 
       if (g_hash_table_lookup (priv->enums, id) == NULL)
         {
-          HyScanDataSchemaEnum *values;
+          xmlChar *enum_id;
+          GList *values;
 
+          enum_id = xmlGetProp (node, (xmlChar *)"id");
           values = hyscan_data_schema_parse_enum_values (node, priv->gettext_domain);
 
-          g_hash_table_insert (priv->enums, values->id, values);
+          if ((enum_id != NULL) && (values != NULL))
+            g_hash_table_insert (priv->enums, g_strdup ((const gchar*)enum_id), values);
+
+          xmlFree (enum_id);
         }
       else
         {
@@ -256,130 +483,76 @@ hyscan_data_schema_object_finalize (GObject *object)
 
 /* Функция сравнения двух параметров по идентификаторам (для сортировки списка). */
 gint
-hyscan_data_schema_compare_keys (HyScanDataSchemaInternalKey *key1,
-                                 HyScanDataSchemaInternalKey *key2,
+hyscan_data_schema_compare_keys (HyScanDataSchemaInternalKey *ikey1,
+                                 HyScanDataSchemaInternalKey *ikey2,
                                  gpointer                     user_data)
 {
-  return g_strcmp0 (key1->id, key2->id);
-}
-
-/* Функция обрабатывает описание одного варианта значения для типа enum. */
-static HyScanDataSchemaEnumValue *
-hyscan_data_schema_parse_enum_value (xmlNodePtr   node,
-                                     const gchar *gettext_domain)
-{
-  HyScanDataSchemaEnumValue *enum_value = NULL;
-
-  xmlChar *name = NULL;
-  xmlChar *value = NULL;
-  xmlChar *description = NULL;
-
-  /* Проверяем XML элемент. */
-  if (node->type != XML_ELEMENT_NODE)
-    return NULL;
-  if (g_ascii_strcasecmp ((gchar*)node->name, "value") != 0)
-    return NULL;
-
-  /* Атрибуты name и value. */
-  name = xmlGetProp (node, (xmlChar *)"name");
-  value = xmlGetProp (node, (xmlChar *)"value");
-  if (name == NULL || value == NULL)
-    goto exit;
-
-  /* Поле description, может отсутствовать. */
-  for (node = node->children; node != NULL; node = node->next)
-    if (node->type == XML_ELEMENT_NODE)
-      if (g_ascii_strcasecmp ((gchar*)node->name, "description") == 0)
-        {
-          description = xmlNodeGetContent (node);
-          break;
-        }
-
-  enum_value = g_new0 (HyScanDataSchemaEnumValue, 1);
-  enum_value->name = g_strdup ((gchar*)name);
-  enum_value->value = g_ascii_strtoll ((const gchar *)value, NULL, 10);
-  enum_value->description = g_strdup (g_dgettext (gettext_domain, (const gchar *)description));
-
-exit:
-  xmlFree (name);
-  xmlFree (value);
-  xmlFree (description);
-
-  return enum_value;
+  return g_strcmp0 (ikey1->id, ikey2->id);
 }
 
 /* Функция обрабатывает описание значений типа enum. */
-static HyScanDataSchemaEnum *
+GList *
 hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
                                       const gchar *gettext_domain)
 {
-  xmlNodePtr curnode;
-  xmlChar *id;
-
-  HyScanDataSchemaEnum *values;
-  gint n_values;
-  gint i;
-
-  /* Число вариантов значений. */
-  for (n_values = 0, curnode = node->children; curnode != NULL; curnode = curnode->next)
-    {
-      if (curnode->type != XML_ELEMENT_NODE)
-        continue;
-      if (g_ascii_strcasecmp ((gchar*)curnode->name, "value") != 0)
-        continue;
-      n_values += 1;
-    }
-
-  if (n_values == 0)
-    return NULL;
-
-  id = xmlGetProp (node, (xmlChar *)"id");
-  if (id == NULL)
-    {
-      g_warning ("HyScanDataSchema: unknown enum id");
-      return NULL;
-    }
-
-  values = g_new0 (HyScanDataSchemaEnum, 1);
-  values->id = g_strdup ((const gchar *)id);
-  values->values = g_malloc ((n_values + 1) * sizeof (HyScanDataSchemaEnumValue *));
-
-  xmlFree (id);
+  GList *values = NULL;
 
   /* Разбор всех вариантов значений. */
-  for (i = 0, curnode = node->children; curnode != NULL; curnode = curnode->next)
+  for (node = node->children; node != NULL; node = node->next)
     {
-      if (curnode->type != XML_ELEMENT_NODE)
-        continue;
-      if (g_ascii_strcasecmp ((gchar*)curnode->name, "value") != 0)
-        continue;
-      values->values[i] = hyscan_data_schema_parse_enum_value (curnode, gettext_domain);
-      if (values->values[i] == NULL)
-        {
-          g_warning ("HyScanDataSchema: unknown value in enum '%s'", values->id);
-          break;
-        }
-      i++;
-    }
-  values->values[i] = NULL;
-  values->n_values = n_values;
+      xmlNodePtr sub_node;
+      xmlChar *name = NULL;
+      xmlChar *value = NULL;
+      xmlChar *description = NULL;
+      HyScanDataSchemaEnumValue *enum_value;
 
-  return values;
+      /* Проверяем что XML элемент содержит описание значения. */
+      if (node->type != XML_ELEMENT_NODE)
+        continue;
+      if (g_ascii_strcasecmp ((gchar*)node->name, "value") != 0)
+        continue;
+
+      /* Атрибуты name и value. */
+      name = xmlGetProp (node, (xmlChar *)"name");
+      value = xmlGetProp (node, (xmlChar *)"value");
+      if (name == NULL || value == NULL)
+        continue;
+
+      /* Поле description, может отсутствовать. */
+      for (sub_node = node->children; sub_node != NULL; sub_node = sub_node->next)
+        if (sub_node->type == XML_ELEMENT_NODE)
+          if (g_ascii_strcasecmp ((gchar*)sub_node->name, "description") == 0)
+            {
+              description = xmlNodeGetContent (sub_node);
+              break;
+            }
+      enum_value = hyscan_data_schema_enum_value_new (g_ascii_strtoll ((const gchar *)value, NULL, 10),
+                                                      (const gchar*)name,
+                                                      g_dgettext (gettext_domain, (const gchar *)description));
+
+      values = g_list_prepend (values, enum_value);
+
+      xmlFree (name);
+      xmlFree (value);
+      xmlFree (description);
+    }
+
+  return g_list_reverse (values);
 }
 
 /* Функция обрабатывает описание параметра. */
 static HyScanDataSchemaInternalKey *
-hyscan_data_schema_parse_key (xmlNodePtr                 node,
-                              const gchar               *path,
-                              GHashTable                *enums,
-                              const gchar               *gettext_domain)
+hyscan_data_schema_parse_key (xmlNodePtr   node,
+                              const gchar *path,
+                              GHashTable  *enums,
+                              const gchar *gettext_domain)
 {
-  HyScanDataSchemaInternalKey *key = NULL;
+  HyScanDataSchemaInternalKey *ikey = NULL;
 
   HyScanDataSchemaKeyType key_type = HYSCAN_DATA_SCHEMA_KEY_INVALID;
   HyScanDataSchemaViewType key_view = HYSCAN_DATA_SCHEMA_VIEW_DEFAULT;
   HyScanDataSchemaKeyAccess key_access = HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT;
-  HyScanDataSchemaEnum *enum_values = NULL;
+  GList *enum_values = NULL;
 
   xmlNodePtr curnode;
   xmlChar *idx = NULL;
@@ -393,6 +566,7 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
   xmlChar *minimum_valuex = NULL;
   xmlChar *maximum_valuex = NULL;
   xmlChar *value_stepx = NULL;
+  gchar *key_id;
 
   /* Атрибуты id и name. */
   idx = xmlGetProp (node, (xmlChar *)"id");
@@ -430,6 +604,10 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         key_view = HYSCAN_DATA_SCHEMA_VIEW_HEX;
       else if (g_ascii_strcasecmp ((const gchar *)viewx, "date") == 0)
         key_view = HYSCAN_DATA_SCHEMA_VIEW_DATE;
+      else if (g_ascii_strcasecmp ((const gchar *)viewx, "time") == 0)
+        key_view = HYSCAN_DATA_SCHEMA_VIEW_TIME;
+      else if (g_ascii_strcasecmp ((const gchar *)viewx, "datetime") == 0)
+        key_view = HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME;
       else if (g_ascii_strcasecmp ((const gchar *)viewx, "schema") == 0)
         key_view = HYSCAN_DATA_SCHEMA_VIEW_SCHEMA;
 
@@ -506,16 +684,17 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         }
 
   /* Описание параметра. */
-  key = g_new0 (HyScanDataSchemaInternalKey, 1);
-  key->id = g_strdup_printf ("%s%s",path, (const gchar *)idx);
-  key->name = g_strdup (g_dgettext (gettext_domain, (const gchar *)namex));
-  key->description = g_strdup (g_dgettext (gettext_domain, (const gchar *)descriptionx));
-  key->type = key_type;
-  key->view = key_view;
-  key->enum_values = enum_values;
-  key->access = key_access;
+  key_id= g_strdup_printf ("%s%s", path, (const gchar *)idx);
+  ikey = hyscan_data_schema_internal_key_new (key_id,
+                                              (const gchar *)namex,
+                                              (const gchar *)descriptionx);
+  g_free (key_id);
 
-  switch (key->type)
+  ikey->type = key_type;
+  ikey->view = key_view;
+  ikey->access = key_access;
+
+  switch (ikey->type)
     {
     case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
       {
@@ -525,8 +704,8 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
           if (g_ascii_strcasecmp ((const gchar *)default_valuex, "true") == 0)
             default_value = TRUE;
 
-        key->value_type = G_VARIANT_CLASS_BOOLEAN;
-        key->default_value = g_variant_new_boolean (default_value);
+        ikey->value_type = G_VARIANT_CLASS_BOOLEAN;
+        ikey->default_value = g_variant_new_boolean (default_value);
       }
       break;
 
@@ -550,17 +729,17 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
             (default_value < minimum_value) ||
             (default_value > maximum_value))
           {
-            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-            hyscan_data_schema_internal_key_free (key);
-            key = NULL;
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", ikey->id);
+            hyscan_data_schema_internal_key_free (ikey);
+            ikey = NULL;
             goto exit;
           }
 
-        key->value_type = G_VARIANT_CLASS_INT64;
-        key->default_value = g_variant_new_int64 (default_value);
-        key->minimum_value = g_variant_new_int64 (minimum_value);
-        key->maximum_value = g_variant_new_int64 (maximum_value);
-        key->value_step = g_variant_new_int64 (value_step);
+        ikey->value_type = G_VARIANT_CLASS_INT64;
+        ikey->default_value = g_variant_new_int64 (default_value);
+        ikey->minimum_value = g_variant_new_int64 (minimum_value);
+        ikey->maximum_value = g_variant_new_int64 (maximum_value);
+        ikey->value_step = g_variant_new_int64 (value_step);
       }
       break;
 
@@ -584,26 +763,26 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
             (default_value < minimum_value) ||
             (default_value > maximum_value))
           {
-            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-            hyscan_data_schema_internal_key_free (key);
-            key = NULL;
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", ikey->id);
+            hyscan_data_schema_internal_key_free (ikey);
+            ikey = NULL;
             goto exit;
           }
 
-        key->value_type = G_VARIANT_CLASS_DOUBLE;
-        key->default_value = g_variant_new_double (default_value);
-        key->minimum_value = g_variant_new_double (minimum_value);
-        key->maximum_value = g_variant_new_double (maximum_value);
-        key->value_step = g_variant_new_double (value_step);
+        ikey->value_type = G_VARIANT_CLASS_DOUBLE;
+        ikey->default_value = g_variant_new_double (default_value);
+        ikey->minimum_value = g_variant_new_double (minimum_value);
+        ikey->maximum_value = g_variant_new_double (maximum_value);
+        ikey->value_step = g_variant_new_double (value_step);
       }
       break;
 
     case HYSCAN_DATA_SCHEMA_KEY_STRING:
       {
-        key->value_type = G_VARIANT_CLASS_STRING;
+        ikey->value_type = G_VARIANT_CLASS_STRING;
 
         if (default_valuex != NULL)
-          key->default_value = g_variant_new_string ((const gchar *)default_valuex);
+          ikey->default_value = g_variant_new_string ((const gchar *)default_valuex);
       }
       break;
 
@@ -614,16 +793,17 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
         if (default_valuex != NULL)
           default_value = g_ascii_strtoll ((const gchar *)default_valuex, NULL, 10);
 
-        if (!hyscan_data_schema_internal_enum_check (key->enum_values, default_value))
+        if (!hyscan_data_schema_internal_enum_check (enum_values, default_value))
           {
-            g_warning ("HyScanDataSchema: default value out of range in key '%s'", key->id);
-            hyscan_data_schema_internal_key_free (key);
-            key = NULL;
+            g_warning ("HyScanDataSchema: default value out of range in key '%s'", ikey->id);
+            hyscan_data_schema_internal_key_free (ikey);
+            ikey = NULL;
             goto exit;
           }
 
-        key->value_type = G_VARIANT_CLASS_INT64;
-        key->default_value = g_variant_new_int64 (default_value);
+        ikey->enum_id = g_strdup ((const gchar*)enumx);
+        ikey->value_type = G_VARIANT_CLASS_INT64;
+        ikey->default_value = g_variant_new_int64 (default_value);
       }
       break;
 
@@ -631,14 +811,14 @@ hyscan_data_schema_parse_key (xmlNodePtr                 node,
       break;
     }
 
-  if (key->default_value != NULL)
-    g_variant_ref_sink (key->default_value);
-  if (key->minimum_value != NULL)
-    g_variant_ref_sink (key->minimum_value);
-  if (key->maximum_value != NULL)
-    g_variant_ref_sink (key->maximum_value);
-  if (key->value_step != NULL)
-    g_variant_ref_sink (key->value_step);
+  if (ikey->default_value != NULL)
+    g_variant_ref_sink (ikey->default_value);
+  if (ikey->minimum_value != NULL)
+    g_variant_ref_sink (ikey->minimum_value);
+  if (ikey->maximum_value != NULL)
+    g_variant_ref_sink (ikey->maximum_value);
+  if (ikey->value_step != NULL)
+    g_variant_ref_sink (ikey->value_step);
 
 exit:
   xmlFree (idx);
@@ -651,7 +831,7 @@ exit:
   xmlFree (maximum_valuex);
   xmlFree (value_stepx);
 
-  return key;
+  return ikey;
 }
 
 /* Функция обрабатывает описание ветки схемы. */
@@ -687,22 +867,22 @@ hyscan_data_schema_parse_node (xmlNodePtr                 node,
 
       if (g_ascii_strcasecmp ((gchar*)node->name, "key") == 0)
         {
-          HyScanDataSchemaInternalKey *key = hyscan_data_schema_parse_key (node, path,
-                                                                           enums, gettext_domain);
-          if (key == NULL)
+          HyScanDataSchemaInternalKey *ikey = hyscan_data_schema_parse_key (node, path,
+                                                                            enums, gettext_domain);
+          if (ikey == NULL)
             {
               status = FALSE;
             }
           else
             {
-              if (g_hash_table_contains (keys, key->id))
+              if (g_hash_table_contains (keys, ikey->id))
                 {
-                  g_warning ("HyScanDataSchema: duplicated key '%s'", key->id);
+                  g_warning ("HyScanDataSchema: duplicated key '%s'", ikey->id);
                   status = FALSE;
                 }
               else
                 {
-                g_hash_table_insert (keys, key->id, key);
+                g_hash_table_insert (keys, ikey->id, ikey);
                 }
             }
         }
@@ -808,7 +988,16 @@ hyscan_data_schema_parse_schema (xmlDocPtr                  doc,
   return FALSE;
 }
 
-/* Функция создаёт новый объект HyScanDataSchema. */
+/**
+ * hyscan_data_schema_new_from_string:
+ * @schema_data: строка с описанием схемы в формате XML
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataSchema из описания схемы в виде
+ * строки с XML данными.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
 HyScanDataSchema *
 hyscan_data_schema_new_from_string (const gchar *schema_data,
                                     const gchar *schema_id)
@@ -819,7 +1008,15 @@ hyscan_data_schema_new_from_string (const gchar *schema_data,
                        NULL);
 }
 
-/* Функция создаёт новый объект HyScanDataSchema. */
+/**
+ * hyscan_data_schema_new_from_file:
+ * @schema_path: путь к XML файлу с описанием схемы
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataSchema из описания схемы в XML файле.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
 HyScanDataSchema *
 hyscan_data_schema_new_from_file (const gchar *schema_path,
                                   const gchar *schema_id)
@@ -839,7 +1036,16 @@ hyscan_data_schema_new_from_file (const gchar *schema_path,
   return schema;
 }
 
-/* Функция создаёт новый объект HyScanDataSchema. */
+/**
+ * hyscan_data_schema_new_from_resource:
+ * @schema_resource: путь к ресурсу GResource
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataSchema из описания схемы в виде
+ * строки с XML данными загружаемой из ресурсов.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
 HyScanDataSchema *
 hyscan_data_schema_new_from_resource (const gchar *schema_resource,
                                       const gchar *schema_id)
@@ -862,54 +1068,46 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
   return schema;
 }
 
-/* Функция возвращает описание схемы данных в фомате XML. */
-gchar *
-hyscan_data_schema_get_data (HyScanDataSchema *schema,
-                             const gchar      *root,
-                             const gchar      *schema_id)
+/**
+ * hyscan_data_schema_get_data:
+ * @schema: указатель на #HyScanDataSchema
+ *
+ * Функция возвращает описание загруженной схемы данных в виде строки с XML данными.
+ *
+ * Returns: (transfer none): Описание загруженной схемы данных.
+ */
+const gchar *
+hyscan_data_schema_get_data (HyScanDataSchema *schema)
 {
-  HyScanDataSchemaBuilder *builder;
-  gchar *schema_root = NULL;
-  gchar *data = NULL;
-  gboolean status;
-
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  if (root != NULL)
-    {
-      if (root[strlen (root) - 1] == '/')
-        schema_root = g_strdup (root);
-      else
-        schema_root = g_strdup_printf ("%s/", root);
-    }
-  else
-    {
-      schema_root = g_strdup ("/");
-    }
-
-  builder = hyscan_data_schema_builder_new ((schema_id == NULL) ? schema->priv->schema_id : schema_id);
-
-  status = hyscan_data_schema_internal_builder_join_schema (builder, "/",
-                                                            schema, schema_root);
-  if (status)
-    data = hyscan_data_schema_builder_get_data (builder);
-
-  g_object_unref (builder);
-  g_free (schema_root);
-
-  return data;
+  return schema->priv->schema_data;
 }
 
-/* Функция возвращает идентификатор используемой схемы данных. */
-gchar *
+/**
+ * hyscan_data_schema_get_id:
+ * @schema: указатель на #HyScanDataSchema
+ *
+ * Функция возвращает идентификатор загруженной схемы данных.
+ *
+ * Returns: (transfer none): Идентификатор загруженной схемы данных.
+ */
+const gchar *
 hyscan_data_schema_get_id (HyScanDataSchema *schema)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return g_strdup (schema->priv->schema_id);
+  return schema->priv->schema_id;
 }
 
-/* Функция возвращает список параметров определённых в схеме. */
+/**
+ * hyscan_data_schema_list_keys:
+ * @schema: указатель на #HyScanDataSchema
+ *
+ * Функция возвращает список параметров определённых в схеме.
+ *
+ * Returns: (transfer full): Список параметров в схеме. Для удаления #g_strfreev.
+ */
 gchar **
 hyscan_data_schema_list_keys (HyScanDataSchema *schema)
 {
@@ -918,7 +1116,14 @@ hyscan_data_schema_list_keys (HyScanDataSchema *schema)
   return g_strdupv (schema->priv->keys_list);
 }
 
-/* Функция возвращает иеархический список узлов и параметров определённых в схеме. */
+/**
+ * hyscan_data_schema_list_nodes:
+ * @schema: указатель на #HyScanDataSchema
+ *
+ * Функция возвращает иеархический список узлов и параметров определённых в схеме.
+ *
+ * Returns: (transfer full): Список параметров в схеме.
+ */
 HyScanDataSchemaNode *
 hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
 {
@@ -933,22 +1138,31 @@ hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
   if (priv->keys_list == NULL)
     return NULL;
 
-  node = hyscan_data_schema_internal_node_new ("");
+  node = hyscan_data_schema_node_new ("", NULL, NULL);
   for (i = 0; priv->keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaInternalKey *key = g_hash_table_lookup (priv->keys, priv->keys_list[i]);
-      hyscan_data_schema_internal_node_insert_key (node, priv->keys_list[i],
-                                                   key->name,
-                                                   key->description,
-                                                   key->type,
-                                                   key->view,
-                                                   key->access);
+      HyScanDataSchemaInternalKey *ikey;
+      HyScanDataSchemaKey *key;
+
+      ikey = g_hash_table_lookup (priv->keys, priv->keys_list[i]);
+      key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                        ikey->type, ikey->view, ikey->access);
+
+      hyscan_data_schema_internal_node_insert_key (node, key);
     }
 
   return node;
 }
 
-/* Функция проверяет существование параметра в схеме. */
+/**
+ * hyscan_data_schema_has_key:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция проверяет существование параметра в схеме.
+ *
+ * Returns: %TRUE - если параметр присутствует в схеме, иначе %FALSE.
+ */
 gboolean
 hyscan_data_schema_has_key (HyScanDataSchema *schema,
                             const gchar      *key_id)
@@ -958,232 +1172,292 @@ hyscan_data_schema_has_key (HyScanDataSchema *schema,
   return g_hash_table_contains (schema->priv->keys, key_id);
 }
 
-/* Функция возвращает название параметра. */
+/**
+ * hyscan_data_schema_key_get_name:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает название параметра.
+ *
+ * Returns: Название параметра или NULL.
+ */
 const gchar *
 hyscan_data_schema_key_get_name (HyScanDataSchema *schema,
                                  const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return NULL;
 
-  return key->name;
+  return ikey->name;
 }
 
-/* Функция возвращает описание параметра. */
+/**
+ * hyscan_data_schema_key_get_description:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает описание параметра.
+ *
+ * Returns: Описание параметра или NULL.
+ */
 const gchar *
 hyscan_data_schema_key_get_description (HyScanDataSchema *schema,
                                         const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return NULL;
 
-  return key->description;
+  return ikey->description;
 }
 
-/* Функция возвращает тип параметра. */
+/**
+ * hyscan_data_schema_key_get_value_type:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает тип параметра.
+ *
+ * Returns: Тип параметра.
+ */
 HyScanDataSchemaKeyType
-hyscan_data_schema_key_get_type (HyScanDataSchema *schema,
-                                 const gchar      *key_id)
+hyscan_data_schema_key_get_value_type (HyScanDataSchema *schema,
+                                       const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), HYSCAN_DATA_SCHEMA_KEY_INVALID);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return HYSCAN_DATA_SCHEMA_KEY_INVALID;
 
-  return key->type;
+  return ikey->type;
 }
 
-/* Функция возвращает вид отображения параметра. */
+/**
+ * hyscan_data_schema_key_get_view:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает рекомендуемый вид отображения параметра.
+ *
+ * Returns: Рекомендуемый вид отображения параметра.
+ */
 HyScanDataSchemaViewType
 hyscan_data_schema_key_get_view (HyScanDataSchema *schema,
                                  const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), HYSCAN_DATA_SCHEMA_VIEW_DEFAULT);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return HYSCAN_DATA_SCHEMA_VIEW_DEFAULT;
 
-  return key->view;
+  return ikey->view;
 }
 
-/* Функция возвращает атрибуты доступа к параметру. */
+/**
+ * hyscan_data_schema_key_get_access:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает атрибуты доступа к параметру.
+ *
+ * Returns: Атрибуты доступа к параметру.
+ */
 HyScanDataSchemaKeyAccess
 hyscan_data_schema_key_get_access (HyScanDataSchema *schema,
-                                  const gchar      *key_id)
+                                   const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), TRUE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return TRUE;
 
-  return key->access;
+  return ikey->access;
 }
 
-/* Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM. */
+/**
+ * hyscan_data_schema_key_get_enum_id:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM.
+ *
+ * Returns: Идентификатор списка значений или NULL.
+ */
 const gchar *
 hyscan_data_schema_key_get_enum_id (HyScanDataSchema *schema,
                                     const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL || key->type != HYSCAN_DATA_SCHEMA_KEY_ENUM)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_ENUM)
     return NULL;
 
-  return key->enum_values->id;
+  return ikey->enum_id;
 }
 
-/* Функция возвращает варианты допустимых значений для указанного идентификатора списка значений. */
-HyScanDataSchemaEnumValue **
-hyscan_data_schema_key_get_enum_values (HyScanDataSchema      *schema,
-                                        const gchar           *enum_id)
-{
-  HyScanDataSchemaEnum *enum_values;
-  HyScanDataSchemaEnumValue **values;
-  gint n_values;
-  gint i;
-
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
-
-  enum_values = g_hash_table_lookup (schema->priv->enums, enum_id);
-  if (enum_values == NULL)
-    return NULL;
-
-  for (i = 0, n_values = 0; enum_values->values[i] != NULL; i++)
-    n_values += 1;
-
-  values = g_malloc0 (sizeof (HyScanDataSchemaEnumValue*) * (n_values + 1));
-  for (i = 0; i < n_values; i++)
-    {
-      values[i] = g_new0 (HyScanDataSchemaEnumValue, 1);
-      values[i]->value = enum_values->values[i]->value;
-      values[i]->name = g_strdup (enum_values->values[i]->name);
-      values[i]->description = g_strdup (enum_values->values[i]->description);
-    }
-
-  return values;
-}
-
-/* Функция возвращает значение параметра по умолчанию. */
+/**
+ * hyscan_data_schema_key_get_default:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает значение параметра по умолчанию.
+ *
+ * Returns: Значение параметра по умолчанию или NULL. Для удаления #g_variant_unref.
+ */
 GVariant *
 hyscan_data_schema_key_get_default (HyScanDataSchema *schema,
                                     const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL || key->default_value == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->default_value == NULL)
     return NULL;
 
-  return g_variant_ref (key->default_value);
+  return g_variant_ref (ikey->default_value);
 }
 
-/* Функция возвращает минимальное значение параметра. */
+/**
+ * hyscan_data_schema_key_get_minimum:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает минимальное значение параметра для типов INTEGER и DOUBLE.
+ *
+ * Returns: Минимальное значение параметра или NULL. Для удаления #g_variant_unref.
+ */
 GVariant *
 hyscan_data_schema_key_get_minimum (HyScanDataSchema *schema,
                                     const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL || key->minimum_value == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->minimum_value == NULL)
     return NULL;
 
-  return g_variant_ref (key->minimum_value);
+  return g_variant_ref (ikey->minimum_value);
 }
 
-/* Функция возвращает максимальное значение параметра. */
+/**
+ * hyscan_data_schema_key_get_maximum:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает максимальное значение параметра для типов INTEGER и DOUBLE.
+ *
+ * Returns: Максимальное значение параметра или NULL. Для удаления #g_variant_unref.
+ */
 GVariant *
 hyscan_data_schema_key_get_maximum (HyScanDataSchema *schema,
                                     const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL || key->maximum_value == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->maximum_value == NULL)
     return NULL;
 
-  return g_variant_ref (key->maximum_value);
+  return g_variant_ref (ikey->maximum_value);
 }
 
-/* Функция возвращает рекомендуемый шаг изменения значения параметра. */
+/**
+ * hyscan_data_schema_key_get_step:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция возвращает рекомендуемый шаг изменения значения параметра для типов INTEGER и DOUBLE.
+ *
+ * Returns: Рекомендуемый шаг изменения значения параметра или NULL. Для удаления #g_variant_unref.
+ */
 GVariant *
 hyscan_data_schema_key_get_step (HyScanDataSchema *schema,
                                  const gchar      *key_id)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL || key->value_step == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->value_step == NULL)
     return NULL;
 
-  return g_variant_ref (key->value_step);
+  return g_variant_ref (ikey->value_step);
 }
 
-/* Функция проверяет значение параметра на предмет нахождения в допустимом диапазоне. */
+/**
+ * hyscan_data_schema_key_check:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @value: значение параметра
+ *
+ * Функция проверяет значение параметра на предмет нахождения в допустимом диапазоне.
+ *
+ * Returns: %TRUE - если значение находится в допустимых пределах, иначе %FALSE.
+ */
 gboolean
 hyscan_data_schema_key_check (HyScanDataSchema *schema,
                               const gchar      *key_id,
                               GVariant         *value)
 {
-  HyScanDataSchemaInternalKey *key;
+  HyScanDataSchemaInternalKey *ikey;
+  GList *enum_values;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
 
-  key = g_hash_table_lookup (schema->priv->keys, key_id);
-  if (key == NULL)
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
     return FALSE;
 
-  if (value != NULL && g_variant_classify (value) != key->value_type)
+  if (value != NULL && g_variant_classify (value) != ikey->value_type)
     return FALSE;
 
-  switch (key->type)
+  switch (ikey->type)
     {
     case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
-      if (g_variant_get_int64 (value) < g_variant_get_int64 (key->minimum_value))
+      if (g_variant_get_int64 (value) < g_variant_get_int64 (ikey->minimum_value))
         return FALSE;
-      if (g_variant_get_int64 (value) > g_variant_get_int64 (key->maximum_value))
+      if (g_variant_get_int64 (value) > g_variant_get_int64 (ikey->maximum_value))
         return FALSE;
       return TRUE;
 
     case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
-      if (g_variant_get_double (value) < g_variant_get_double (key->minimum_value))
+      if (g_variant_get_double (value) < g_variant_get_double (ikey->minimum_value))
         return FALSE;
-      if (g_variant_get_double (value) > g_variant_get_double (key->maximum_value))
+      if (g_variant_get_double (value) > g_variant_get_double (ikey->maximum_value))
         return FALSE;
       return TRUE;
 
     case HYSCAN_DATA_SCHEMA_KEY_ENUM:
-      return hyscan_data_schema_internal_enum_check (key->enum_values, g_variant_get_int64 (value));
+      enum_values = g_hash_table_lookup (schema->priv->enums, ikey->enum_id);
+      return hyscan_data_schema_internal_enum_check (enum_values, g_variant_get_int64 (value));
 
     default:
       break;
@@ -1192,42 +1466,261 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
   return TRUE;
 }
 
-/* Функция освобождает память занятую списком узлов и параметров. */
-void
-hyscan_data_schema_free_nodes (HyScanDataSchemaNode *nodes)
+/**
+ * hyscan_data_schema_get_enum_values:
+ * @schema: указатель на #HyScanDataSchema
+ * @enum_id: идентификатор списка значений для ENUM параметра
+ *
+ * Функция возвращает варианты допустимых значений для указанного
+ * идентификатора списка значений.
+ *
+ * Returns: (transfer container) (element-type HyScanDataSchemaEnumValue):
+ *          Список допустимых значений параметра или NULL.
+ */
+GList *
+hyscan_data_schema_get_enum_values (HyScanDataSchema *schema,
+                                    const gchar      *enum_id)
 {
-  guint i;
+  GList *enum_values;
+  GList *new_enum_values;
 
-  for (i = 0; i < nodes->n_nodes; i++)
-    hyscan_data_schema_free_nodes (nodes->nodes[i]);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  for (i = 0; i < nodes->n_keys; i++)
+  enum_values = g_hash_table_lookup (schema->priv->enums, enum_id);
+  if (enum_values == NULL)
+    return NULL;
+
+  new_enum_values = NULL;
+  while (enum_values != NULL)
     {
-      g_free (nodes->keys[i]->id);
-      g_free (nodes->keys[i]->name);
-      g_free (nodes->keys[i]->description);
-      g_free (nodes->keys[i]);
+      new_enum_values = g_list_prepend (new_enum_values, enum_values->data);
+      enum_values = enum_values->next;
     }
 
-  g_free (nodes->path);
-
-  g_free (nodes->nodes);
-  g_free (nodes->keys);
-  g_free (nodes);
+  return g_list_reverse (new_enum_values);
 }
 
-/* Функция освобождает память занятую списком вариантов допустимых значений для параметра с типом ENUM. */
-void
-hyscan_data_schema_free_enum_values (HyScanDataSchemaEnumValue **values)
+/**
+ * hyscan_data_schema_enum_value_new:
+ * @value: Численное значение параметра
+ * @name: Название значения параметра
+ * @description: Описание значения параметра
+ *
+ * Функция создаёт новую структуру #HyScanDataSchemaEnumValue и заполняет её поля.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaEnumValue.
+ * Для удаления #hyscan_data_schema_enum_value_free.
+ */
+HyScanDataSchemaEnumValue *
+hyscan_data_schema_enum_value_new (gint64       value,
+                                   const gchar *name,
+                                   const gchar *description)
 {
-  gint i;
+  HyScanDataSchemaEnumValue new_value;
 
-  for (i = 0; values[i] != NULL; i++)
+  new_value.value = value;
+  new_value.name = name;
+  new_value.description = description;
+
+  return hyscan_data_schema_enum_value_copy (&new_value);
+}
+
+/**
+ * hyscan_data_schema_enum_value_copy:
+ * @value: Структура #HyScanDataSchemaEnumValue для копирования
+ *
+ * Функция создаёт копию структуры #HyScanDataSchemaEnumValue.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaEnumValue.
+ * Для удаления #hyscan_data_schema_enum_value_free.
+ */
+HyScanDataSchemaEnumValue *
+hyscan_data_schema_enum_value_copy (HyScanDataSchemaEnumValue *value)
+{
+  HyScanDataSchemaEnumValue *new_value;
+
+  new_value = g_slice_new (HyScanDataSchemaEnumValue);
+  new_value->value = value->value;
+  new_value->name = g_strdup (value->name);
+  new_value->description = g_strdup (value->description);
+
+  return new_value;
+}
+
+/**
+ * hyscan_data_schema_enum_value_free:
+ * @value: Структура #HyScanDataSchemaEnumValue для удаления
+ *
+ * Функция удаляет структуру #HyScanDataSchemaEnumValue.
+ */
+void
+hyscan_data_schema_enum_value_free (HyScanDataSchemaEnumValue *value)
+{
+  if (value == NULL)
+    return;
+
+  g_free ((gchar*)value->name);
+  g_free ((gchar*)value->description);
+
+  g_slice_free (HyScanDataSchemaEnumValue, value);
+}
+
+/**
+ * hyscan_data_schema_key_new:
+ * @id: Идентификатор параметра
+ * @name: Название параметра
+ * @description: Описание параметра
+ * @type: Тип параметра
+ * @view: Рекомендуемый вид отображения параметра
+ * @access: Атрибуты доступа к параметру
+ *
+ * Функция создаёт новую структуру #HyScanDataSchemaKey и заполняет её поля.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
+ * Для удаления #hyscan_data_schema_key_free.
+ */
+HyScanDataSchemaKey *
+hyscan_data_schema_key_new (const gchar               *id,
+                            const gchar               *name,
+                            const gchar               *description,
+                            HyScanDataSchemaKeyType    type,
+                            HyScanDataSchemaViewType   view,
+                            HyScanDataSchemaKeyAccess  access)
+{
+  HyScanDataSchemaKey new_key;
+
+  new_key.id = id;
+  new_key.name = id;
+  new_key.description = description;
+  new_key.type = type;
+  new_key.view = view;
+  new_key.access = access;
+
+  return hyscan_data_schema_key_copy (&new_key);
+}
+
+/**
+ * hyscan_data_schema_key_copy:
+ * @key: Структура #HyScanDataSchemaKey для копирования
+ *
+ * Функция создаёт копию структуры #HyScanDataSchemaKey.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
+ * Для удаления #hyscan_data_schema_key_free.
+ */
+HyScanDataSchemaKey *
+hyscan_data_schema_key_copy (HyScanDataSchemaKey *key)
+{
+  HyScanDataSchemaKey *new_key;
+
+  new_key = g_slice_new (HyScanDataSchemaKey);
+  new_key->id = g_strdup (key->id);
+  new_key->name = g_strdup (key->id);
+  new_key->description = g_strdup (key->description);
+  new_key->type = key->type;
+  new_key->view = key->view;
+  new_key->access = key->access;
+
+  return new_key;
+}
+
+/**
+ * hyscan_data_schema_key_free:
+ * @key: Структура #HyScanDataSchemaKey для удаления
+ *
+ * Функция удаляет структуру #HyScanDataSchemaKey.
+ */
+void
+hyscan_data_schema_key_free (HyScanDataSchemaKey *key)
+{
+  if (key == NULL)
+    return;
+
+  g_free ((gchar*)key->id);
+  g_free ((gchar*)key->name);
+  g_free ((gchar*)key->description);
+
+  g_slice_free (HyScanDataSchemaKey, key);
+}
+
+/**
+ * hyscan_data_schema_node_new:
+ * @path: Путь до узла
+ * @nodes: (element-type HyScanDataSchemaNode) (transfer none): Дочерние узлы
+ * @keys: (element-type HyScanDataSchemaKey) (transfer none): Параметры
+ *
+ * Функция создаёт новую структуру #HyScanDataSchemaNode и заполняет её поля.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaNode.
+ * Для удаления #hyscan_data_schema_node_free.
+ */
+HyScanDataSchemaNode *
+hyscan_data_schema_node_new (const gchar *path,
+                             GList       *nodes,
+                             GList       *keys)
+{
+  HyScanDataSchemaNode new_node;
+
+  new_node.path = path;
+  new_node.nodes = nodes;
+  new_node.keys = keys;
+
+  return hyscan_data_schema_node_copy (&new_node);
+}
+
+/**
+ * hyscan_data_schema_node_copy:
+ * @node: Структура #HyScanDataSchemaNode для копирования
+ *
+ * Функция создаёт копию структуры #HyScanDataSchemaNode.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaNode.
+ * Для удаления #hyscan_data_schema_node_free.
+ */
+HyScanDataSchemaNode *
+hyscan_data_schema_node_copy (HyScanDataSchemaNode *node)
+{
+  HyScanDataSchemaNode *new_node;
+  GList *nodes, *new_nodes;
+  GList *keys, *new_keys;
+
+  new_node = g_slice_new (HyScanDataSchemaNode);
+  new_node->path = g_strdup (node->path);
+
+  nodes = node->nodes;
+  new_nodes = NULL;
+  while (nodes != NULL)
     {
-      g_free (values[i]->name);
-      g_free (values[i]->description);
-      g_free (values[i]);
+      new_nodes = g_list_prepend (new_nodes, hyscan_data_schema_node_copy (nodes->data));
+      nodes = nodes->next;
     }
+  new_node->nodes = g_list_reverse (new_nodes);
 
-  g_free (values);
+  keys = node->keys;
+  new_keys = NULL;
+  while (keys != NULL)
+    {
+      new_keys = g_list_prepend (new_keys, hyscan_data_schema_key_copy (keys->data));
+      keys = keys->next;
+    }
+  new_node->keys = g_list_reverse (new_keys);
+
+  return new_node;
+}
+
+/**
+ * hyscan_data_schema_node_free:
+ * @node: Структура #HyScanDataSchemaNode для удаления
+ *
+ * Функция удаляет структуру #HyScanDataSchemaNode.
+ */
+void
+hyscan_data_schema_node_free (HyScanDataSchemaNode *node)
+{
+  g_list_free_full (node->nodes, (GDestroyNotify)hyscan_data_schema_node_free);
+  g_list_free_full (node->keys, (GDestroyNotify)hyscan_data_schema_key_free);
+
+  g_free ((gchar*)node->path);
+
+  g_slice_free (HyScanDataSchemaNode, node);
 }

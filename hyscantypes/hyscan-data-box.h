@@ -1,59 +1,35 @@
-/**
- * \file hyscan-data-box.h
+/* hyscan-data-box.h
  *
- * \brief Заголовочный файл класса параметров в памяти.
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
- * \defgroup HyScanDataBox HyScanDataBox - класс параметров в памяти
+ * This file is part of HyScanTypes.
  *
- * Класс предоставляет набор функций для работы с параметрами, определённых схемой
- * \link HyScanDataSchema \endlink и размещаемых в оперативной памяти. Имеется возможность
- * зарегистрировать обработчики, вызываемые при изменении значений параметров, а также
- * отслеживать наличие изменений.
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_string,
- * #hyscan_data_box_new_from_file и #hyscan_data_box_new_from_resource.
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Класс реализует интерфейс \link HyScanParam \endlink для работы с параметрами.
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
- * При изменении значения любого параметра увеличивается счётчик, связанный с этим параметром,
- * а также глобальный счётчик. Получить текущее значение счётчика можно функцией
- * #hyscan_data_box_get_mod_count. Пользователь может узнать об изменениях в значениях параметров,
- * используя значения этих счётчиков.
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
  *
- * Класс предоставляет возможность сохранить текущее значение всех параметров в виде
- * строки и восстановить эти значения в дальнейшем. Для этих целей используются функции
- * #hyscan_data_box_serialize и #hyscan_data_box_deserialize.
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
  *
- * Перед изменением объект посылает сигнал "set". В нём передаются названия изменяемых параметров
- * и их новые значения. Пользователь может обработать этот сигнал и проверить валидность новых
- * значений. Пользователь может зарегистрировать несколько обработчиков сигнала "set". Если любой
- * из обработчиков сигнала вернёт значение FALSE, новые значения не будут установлены.
- * Прототип callback функции для сигнала:
- *
- * \code
- *
- * gboolean     set_cb (HyDataBox           *data,
- *                      const gchar *const  *names,
- *                      GVarint            **values,
- *                      gpointer             user_data);
- *
- * \endcode
- *
- * Также, при изменении любого параметра, происходит отправка сигнала "changed". Сигнал поддерживает
- * возможность указания имени параметра, для которого будет происходить его отправка "changed::name".
- * Прототип callback функции для сигнала:
- *
- * \code
- *
- * void         changed_cb (HyDataBox   *data,
- *                          const gchar *name,
- *                          gpointer     user_data);
- *
- * \endcode
- *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
  */
 
 #ifndef __HYSCAN_DATA_BOX_H__
@@ -89,89 +65,28 @@ struct _HyScanDataBoxClass
 HYSCAN_API
 GType                  hyscan_data_box_get_type                (void);
 
-/**
- *
- * Функция создаёт новый объект \link HyScanDataBox \endlink.
- *
- * \param schema_data строка с описанием схемы в формате XML;
- * \param schema_id идентификатор загружаемой схемы.
- *
- * \return Указатель на объект \link HyScanDataBox \endlink.
- *
- */
 HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_string         (const gchar           *schema_data,
                                                                 const gchar           *schema_id);
 
-/**
- *
- * Функция создаёт новый объект \link HyScanDataBox \endlink.
- *
- * \param schema_path путь к XML файлу с описанием схемы;
- * \param schema_id идентификатор загружаемой схемы.
- *
- * \return Указатель на объект \link HyScanDataBox \endlink.
- *
- */
 HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *schema_path,
                                                                 const gchar           *schema_id);
 
-/**
- *
- * Функция создаёт новый объект \link HyScanDataBox \endlink.
- *
- * \param schema_resource путь к ресурсу GResource;
- * \param schema_id идентификатор загружаемой схемы.
- *
- * \return Указатель на объект \link HyScanDataBox \endlink.
- *
- */
 HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
                                                                 const gchar           *schema_id);
 
-/**
- *
- * Функция возвращает значение счётчика изменений параметра. Если имя параметра
- * равно NULL, возвращается значение глобального счётчика изменений для всех параметров.
- *
- * \param data_box указатель на объект \link HyScanDataBox \endlink;
- * \param name название параметра или NULL.
- *
- * \return Значение счётчика изменений.
- *
- */
+HYSCAN_API
+HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema      *schema);
+
 HYSCAN_API
 guint32                hyscan_data_box_get_mod_count           (HyScanDataBox         *data_box,
                                                                 const gchar           *name);
 
-/**
- *
- * Функция возвращает строку с текущими значениями параметров. Эта строка
- * может использоваться для начальной инициализации значений при создании
- * объекта. Пользователь должен освободить память, занимаемую строкой,
- * с помощью функции g_free.
- *
- * \param data_box указатель на объект \link HyScanDataBox \endlink.
- *
- * \return Строка с текущими значениями параметров или NULL.
- *
- */
 HYSCAN_API
 gchar                 *hyscan_data_box_serialize               (HyScanDataBox         *data_box);
 
-/**
- *
- * Функция устанавливает значения параметров в значения возвращаемые функцией
- * #hyscan_data_box_serialize.
- *
- * \param data_box указатель на объект \link HyScanDataBox \endlink;
- * \param svalues строка со значениями параметров.
- *
- * \return TRUE если значения установлены, FALSE - в случае ошибки.
- *
- */
 HYSCAN_API
 gboolean               hyscan_data_box_deserialize             (HyScanDataBox         *data_box,
                                                                 const gchar           *svalues);

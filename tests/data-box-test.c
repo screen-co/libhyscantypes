@@ -488,10 +488,9 @@ check_enum (HyScanDataBox    *data,
   HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   const gchar *enum_id;
-  HyScanDataSchemaEnumValue **values;
+  GList *values, *values_list;
   GVariant *default_value;
   gint64 value;
-  gint i;
 
   cur_name = name;
   param = HYSCAN_PARAM (data);
@@ -523,17 +522,19 @@ check_enum (HyScanDataBox    *data,
     g_error ("%s: can't get default value", name);
 
   enum_id = hyscan_data_schema_key_get_enum_id (schema, name);
-  values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
+  values_list = values = hyscan_data_schema_get_enum_values (schema, enum_id);
   if (values == NULL)
-    g_error ("%s: can't get default value", name);
+    g_error ("%s: can't get enum values", name);
 
-  for (i = 0; values[i] != NULL; i++)
+  while (values != NULL)
     {
-      cur_value = g_variant_new_int64 (values[i]->value);
+      HyScanDataSchemaEnumValue *enum_value = values->data;
 
-      hyscan_param_list_set_enum (list, name, values[i]->value);
+      cur_value = g_variant_new_int64 (enum_value->value);
+
+      hyscan_param_list_set_enum (list, name, enum_value->value);
       if (!hyscan_param_set (param, list))
-        g_error ("%s: can't set value %"G_GINT64_FORMAT, name, values[i]->value);
+        g_error ("%s: can't set value %"G_GINT64_FORMAT, name, enum_value->value);
 
       g_variant_unref (cur_value);
 
@@ -541,9 +542,13 @@ check_enum (HyScanDataBox    *data,
         g_error ("%s: can't get value", name);
 
       value = hyscan_param_list_get_enum (list, name);
-      if (value != values[i]->value)
-        g_error ("%s: value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, values[i]->value);
+      if (value != enum_value->value)
+        g_error ("%s: value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, enum_value->value);
+
+      values = values->next;
     }
+
+  g_list_free (values_list);
 
   cur_value = NULL;
 
@@ -561,8 +566,6 @@ check_enum (HyScanDataBox    *data,
   local_mod_counter = mod_counter - local_mod_counter;
   if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
     g_error ("%s: modification counter error", name);
-
-  hyscan_data_schema_free_enum_values (values);
 
   g_variant_unref (default_value);
 
@@ -645,8 +648,9 @@ main (int    argc,
 
   list = hyscan_param_list_new ();
   schema_data = test_schema_create ("test");
-  data = hyscan_data_box_new_from_string (schema_data, "test");
-  schema = hyscan_param_schema (HYSCAN_PARAM (data));
+
+  schema = hyscan_data_schema_new_from_string (schema_data, "test");
+  data = hyscan_data_box_new_from_schema (schema);
 
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
@@ -657,7 +661,9 @@ main (int    argc,
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
+      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
+
+      g_message ("check key: %s", keys_list[i]);
 
       switch (type)
         {
@@ -684,7 +690,6 @@ main (int    argc,
         default:
           break;
         }
-
     }
 
   g_strfreev (keys_list);

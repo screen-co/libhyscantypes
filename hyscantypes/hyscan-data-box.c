@@ -1,11 +1,60 @@
-/*
- * \file hyscan-data-box.h
+/* hyscan-data-box.c
  *
- * \brief Заголовочный файл класса работы с параметрами.
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
+ * This file is part of HyScanTypes.
+ *
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
+ */
+
+/**
+ * SECTION: hyscan-data-box
+ * @Short_description: класс параметров в памяти
+ * @Title: HyScanDataBox
+ *
+ * Класс предоставляет набор функций для работы с параметрами, определённых
+ * схемой #HyScanDataSchema и размещаемых в оперативной памяти. Имеется
+ * возможность зарегистрировать обработчики, вызываемые при изменении значений
+ * параметров, а также отслеживать наличие изменений.
+ *
+ * Создание объекта класса осуществляется функциями #hyscan_data_box_new_from_string,
+ * #hyscan_data_box_new_from_file и #hyscan_data_box_new_from_resource.
+ *
+ * Класс реализует интерфейс #HyScanParam для работы с параметрами.
+ *
+ * При изменении значения любого параметра увеличивается счётчик, связанный
+ * с этим параметром, а также глобальный счётчик. Получить текущее значение
+ * счётчика можно функцией #hyscan_data_box_get_mod_count. Пользователь может
+ * узнать об изменениях в значениях параметров, используя значения этих счётчиков.
+ *
+ * Класс предоставляет возможность сохранить текущее значение всех параметров в виде
+ * строки и восстановить эти значения в дальнейшем. Для этих целей используются функции
+ * #hyscan_data_box_serialize и #hyscan_data_box_deserialize.
  */
 
 #include "hyscan-data-box.h"
@@ -16,6 +65,7 @@
 enum
 {
   PROP_O,
+  PROP_SCHEMA,
   PROP_SCHEMA_DATA,
   PROP_SCHEMA_ID
 };
@@ -83,6 +133,10 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
   object_class->constructed = hyscan_data_box_object_constructed;
   object_class->finalize = hyscan_data_box_object_finalize;
 
+  g_object_class_install_property (object_class, PROP_SCHEMA,
+    g_param_spec_object ("schema", "Schema", "HyScanDataSchema object", HYSCAN_TYPE_DATA_SCHEMA,
+                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
   g_object_class_install_property (object_class, PROP_SCHEMA_DATA,
     g_param_spec_string ("schema-data", "SchemaData", "Schema data", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
@@ -91,12 +145,33 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
     g_param_spec_string ("schema-id", "SchemaID", "Schema id", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 
+  /**
+   * HyScanDataBox::set:
+   * @data_box: указатель на #HyScanDataBox
+   * @param_list: (type HyScanParamList): список параметров и их значения
+   *
+   * Сигнал посылается перед изменением параметров. В нём передаются названия
+   * изменяемых параметров и их новые значения. Пользователь может обработать
+   * этот сигнал и проверить валидность новых значений. Если обработчик сигнала
+   * вернёт значение %FALSE, новые значения не будут установлены.
+   *
+   * Returns: %TRUE для установки значений, иначе %FALSE.
+   */
   hyscan_data_box_signals[SIGNAL_SET] =
     g_signal_new ("set", HYSCAN_TYPE_DATA_BOX, G_SIGNAL_RUN_LAST, 0,
                   hyscan_data_box_signal_accumulator, NULL,
                   hyscan_types_marshal_BOOLEAN__OBJECT,
                   G_TYPE_BOOLEAN, 1, G_TYPE_OBJECT);
 
+  /**
+   * HyScanDataBox::changed:
+   * @data_box: указатель на #HyScanDataBox
+   * @name: название параметра
+   *
+   * Сигнал посылается при изменении параметров. Сигнал поддерживает возможность
+   * детализации. При подключении к сигналу вида "changed::name", он будет
+   * посылаться только для параметра name.
+   */
   hyscan_data_box_signals[SIGNAL_CHANGED] =
     g_signal_new ("changed", HYSCAN_TYPE_DATA_BOX, G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0,
                   NULL, NULL,
@@ -120,6 +195,10 @@ hyscan_data_box_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_SCHEMA:
+      priv->schema = g_value_dup_object (value);
+      break;
+
     case PROP_SCHEMA_DATA:
       priv->schema_data = g_value_dup_string (value);
       break;
@@ -147,7 +226,8 @@ hyscan_data_box_object_constructed (GObject *object)
   g_mutex_init (&priv->lock);
 
   /* Схема параметров. */
-  priv->schema = hyscan_data_schema_new_from_string (priv->schema_data, priv->schema_id);
+  if (priv->schema == NULL)
+    priv->schema = hyscan_data_schema_new_from_string (priv->schema_data, priv->schema_id);
 
   /* Таблица со значениями параметров. */
   priv->params = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, hyscan_data_box_param_free);
@@ -161,7 +241,7 @@ hyscan_data_box_object_constructed (GObject *object)
     {
       HyScanDataBoxParam *param = g_slice_new0 (HyScanDataBoxParam);
 
-      param->type = hyscan_data_schema_key_get_type (priv->schema, priv->keys_list[i]);
+      param->type = hyscan_data_schema_key_get_value_type (priv->schema, priv->keys_list[i]);
       param->id = g_quark_from_string (priv->keys_list[i]);
       param->access = hyscan_data_schema_key_get_access (priv->schema, priv->keys_list[i]);
 
@@ -242,7 +322,16 @@ hyscan_data_box_signal_accumulator (GSignalInvocationHint *ihint,
   return TRUE;
 }
 
-/* Функция создаёт новый объект HyScanDataBox. */
+/**
+ * hyscan_data_box_new_from_string:
+ * @schema_data: строка с описанием схемы в формате XML
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataBox из описания схемы в виде
+ * строки с XML данными.
+ *
+ * Returns: #HyScanDataBox. Для удаления #g_object_unref.
+ */
 HyScanDataBox *
 hyscan_data_box_new_from_string (const gchar  *schema_data,
                                  const gchar  *schema_id)
@@ -253,7 +342,15 @@ hyscan_data_box_new_from_string (const gchar  *schema_data,
                        NULL);
 }
 
-/* Функция создаёт новый объект HyScanDataBox. */
+/**
+ * hyscan_data_box_new_from_file:
+ * @schema_path: путь к XML файлу с описанием схемы
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataBox из описания схемы в XML файле.
+ *
+ * Returns: #HyScanDataBox. Для удаления #g_object_unref.
+ */
 HyScanDataBox *
 hyscan_data_box_new_from_file (const gchar *schema_path,
                                const gchar *schema_id)
@@ -273,7 +370,16 @@ hyscan_data_box_new_from_file (const gchar *schema_path,
   return data_box;
 }
 
-/* Функция создаёт новый объект HyScanDataBox. */
+/**
+ * hyscan_data_box_new_from_resource:
+ * @schema_resource: путь к ресурсу GResource
+ * @schema_id: идентификатор загружаемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataBox из описания схемы в виде
+ * строки с XML данными загружаемой из ресурсов.
+ *
+ * Returns: #HyScanDataBox. Для удаления #g_object_unref.
+ */
 HyScanDataBox *
 hyscan_data_box_new_from_resource (const gchar *schema_resource,
                                    const gchar *schema_id)
@@ -296,7 +402,33 @@ hyscan_data_box_new_from_resource (const gchar *schema_resource,
   return data_box;
 }
 
-/* Функция возвращает значение счётчика изменений параметра. */
+/**
+ * hyscan_data_box_new_from_schema:
+ * @schema: схема данныx
+ *
+ * Функция создаёт новый объект #HyScanDataBox из схемы #HyScanDataSchema.
+ *
+ * Returns: #HyScanDataBox. Для удаления #g_object_unref.
+ */
+HyScanDataBox *
+hyscan_data_box_new_from_schema (HyScanDataSchema *schema)
+{
+  return g_object_new (HYSCAN_TYPE_DATA_BOX,
+                       "schema", schema,
+                       NULL);
+}
+
+/**
+ * hyscan_data_box_get_mod_count:
+ * @data_box: указатель на #HyScanDataBox
+ * @name: (nullable): название параметра
+ *
+ * Функция возвращает значение счётчика изменений параметра. Если имя параметра
+ * равно NULL, возвращается значение глобального счётчика изменений для всех
+ * параметров.
+ *
+ * Returns: Значение счётчика изменений.
+ */
 guint32
 hyscan_data_box_get_mod_count (HyScanDataBox *data_box,
                                const gchar   *name)
@@ -315,7 +447,14 @@ hyscan_data_box_get_mod_count (HyScanDataBox *data_box,
   return 0;
 }
 
-/* Функция возвращает строку с текущими значениями параметров. */
+/**
+ * hyscan_data_box_serialize:
+ * @data_box: указатель на #HyScanDataBox
+ *
+ * Функция сериализует внутреннее состояние объекта в строку.
+ *
+ * Returns: (transfer full): Сериализованные данные или NULL.
+ */
 gchar *
 hyscan_data_box_serialize (HyScanDataBox *data_box)
 {
@@ -372,7 +511,15 @@ hyscan_data_box_serialize (HyScanDataBox *data_box)
   return sparams;
 }
 
-/* Функция устанавливает значения параметров. */
+/**
+ * hyscan_data_box_deserialize:
+ * @data_box: указатель на #HyScanDataBox
+ * @svalues: сериализованные данные
+ *
+ * Функция де-сериализует состояние объекта.
+ *
+ * Returns: %TRUE если де-сериализация прошла успешно, иначе %FALSE.
+ */
 gboolean
 hyscan_data_box_deserialize (HyScanDataBox *data_box,
                              const gchar   *svalues)

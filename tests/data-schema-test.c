@@ -1,5 +1,5 @@
 #include <gio/gio.h>
-#include <hyscan-data-schema.h>
+#include <hyscan-data-schema-builder.h>
 #include <libxml/parser.h>
 
 gchar *test_schema_create (const gchar *schema_id);
@@ -21,7 +21,7 @@ check_boolean (HyScanDataSchema *schema,
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
+  if (hyscan_data_schema_key_get_value_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
@@ -76,7 +76,7 @@ check_integer (HyScanDataSchema *schema,
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
+  if (hyscan_data_schema_key_get_value_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
@@ -155,7 +155,7 @@ check_double (HyScanDataSchema *schema,
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
+  if (hyscan_data_schema_key_get_value_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
@@ -231,7 +231,7 @@ check_string (HyScanDataSchema *schema,
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_STRING)
+  if (hyscan_data_schema_key_get_value_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_STRING)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
@@ -292,7 +292,7 @@ check_enum (HyScanDataSchema *schema,
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
 
-  if (hyscan_data_schema_key_get_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_ENUM)
+  if (hyscan_data_schema_key_get_value_type (schema, key_id) != HYSCAN_DATA_SCHEMA_KEY_ENUM)
     g_error ("%s: type error", key_id);
 
   name = hyscan_data_schema_key_get_name (schema, key_id);
@@ -338,6 +338,7 @@ check_enum (HyScanDataSchema *schema,
 int
 main (int argc, char **argv)
 {
+  HyScanDataSchemaBuilder *builder;
   HyScanDataSchema *schema;
   gchar *schema_data;
   gchar **keys_list;
@@ -348,7 +349,10 @@ main (int argc, char **argv)
   schema = hyscan_data_schema_new_from_string (schema_data, "orig");
   g_free (schema_data);
 
-  schema_data = hyscan_data_schema_get_data (schema, "/orig", "test");
+  builder = hyscan_data_schema_builder_new ("test");
+  hyscan_data_schema_builder_schema_join (builder, "/", schema, "/orig");
+  schema_data = hyscan_data_schema_builder_get_data (builder);
+  g_object_unref (builder);
   g_object_unref (schema);
 
   schema = hyscan_data_schema_new_from_string (schema_data, "test");
@@ -360,7 +364,9 @@ main (int argc, char **argv)
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
-      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_type (schema, keys_list[i]);
+      HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
+
+      g_message ("check key: %s", keys_list[i]);
 
       switch (type)
         {

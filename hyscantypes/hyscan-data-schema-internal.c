@@ -1,11 +1,35 @@
-/*
- * \file hyscan-data-schema-internal.c
+/* hyscan-data-schema-internal.c
  *
- * \brief Исходный файл внутренних функций для работы со схемами.
- * \author Andrei Fadeev (andrei@webcontrol.ru)
- * \date 2016
- * \license Проприетарная лицензия ООО "Экран"
+ * Copyright 2016-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
+ * This file is part of HyScanTypes.
+ *
+ * HyScanTypes is dual-licensed: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HyScan is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Alternatively, you can license this code under a commercial license.
+ * Contact the Screen LLC in this case - info@screen-co.ru
+ */
+
+/* HyScanTypes имеет двойную лицензию.
+ *
+ * Во первых, вы можете распространять HyScanTypes на условиях Стандартной
+ * Общественной Лицензии GNU версии 3, либо по любой более поздней версии
+ * лицензии (по вашему выбору). Полные положения лицензии GNU приведены в
+ * <http://www.gnu.org/licenses/>.
+ *
+ * Во вторых, этот программный код можно использовать по коммерческой
+ * лицензии. Для этого свяжитесь с ООО Экран - info@screen-co.ru.
  */
 
 #include "hyscan-data-schema-internal.h"
@@ -15,7 +39,7 @@
 gboolean
 hyscan_data_schema_internal_validate_name (const gchar *name)
 {
-  gint i;
+  guint i;
 
   for (i = 0; name[i] != '\0'; i++)
     {
@@ -59,84 +83,42 @@ hyscan_data_schema_internal_validate_id (const gchar *id)
   return TRUE;
 }
 
-/* Функция создаёт новый узел с параметрами. */
-HyScanDataSchemaNode *
-hyscan_data_schema_internal_node_new (const gchar *path)
+/* Функция проверяет значение перечисляемого типа на допустимость. */
+gboolean
+hyscan_data_schema_internal_enum_check (GList  *values,
+                                        gint64  value)
 {
-  HyScanDataSchemaNode *node;
-
-  node = g_new0 (HyScanDataSchemaNode, 1);
-  node->path = g_strdup (path);
-
-  return node;
-}
-
-/* Функция добавляет новый параметр в список. */
-void
-hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode     *node,
-                                             const gchar              *id,
-                                             const gchar              *name,
-                                             const gchar              *description,
-                                             HyScanDataSchemaKeyType   type,
-                                             HyScanDataSchemaViewType  view,
-                                             HyScanDataSchemaKeyAccess access)
-{
-  HyScanDataSchemaKey *key;
-
-  gchar **pathv;
-  guint n_pathv;
-  guint i, j;
-
-  /* Поиск узла для параметра. */
-  pathv = g_strsplit (id, "/", -1);
-  n_pathv = g_strv_length (pathv);
-  for (i = 1; i < n_pathv - 1; i++)
+  while (values != NULL)
     {
-      gboolean has_node = FALSE;
-      gchar *cur_path;
+      if (((HyScanDataSchemaEnumValue*)values->data)->value == value)
+        return TRUE;
 
-      /* Сверяем путь для текущего узла с идентификатором параметра. */
-      for (j = 0; node->nodes != NULL && node->nodes[j] != NULL; j++)
-        {
-          /* Если совпадают, мы на правильном пути:) */
-          if (g_str_has_prefix (id, node->nodes[j]->path) &&
-              (id[strlen (node->nodes[j]->path)] == '/'))
-            {
-              node = node->nodes[j];
-              has_node = TRUE;
-              break;
-            }
-        }
-
-      /* Если узел для текущего пути найден, переходим к следующему компоненту пути. */
-      if (has_node)
-        continue;
-
-      /* Или добавляем новый узел. */
-      cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
-      node->nodes = g_realloc (node->nodes, (node->n_nodes + 2) * sizeof (HyScanDataSchemaNode*));
-      node->nodes[node->n_nodes] = hyscan_data_schema_internal_node_new (cur_path);
-      node->n_nodes += 1;
-      node->nodes[node->n_nodes] = NULL;
-      node = node->nodes[j];
-      g_free (cur_path);
+      values = values->next;
     }
 
-  g_strfreev (pathv);
+  return FALSE;
+}
 
-  /* Новый параметр. */
-  key = g_new (HyScanDataSchemaKey, 1);
-  key->id = g_strdup (id);
-  key->name = g_strdup (name);
-  key->description = g_strdup (description);
-  key->type = type;
-  key->view = view;
-  key->access = access;
+/* Функция освобождает память занятую списком со значениями типа enum. */
+void
+hyscan_data_schema_internal_enum_free (GList *values)
+{
+  g_list_free_full (values, (GDestroyNotify)hyscan_data_schema_enum_value_free);
+}
 
-  node->keys = g_realloc (node->keys, (node->n_keys + 2) * sizeof (HyScanDataSchemaInternalKey*));
-  node->keys[node->n_keys] = key;
-  node->n_keys += 1;
-  node->keys[node->n_keys] = NULL;
+/* Функция создаёт новую структуру HyScanDataSchemaInternalKey. */
+HyScanDataSchemaInternalKey *
+hyscan_data_schema_internal_key_new (const gchar *id,
+                                     const gchar *name,
+                                     const gchar *description)
+{
+  HyScanDataSchemaInternalKey *new_key = g_slice_new0 (HyScanDataSchemaInternalKey);
+
+  new_key->id = g_strdup (id);
+  new_key->name = g_strdup (name);
+  new_key->description = g_strdup (description);
+
+  return new_key;
 }
 
 /* Функция освобождает память занятую структурой с параметром. */
@@ -146,207 +128,69 @@ hyscan_data_schema_internal_key_free (HyScanDataSchemaInternalKey *key)
   g_free (key->id);
   g_free (key->name);
   g_free (key->description);
+  g_free (key->enum_id);
 
   g_clear_pointer (&key->default_value, g_variant_unref);
   g_clear_pointer (&key->minimum_value, g_variant_unref);
   g_clear_pointer (&key->maximum_value, g_variant_unref);
   g_clear_pointer (&key->value_step, g_variant_unref);
 
-  g_free (key);
+  g_slice_free (HyScanDataSchemaInternalKey, key);
 }
 
-/* Функция проверяет значение перечисляемого типа на допустимость. */
-gboolean
-hyscan_data_schema_internal_enum_check (HyScanDataSchemaEnum *enums,
-                                        gint64                value)
+/* Функция добавляет новый параметр в список. */
+void
+hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
+                                             HyScanDataSchemaKey  *key)
 {
+  gchar **pathv;
+  guint n_pathv;
   guint i;
 
-  for (i = 0; enums->values[i] != NULL; i++)
+  /* Поиск узла для параметра. */
+  pathv = g_strsplit (key->id, "/", -1);
+  n_pathv = g_strv_length (pathv);
+  for (i = 1; i < n_pathv - 1; i++)
     {
-      if (enums->values[i]->value == value)
-        return TRUE;
-    }
+      GList *nodes = node->nodes;
+      gboolean has_node = FALSE;
 
-  return FALSE;
-}
-
-/* Функция освобождает память занятую структурой со значениями типа enum. */
-void
-hyscan_data_schema_internal_enum_free (HyScanDataSchemaEnum *values)
-{
-  gint i;
-
-  for (i = 0; i < values->n_values; i++)
-    {
-      g_free (values->values[i]->name);
-      g_free (values->values[i]->description);
-      g_free (values->values[i]);
-    }
-
-  g_free (values->values);
-  g_free (values->id);
-  g_free (values);
-}
-
-/* Функция добавляет схему или её часть в HyScanDataSchemaBuilder по указанному пути. */
-gboolean
-hyscan_data_schema_internal_builder_join_schema (HyScanDataSchemaBuilder *builder,
-                                                 const gchar             *dst_root,
-                                                 HyScanDataSchema        *schema,
-                                                 const gchar             *src_root)
-{
-  gchar **keys;
-  GHashTable *enums;
-  gboolean status = FALSE;
-  guint src_offset;
-  guint i, j;
-
-  /* Идентификаторов списков ENUM значений. */
-  enums = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-
-  /* Список всех параметров схемы. */
-  keys = hyscan_data_schema_list_keys (schema);
-  if (keys == NULL)
-    goto exit;
-
-  /* Смещение до имени параметра относительно исходного пути. */
-  src_offset = strlen (src_root);
-
-  for (i = 0; keys[i] != NULL; i++)
-    {
-      gchar *key_id;
-      const gchar *name;
-      const gchar *description;
-      HyScanDataSchemaKeyType type;
-      HyScanDataSchemaViewType view;
-      HyScanDataSchemaKeyAccess access;
-      GVariant *default_value;
-      GVariant *minimum_value;
-      GVariant *maximum_value;
-      GVariant *value_step;
-
-      /* Обрабатываем только параметры из нужной ветки. */
-      if (!g_str_has_prefix (keys[i], src_root))
-        continue;
-
-      /* Свойства параметра. */
-      key_id = g_strdup_printf ("%s%s", dst_root, keys[i] + src_offset);
-      name = hyscan_data_schema_key_get_name (schema, keys[i]);
-      description = hyscan_data_schema_key_get_description (schema, keys[i]);
-      type = hyscan_data_schema_key_get_type (schema, keys[i]);
-      view = hyscan_data_schema_key_get_view (schema, keys[i]);
-      access = hyscan_data_schema_key_get_access (schema, keys[i]);
-      default_value = hyscan_data_schema_key_get_default (schema, keys[i]);
-      minimum_value = hyscan_data_schema_key_get_minimum (schema, keys[i]);
-      maximum_value = hyscan_data_schema_key_get_maximum (schema, keys[i]);
-      value_step = hyscan_data_schema_key_get_step (schema, keys[i]);
-
-      switch (type)
+      /* Сверяем путь для текущего узла с идентификатором параметра. */
+      while (nodes != NULL)
         {
-        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
-          {
-            status = hyscan_data_schema_builder_key_boolean_create (builder, key_id, name, description,
-                                                                    g_variant_get_boolean (default_value));
-          }
-          break;
+          HyScanDataSchemaNode *cur_node = nodes->data;
+          const gchar *path = cur_node->path;
+          guint id_len = strlen (key->id);
+          guint path_len = strlen (path);
 
-        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
-          {
-            status = hyscan_data_schema_builder_key_integer_create (builder, key_id, name, description,
-                                                                    g_variant_get_int64 (default_value));
-            if (status)
-              {
-                status = hyscan_data_schema_builder_key_integer_range (builder, key_id,
-                                                                       g_variant_get_int64 (minimum_value),
-                                                                       g_variant_get_int64 (maximum_value),
-                                                                       g_variant_get_int64 (value_step));
-              }
-          }
-          break;
+          /* Если совпадают, мы на правильном пути:) */
+          if (g_str_has_prefix (key->id, path) && (id_len > path_len) && (key->id[path_len] == '/'))
+            {
+              node = nodes->data;
+              has_node = TRUE;
+              break;
+            }
 
-        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
-          {
-            hyscan_data_schema_builder_key_double_create (builder, key_id, name, description,
-                                                          g_variant_get_double (default_value));
-            if (status)
-              {
-                status = hyscan_data_schema_builder_key_double_range (builder, key_id,
-                                                                      g_variant_get_double (minimum_value),
-                                                                      g_variant_get_double (maximum_value),
-                                                                      g_variant_get_double (value_step));
-              }
-          }
-          break;
-
-        case HYSCAN_DATA_SCHEMA_KEY_STRING:
-          {
-            status = hyscan_data_schema_builder_key_string_create (builder, key_id, name, description,
-                                                                   (default_value == NULL) ? NULL :
-                                                                   g_variant_get_string (default_value, NULL));
-
-          }
-          break;
-
-        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
-          {
-            const gchar *enum_id;
-
-            /* Создаём список вариантов возможных значений дя ENUM параметра,
-             * если он еще не был создан. */
-            enum_id = hyscan_data_schema_key_get_enum_id (schema, keys[i]);
-            if (!g_hash_table_contains (enums, enum_id))
-              {
-                HyScanDataSchemaEnumValue **values;
-
-                hyscan_data_schema_builder_enum_create (builder, enum_id);
-                values = hyscan_data_schema_key_get_enum_values (schema, enum_id);
-                for (j = 0; values != NULL && values[j] != NULL; j++)
-                  {
-                    status = hyscan_data_schema_builder_enum_value_create (builder, enum_id,
-                                                                           values[j]->value,
-                                                                           values[j]->name,
-                                                                           values[j]->description);
-                    if (!status)
-                      break;
-                  }
-                hyscan_data_schema_free_enum_values (values);
-
-                g_hash_table_insert (enums, g_strdup (enum_id), NULL);
-              }
-
-            if (status)
-              {
-                status = hyscan_data_schema_builder_key_enum_create (builder, key_id, name, description, enum_id,
-                                                                     g_variant_get_int64 (default_value));
-              }
-          }
-          break;
-
-        default:
-          break;
+          nodes = nodes->next;
         }
 
-      if (status)
+      /* Если узел не найден, добавляем его. */
+      if (!has_node)
         {
-          status = hyscan_data_schema_builder_key_set_view (builder, key_id, view);
-          if (status)
-            status = hyscan_data_schema_builder_key_set_access (builder, key_id, access);
+          HyScanDataSchemaNode *new_node;
+          gchar *cur_path;
+
+          cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
+          new_node= hyscan_data_schema_node_new (cur_path, NULL, NULL);
+          g_free (cur_path);
+
+          node->nodes = g_list_append (node->nodes, new_node);
+          node = new_node;
         }
-
-      g_clear_pointer (&default_value, g_variant_unref);
-      g_clear_pointer (&minimum_value, g_variant_unref);
-      g_clear_pointer (&maximum_value, g_variant_unref);
-      g_clear_pointer (&value_step, g_variant_unref);
-      g_free (key_id);
-
-      if (!status)
-        break;
     }
 
-exit:
-  g_hash_table_unref (enums);
-  g_strfreev (keys);
+  g_strfreev (pathv);
 
-  return status;
+  /* Добавляем новый параметр. */
+  node->keys = g_list_append (node->keys, key);
 }
