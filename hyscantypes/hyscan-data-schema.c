@@ -1122,7 +1122,8 @@ hyscan_data_schema_list_keys (HyScanDataSchema *schema)
  *
  * Функция возвращает иеархический список узлов и параметров определённых в схеме.
  *
- * Returns: (transfer full): Список параметров в схеме.
+ * Returns: (transfer full): Список параметров в схеме или NULL.
+ * Для удаления #hyscan_data_schema_node_free.
  */
 HyScanDataSchemaNode *
 hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
