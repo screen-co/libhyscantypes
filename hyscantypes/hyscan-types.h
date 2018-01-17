@@ -317,6 +317,9 @@ HYSCAN_API
 gboolean               hyscan_source_is_sensor                 (HyScanSourceType               source);
 
 HYSCAN_API
+gboolean               hyscan_source_is_sonar                  (HyScanSourceType               source);
+
+HYSCAN_API
 gboolean               hyscan_source_is_raw                    (HyScanSourceType               source);
 
 HYSCAN_API

@@ -80,8 +80,9 @@
  * Функции #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name используются
  * для получения названия источника данных по его типу и наоборот.
  *
- * Функции #hyscan_source_is_sensor, #hyscan_source_is_raw и #hyscan_source_is_acoustic
- * используются для проверки принадлежности источника данных к определённому типу.
+ * Функции #hyscan_source_is_sensor, #hyscan_source_is_sonar, #hyscan_source_is_raw и
+ * #hyscan_source_is_acoustic используются для проверки принадлежности источника
+ * данных к определённому типу.
  *
  * Совокупность источника данных, его типа и номера канала образует логический канал
  * данных в системе хранения. Функции #hyscan_channel_get_name_by_types и
@@ -436,6 +437,42 @@ hyscan_source_is_sensor (HyScanSourceType source)
     case HYSCAN_SOURCE_NMEA_GGA:
     case HYSCAN_SOURCE_NMEA_RMC:
     case HYSCAN_SOURCE_NMEA_DPT:
+      return TRUE;
+
+    default:
+      return FALSE;
+    }
+
+  return FALSE;
+}
+
+/**
+ * hyscan_source_is_sonar:
+ * @source: тип источника данныx
+ *
+ * Функция проверяет тип источника данных на соответствие одному из
+ * гидролокационных типов.
+ *
+ * Returns: %TRUE если источник данных является гидролокационным
+ * источником, иначе %FALSE.
+ */
+gboolean
+hyscan_source_is_sonar (HyScanSourceType source)
+{
+  switch (source)
+    {
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD:
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT:
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI:
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT_HI:
+    case HYSCAN_SOURCE_ECHOSOUNDER:
+    case HYSCAN_SOURCE_ECHOSOUNDER_HI:
+    case HYSCAN_SOURCE_BATHYMETRY_STARBOARD:
+    case HYSCAN_SOURCE_BATHYMETRY_PORT:
+    case HYSCAN_SOURCE_PROFILER:
+    case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
+    case HYSCAN_SOURCE_LOOK_AROUND_PORT:
+    case HYSCAN_SOURCE_FORWARD_LOOK:
       return TRUE;
 
     default:
