@@ -4,6 +4,74 @@
 
 gchar *test_schema_create (const gchar *schema_id);
 
+/* Функция ищет параметр в списке. */
+HyScanDataSchemaKey *
+find_node (HyScanDataSchemaNode *node,
+           const gchar          *key_id)
+{
+  GList *keys = node->keys;
+  GList *nodes = node->nodes;
+
+  while (keys)
+    {
+      HyScanDataSchemaKey *key = keys->data;
+
+      if (g_strcmp0 (key->id, key_id) == 0)
+        return key;
+
+      keys = g_list_next (keys);
+    }
+
+  while (nodes)
+    {
+      HyScanDataSchemaKey *key = find_node (nodes->data, key_id);
+
+      if ((key != NULL) && (g_strcmp0 (key->id, key_id) == 0))
+        return key;
+
+      nodes = g_list_next (nodes);
+    }
+
+  return NULL;
+}
+
+/* Функция проверки описания параметра. */
+void
+check_key (HyScanDataSchema     *schema,
+           HyScanDataSchemaNode *nodes,
+           const gchar          *key_id)
+{
+  HyScanDataSchemaKey *key;
+
+  const gchar *name;
+  const gchar *description;
+
+  key = find_node (nodes, key_id);
+  if (key == NULL)
+    g_error ("%s: unknown key", key_id);
+
+  name = hyscan_data_schema_key_get_name (schema, key_id);
+  description = hyscan_data_schema_key_get_description (schema, key_id);
+
+  if (g_strcmp0 (key->id, key_id) != 0)
+    g_error ("%s: node id error", key_id);
+
+  if (g_strcmp0 (key->name, name) != 0)
+    g_error ("%s: node name error", key_id);
+
+  if (g_strcmp0 (key->description, description) != 0)
+    g_error ("%s: node description error", key_id);
+
+  if (key->type != hyscan_data_schema_key_get_value_type (schema, key_id))
+    g_error ("%s: node type error", key_id);
+
+  if (key->view != hyscan_data_schema_key_get_view (schema, key_id))
+    g_error ("%s: node view error", key_id);
+
+  if (key->access != hyscan_data_schema_key_get_access (schema, key_id))
+    g_error ("%s: node access error", key_id);
+}
+
 /* Функция проверки параметра типа BOOLEAN. */
 void
 check_boolean (HyScanDataSchema *schema,
@@ -342,6 +410,7 @@ main (int argc, char **argv)
   HyScanDataSchema *schema;
   gchar *schema_data;
   gchar **keys_list;
+  HyScanDataSchemaNode *nodes;
   guint i;
 
   schema_data = test_schema_create ("orig");
@@ -359,7 +428,8 @@ main (int argc, char **argv)
   g_free (schema_data);
 
   keys_list = hyscan_data_schema_list_keys (schema);
-  if (keys_list == NULL)
+  nodes = hyscan_data_schema_list_nodes (schema);
+  if ((keys_list == NULL) || (nodes == NULL))
     g_error ("empty schema");
 
   for (i = 0; keys_list[i] != NULL; i++)
@@ -367,6 +437,8 @@ main (int argc, char **argv)
       HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
 
       g_message ("check key: %s", keys_list[i]);
+
+      check_key (schema, nodes, keys_list[i]);
 
       switch (type)
         {
@@ -396,6 +468,7 @@ main (int argc, char **argv)
     }
 
   g_strfreev (keys_list);
+  hyscan_data_schema_node_free (nodes);
 
   g_object_unref (schema);
 

@@ -1591,7 +1591,7 @@ hyscan_data_schema_key_new (const gchar               *id,
   HyScanDataSchemaKey new_key;
 
   new_key.id = id;
-  new_key.name = id;
+  new_key.name = name;
   new_key.description = description;
   new_key.type = type;
   new_key.view = view;
@@ -1616,7 +1616,7 @@ hyscan_data_schema_key_copy (HyScanDataSchemaKey *key)
 
   new_key = g_slice_new (HyScanDataSchemaKey);
   new_key->id = g_strdup (key->id);
-  new_key->name = g_strdup (key->id);
+  new_key->name = g_strdup (key->name);
   new_key->description = g_strdup (key->description);
   new_key->type = key->type;
   new_key->view = key->view;
