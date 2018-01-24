@@ -47,11 +47,11 @@ hyscan_data_schema_internal_validate_name (const gchar *name)
 
       if ((name[i] >= 'a') && (name[i] <= 'z'))
         match = TRUE;
-      if ((name[i] >= 'A') && (name[i] <= 'Z'))
+      else if ((name[i] >= 'A') && (name[i] <= 'Z'))
         match = TRUE;
-      if ((name[i] >= '0') && (name[i] <= '9'))
+      else if ((name[i] >= '0') && (name[i] <= '9'))
         match = TRUE;
-      if ((name[i] == '-') || (name[i] == '_') || (name[i] == '.'))
+      else if ((name[i] == '-') || (name[i] == '_') || (name[i] == '.'))
         match = TRUE;
 
       if (!match)
