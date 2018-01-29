@@ -136,7 +136,7 @@ hyscan_buffer_object_finalize (GObject *object)
 static inline gfloat
 hyscan_buffer_decode_adc_14le (guint16 code)
 {
-  gfloat scale = 2.0 / 16383.0;
+  static const gfloat scale = 2.0f / 16383.0f;
   code = GUINT16_FROM_LE (code) & 0x3fff;
   return scale * code - 1.0;
 }
@@ -144,7 +144,7 @@ hyscan_buffer_decode_adc_14le (guint16 code)
 static inline gfloat
 hyscan_buffer_decode_adc_16le (guint16 code)
 {
-  gfloat scale = 2.0 / 65535.0;
+  static const gfloat scale = 2.0f / 65535.0f;
   code = GUINT16_FROM_LE (code);
   return scale * code - 1.0;
 }
@@ -152,7 +152,7 @@ hyscan_buffer_decode_adc_16le (guint16 code)
 static inline gfloat
 hyscan_buffer_decode_adc_24le (guint32 code)
 {
-  gdouble scale = 2.0 / 16777215.0;
+  static const gdouble scale = 2.0 / 16777215.0;
   code = GUINT32_FROM_LE (code) & 0x00ffffff;
   return scale * code - 1.0;
 }
@@ -160,14 +160,14 @@ hyscan_buffer_decode_adc_24le (guint32 code)
 static inline gfloat
 hyscan_buffer_decode_amp_i8 (guint8 code)
 {
-  gfloat scale = 1.0 / 255.0;
+  static const gfloat scale = 1.0f / 255.0f;
   return scale * code;
 }
 
 static inline gfloat
 hyscan_buffer_decode_amp_i16 (guint16 code)
 {
-  gfloat scale = 1.0 / 65536.0;
+  static const gfloat scale = 1.0f / 65536.0f;
   code = GUINT16_FROM_LE (code);
   return scale * code;
 }
@@ -175,7 +175,7 @@ hyscan_buffer_decode_amp_i16 (guint16 code)
 static inline gfloat
 hyscan_buffer_decode_amp_i32 (guint32 code)
 {
-  gfloat scale = 1.0 / 4294967295.0;
+  static const gfloat scale = 1.0f / 4294967295.0f;
   code = GUINT32_FROM_LE (code);
   return scale * code;
 }
@@ -183,7 +183,7 @@ hyscan_buffer_decode_amp_i32 (guint32 code)
 static inline gfloat
 hyscan_buffer_decode_amp_f8 (guint8 code)
 {
-  gfloat scale[4] = {1.0 / 63.0, 0.1 / 63.0, 0.01 / 63.0, 0.001 / 63.0};
+  static const gfloat scale[4] = {1.0f / 63.0f, 0.1f / 63.0f, 0.01f / 63.0f, 0.001f / 63.0f};
   guint32 power;
 
   power = code >> 6;
@@ -193,8 +193,9 @@ hyscan_buffer_decode_amp_f8 (guint8 code)
 static inline gfloat
 hyscan_buffer_decode_amp_f16 (guint16 code)
 {
-  gfloat scale[8] = {1.0 / 8191.0, 0.1 / 8191.0, 0.01 / 8191.0, 0.001 / 8191.0,
-                     0.0001 / 8191.0, 0.00001 / 8191.0, 0.000001 / 8191.0, 0.0000001 / 8191.0};
+  static const gfloat scale[8] = {1.0f / 8191.0f, 0.1f / 8191.0f, 0.01f / 8191.0f,
+                                  0.001f / 8191.0f, 0.0001f / 8191.0f, 0.00001f / 8191.0f,
+                                  0.000001f / 8191.0f, 0.0000001f / 8191.0f};
   guint32 power;
 
   code = GUINT16_FROM_LE (code);
