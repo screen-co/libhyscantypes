@@ -25,6 +25,7 @@ add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-data-schema.c
              hyscan-data-schema-builder.c
              hyscan-data-schema-internal.c
+             hyscan-param-list.c
              hyscan-param.c
              hyscan-data-box.c
              hyscan-slice-pool.c
@@ -55,6 +56,7 @@ install (FILES hyscan-api.h
                hyscan-types.h
                hyscan-data-schema.h
                hyscan-data-schema-builder.h
+               hyscan-param-list.h
                hyscan-param.h
                hyscan-data-box.h
                hyscan-slice-pool.h

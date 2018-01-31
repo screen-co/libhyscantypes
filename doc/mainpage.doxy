@@ -5,6 +5,7 @@
  * - \link HyScanTypes \endlink - базовые типы данных HyScan;
  * - \link HyScanDataSchema \endlink - класс работы со схемой данных;
  * - \link HyScanDataSchemaBuilder \endlink - класс генерации схем данных;
+ * - \link HyScanParamList \endlink - класс для чтения/записи значений параметров;
  * - \link HyScanParam \endlink - интерфейс для работы с именованными параметрами;
  * - \link HyScanDataBox \endlink - класс для работы с параметрами в памяти;
  * - \link HyScanSlicePool \endlink - список неиспользуемых блоков памяти.
