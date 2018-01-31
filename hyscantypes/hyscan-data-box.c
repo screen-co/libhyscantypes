@@ -49,7 +49,7 @@ struct _HyScanDataBoxPrivate
 
   guint32                      mod_count;              /* Глобальный счётчик изменений значений параметра. */
 
-  GRWLock                      lock;                   /* Блокировка. */
+  GMutex                       lock;                   /* Блокировка. */
 };
 
 static void    hyscan_data_box_interface_init          (HyScanParamInterface  *iface);
@@ -94,9 +94,8 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
   hyscan_data_box_signals[SIGNAL_SET] =
     g_signal_new ("set", HYSCAN_TYPE_DATA_BOX, G_SIGNAL_RUN_LAST, 0,
                   hyscan_data_box_signal_accumulator, NULL,
-                  hyscan_types_marshal_BOOLEAN__POINTER_POINTER,
-                  G_TYPE_BOOLEAN,
-                  2, G_TYPE_POINTER, G_TYPE_POINTER);
+                  hyscan_types_marshal_BOOLEAN__OBJECT,
+                  G_TYPE_BOOLEAN, 1, G_TYPE_OBJECT);
 
   hyscan_data_box_signals[SIGNAL_CHANGED] =
     g_signal_new ("changed", HYSCAN_TYPE_DATA_BOX, G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0,
@@ -145,7 +144,7 @@ hyscan_data_box_object_constructed (GObject *object)
 
   G_OBJECT_CLASS (hyscan_data_box_parent_class)->constructed (object);
 
-  g_rw_lock_init (&priv->lock);
+  g_mutex_init (&priv->lock);
 
   /* Схема параметров. */
   priv->schema = hyscan_data_schema_new_from_string (priv->schema_data, priv->schema_id);
@@ -203,7 +202,7 @@ hyscan_data_box_object_finalize (GObject *object)
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (object);
   HyScanDataBoxPrivate *priv = data_box->priv;
 
-  g_rw_lock_clear (&priv->lock);
+  g_mutex_clear (&priv->lock);
   g_hash_table_unref (priv->params);
   g_strfreev (priv->keys_list);
 
@@ -335,7 +334,7 @@ hyscan_data_box_serialize (HyScanDataBox *data_box)
   if (priv->keys_list == NULL)
     return NULL;
 
-  g_rw_lock_reader_lock (&priv->lock);
+  g_mutex_lock (&priv->lock);
 
   dict = g_variant_dict_new (NULL);
 
@@ -368,7 +367,7 @@ hyscan_data_box_serialize (HyScanDataBox *data_box)
 
   g_variant_dict_unref (dict);
 
-  g_rw_lock_reader_unlock (&priv->lock);
+  g_mutex_unlock (&priv->lock);
 
   return sparams;
 }
@@ -378,12 +377,9 @@ gboolean
 hyscan_data_box_deserialize (HyScanDataBox *data_box,
                              const gchar   *svalues)
 {
+  HyScanParamList *list;
   GVariant *vdict;
   gboolean status;
-
-  gchar **names;
-  GVariant **values;
-
   gsize n_params;
   gsize i;
 
@@ -394,22 +390,23 @@ hyscan_data_box_deserialize (HyScanDataBox *data_box,
   if (vdict == NULL)
     return FALSE;
 
-  n_params = g_variant_n_children (vdict);
-  names = g_new0 (gchar*, n_params + 1);
-  values = g_new0 (GVariant*, n_params + 1);
+  /* Список параметров. */
+  list = hyscan_param_list_new ();
 
   /* Массивы имён параметров и их значения. */
+  n_params = g_variant_n_children (vdict);
   for (i = 0; i < n_params; i++)
     {
       GVariant *param;
       GVariant *value;
-      gchar *key;
+      gchar *name;
 
       param = g_variant_get_child_value (vdict, i);
-      g_variant_get (param, "{sv}", &key, &value);
 
-      names[i] = key;
-      values[i] = value;
+      g_variant_get (param, "{sv}", &name, &value);
+      hyscan_param_list_set (list, name, value);
+      g_variant_unref (value);
+      g_free (name);
 
       g_variant_unref (param);
     }
@@ -417,15 +414,9 @@ hyscan_data_box_deserialize (HyScanDataBox *data_box,
   g_variant_unref (vdict);
 
   /* Устанавливаем новые значения. */
-  status = hyscan_param_set (HYSCAN_PARAM (data_box), (const gchar* const*)names, values);
-  for (i = 0; i < n_params; i++)
-    {
-      g_free (names[i]);
-      g_variant_unref (values[i]);
-    }
+  status = hyscan_param_set (HYSCAN_PARAM (data_box), list);
 
-  g_free (names);
-  g_free (values);
+  g_object_unref (list);
 
   return status;
 }
@@ -442,30 +433,35 @@ hyscan_data_box_schema (HyScanParam *param)
 
 /* Функция устанавливает значения параметров. */
 static gboolean
-hyscan_data_box_set (HyScanParam         *param,
-                     const gchar *const  *names,
-                     GVariant           **values)
+hyscan_data_box_set (HyScanParam     *param,
+                     HyScanParamList *list)
 {
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (param);
   HyScanDataBoxPrivate *priv = data_box->priv;
   HyScanDataSchema *schema = priv->schema;
   gboolean status = FALSE;
   gboolean cancel = FALSE;
-  guint8 *defaults;
+
+  const gchar * const *names;
+  GVariant **values = NULL;
   guint n_names;
   guint i;
 
-  if (names == NULL || values == NULL)
+  /* Список устанавливаемых параметров. */
+  names = hyscan_param_list_params (list);
+  if (names == NULL)
     return FALSE;
 
+  /* Список значений параметров. */
   n_names = g_strv_length ((gchar **)names);
-  defaults = g_malloc0 (n_names);
+  values = g_new0 (GVariant *, n_names);
 
   /* Проверяем параметы. */
   for (i = 0; i < n_names; i++)
     {
       HyScanDataBoxParam *param;
 
+      /* Описание параметра. */
       param = g_hash_table_lookup (priv->params, names[i]);
       if (param == NULL)
         goto exit;
@@ -474,11 +470,13 @@ hyscan_data_box_set (HyScanParam         *param,
       if (param->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
         goto exit;
 
+      /* Новое значение параметра. */
+      values[i]= hyscan_param_list_get (list, names[i]);
+
       /* Установка значения по умолчанию. */
       if (values[i] == NULL)
         {
           values[i] = hyscan_data_schema_key_get_default (schema, names[i]);
-          defaults[i] = TRUE;
           continue;
         }
 
@@ -492,18 +490,14 @@ hyscan_data_box_set (HyScanParam         *param,
     }
 
   /* Сигнал перед изменением параметров. */
-  g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_SET], 0, names, values, &cancel);
-
-  for (i = 0; i < n_names; i++)
-    if (defaults[i])
-      g_clear_pointer (&values[i], g_variant_unref);
+  g_signal_emit (data_box, hyscan_data_box_signals[SIGNAL_SET], 0, list, &cancel);
 
   if (cancel)
     goto exit;
 
-  g_rw_lock_writer_lock (&priv->lock);
+  g_mutex_lock (&priv->lock);
 
-  /* Изменяем параметы. */
+  /* Изменяем параметры. */
   for (i = 0; i < n_names; i++)
     {
       HyScanDataBoxParam *param;
@@ -512,15 +506,14 @@ hyscan_data_box_set (HyScanParam         *param,
 
       /* Устанавливаем новое значение. */
       g_clear_pointer (&param->value, g_variant_unref);
-      if (values[i] != NULL)
-        param->value = g_variant_ref_sink (values[i]);
+      param->value = values[i];
       param->mod_count += 1;
     }
 
   priv->mod_count += 1;
   status = TRUE;
 
-  g_rw_lock_writer_unlock (&priv->lock);
+  g_mutex_unlock (&priv->lock);
 
   /* Сигнал об изменении параметров. */
   for (i = 0; i < n_names; i++)
@@ -533,28 +526,34 @@ hyscan_data_box_set (HyScanParam         *param,
     }
 
 exit:
-  g_free (defaults);
+  if (!status)
+    for (i = 0; i < n_names; i++)
+      g_clear_pointer (&values[i], g_variant_unref);
+
+  g_free (values);
   return status;
 }
 
 /* Функция считывает значения параметров. */
 static gboolean
-hyscan_data_box_get (HyScanParam         *param,
-                     const gchar *const  *names,
-                     GVariant           **values)
+hyscan_data_box_get (HyScanParam     *param,
+                     HyScanParamList *list)
 {
   HyScanDataBox *data_box = HYSCAN_DATA_BOX (param);
   HyScanDataBoxPrivate *priv = data_box->priv;
   HyScanDataSchema *schema = priv->schema;
+
+  const gchar * const *names;
   guint n_names;
   guint i;
 
-  if (names == NULL || values == NULL)
+  /* Список считываемых параметров. */
+  names = hyscan_param_list_params (list);
+  if (names == NULL)
     return FALSE;
 
-  n_names = g_strv_length ((gchar **)names);
-
   /* Проверяем параметы. */
+  n_names = g_strv_length ((gchar **)names);
   for (i = 0; i < n_names; i++)
     {
       HyScanDataBoxParam *param;
@@ -568,21 +567,30 @@ hyscan_data_box_get (HyScanParam         *param,
         return FALSE;
     }
 
-  g_rw_lock_reader_lock (&priv->lock);
+  g_mutex_lock (&priv->lock);
 
   /* Считываем параметы. */
   for (i = 0; i < n_names; i++)
     {
-      HyScanDataBoxParam *param = g_hash_table_lookup (priv->params, names[i]);
+      HyScanDataBoxParam *param;
+      GVariant *value;
+
+      /* Описание параметра. */
+      param = g_hash_table_lookup (priv->params, names[i]);
 
       /* Считываем значение параметра. */
       if (param->value != NULL)
-        values[i] = g_variant_ref (param->value);
+        value = g_variant_ref (param->value);
       else
-        values[i] = hyscan_data_schema_key_get_default (schema, names[i]);
+        value = hyscan_data_schema_key_get_default (schema, names[i]);
+
+      /* Значение параметра. */
+      hyscan_param_list_set (list, names[i], value);
+
+      g_clear_pointer (&value, g_variant_unref);
     }
 
-  g_rw_lock_reader_unlock (&priv->lock);
+  g_mutex_unlock (&priv->lock);
 
   return TRUE;
 }
