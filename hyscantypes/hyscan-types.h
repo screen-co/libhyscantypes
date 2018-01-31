@@ -61,7 +61,7 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * @HYSCAN_DATA_UINT16: Действительные unsigned int16 значения.
  * @HYSCAN_DATA_UINT32: Действительные unsigned int32 значения.
  * @HYSCAN_DATA_FLOAT: Действительные float значения.
- * @HYSCAN_DATA_NORMAL8: Действительные значения с плавающей точкой, 8 бит, диапазлн от 0 до 1.
+ * @HYSCAN_DATA_NORMAL8: Действительные значения с плавающей точкой, 8 бит, диапазон от 0 до 1.
  * @HYSCAN_DATA_NORMAL16: Действительные значения с плавающей точкой, 16 бит, диапазон от 0 до 1.
  * @HYSCAN_DATA_COMPLEX_UINT8: Комплексные unsigned int8 значения.
  * @HYSCAN_DATA_COMPLEX_UINT16: Комплексные unsigned int16 значения.
@@ -306,20 +306,6 @@ HyScanDataType         hyscan_data_get_type_by_name            (const gchar     
 
 HYSCAN_API
 guint32                hyscan_data_get_point_size              (HyScanDataType                 type);
-
-HYSCAN_API
-gboolean               hyscan_data_import_float                (HyScanDataType                 data_type,
-                                                                gconstpointer                  data,
-                                                                guint32                        data_size,
-                                                                gfloat                        *buffer,
-                                                                guint32                       *buffer_size);
-
-HYSCAN_API
-gboolean               hyscan_data_import_complex_float        (HyScanDataType                 data_type,
-                                                                gconstpointer                  data,
-                                                                guint32                        data_size,
-                                                                HyScanComplexFloat            *buffer,
-                                                                guint32                       *buffer_size);
 
 HYSCAN_API
 const gchar           *hyscan_source_get_name_by_type          (HyScanSourceType               source);

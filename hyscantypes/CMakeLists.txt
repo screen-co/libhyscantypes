@@ -21,14 +21,15 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshal
                     VERBATIM)
 
 add_library (${HYSCAN_TYPES_LIBRARY} SHARED
+             hyscan-slice-pool.c
              hyscan-types.c
+             hyscan-buffer.c
              hyscan-data-schema.c
              hyscan-data-schema-builder.c
              hyscan-data-schema-internal.c
              hyscan-param-list.c
              hyscan-param.c
              hyscan-data-box.c
-             hyscan-slice-pool.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c")
 
 target_link_libraries (${HYSCAN_TYPES_LIBRARY} ${GLIB2_LIBRARIES} ${LIBXML2_LIBRARIES})
@@ -53,13 +54,14 @@ install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscantypes-${HYSCAN_MAJOR_VER
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 install (FILES hyscan-api.h
+               hyscan-slice-pool.h
                hyscan-types.h
+               hyscan-buffer.h
                hyscan-data-schema.h
                hyscan-data-schema-builder.h
                hyscan-param-list.h
                hyscan-param.h
                hyscan-data-box.h
-               hyscan-slice-pool.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscantypes"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
