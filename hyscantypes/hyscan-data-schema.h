@@ -73,70 +73,70 @@ struct _HyScanDataSchemaClass
 
 /**
  * HyScanDataSchemaKeyType:
- * @HYSCAN_DATA_SCHEMA_KEY_INVALID: Недопустимый тип, ошибка
- * @HYSCAN_DATA_SCHEMA_KEY_BOOLEAN: Логический тип
- * @HYSCAN_DATA_SCHEMA_KEY_INTEGER: Целые числа со знаком - gint64
- * @HYSCAN_DATA_SCHEMA_KEY_DOUBLE: Числа с плавающей точкой - gdouble
- * @HYSCAN_DATA_SCHEMA_KEY_STRING: Строка с нулём на конце
- * @HYSCAN_DATA_SCHEMA_KEY_ENUM: Перечисляемый тип
+ * @HYSCAN_DATA_SCHEMA_KEY_INVALID: недопустимый тип, ошибка
+ * @HYSCAN_DATA_SCHEMA_KEY_BOOLEAN: логический тип
+ * @HYSCAN_DATA_SCHEMA_KEY_INTEGER: целые числа со знаком - gint64
+ * @HYSCAN_DATA_SCHEMA_KEY_DOUBLE: числа с плавающей точкой - gdouble
+ * @HYSCAN_DATA_SCHEMA_KEY_STRING: строка с нулём на конце
+ * @HYSCAN_DATA_SCHEMA_KEY_ENUM: перечисляемый тип
  *
  * Тип параметра схемы данных.
  */
 typedef enum
 {
-  HYSCAN_DATA_SCHEMA_KEY_INVALID       = 0,
-  HYSCAN_DATA_SCHEMA_KEY_BOOLEAN       = 101,
-  HYSCAN_DATA_SCHEMA_KEY_INTEGER       = 102,
-  HYSCAN_DATA_SCHEMA_KEY_DOUBLE        = 103,
-  HYSCAN_DATA_SCHEMA_KEY_STRING        = 104,
-  HYSCAN_DATA_SCHEMA_KEY_ENUM          = 105
+  HYSCAN_DATA_SCHEMA_KEY_INVALID,
+  HYSCAN_DATA_SCHEMA_KEY_BOOLEAN,
+  HYSCAN_DATA_SCHEMA_KEY_INTEGER,
+  HYSCAN_DATA_SCHEMA_KEY_DOUBLE,
+  HYSCAN_DATA_SCHEMA_KEY_STRING,
+  HYSCAN_DATA_SCHEMA_KEY_ENUM
 } HyScanDataSchemaKeyType;
 
 /**
  * HyScanDataSchemaViewType:
- * @HYSCAN_DATA_SCHEMA_VIEW_DEFAULT: По умолчанию
- * @HYSCAN_DATA_SCHEMA_VIEW_BIN: Двоичный вид
- * @HYSCAN_DATA_SCHEMA_VIEW_DEC: Десятичный вид
- * @HYSCAN_DATA_SCHEMA_VIEW_HEX: Шестнадцатиричный вид
- * @HYSCAN_DATA_SCHEMA_VIEW_DATE: Дата, UTC unix time
- * @HYSCAN_DATA_SCHEMA_VIEW_TIME: Время, UTC unix time
- * @HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME: Дата и время, UTC unix time
- * @HYSCAN_DATA_SCHEMA_VIEW_SCHEMA: Схема данныx
+ * @HYSCAN_DATA_SCHEMA_VIEW_DEFAULT: по умолчанию
+ * @HYSCAN_DATA_SCHEMA_VIEW_BIN: двоичный вид
+ * @HYSCAN_DATA_SCHEMA_VIEW_DEC: десятичный вид
+ * @HYSCAN_DATA_SCHEMA_VIEW_HEX: шестнадцатиричный вид
+ * @HYSCAN_DATA_SCHEMA_VIEW_DATE: дата, UTC unix time
+ * @HYSCAN_DATA_SCHEMA_VIEW_TIME: время, UTC unix time
+ * @HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME: дата и время, UTC unix time
+ * @HYSCAN_DATA_SCHEMA_VIEW_SCHEMA: схема данныx
  *
  * Рекомендуемый вид отображения значения параметра.
  */
 typedef enum
 {
-  HYSCAN_DATA_SCHEMA_VIEW_DEFAULT      = 0,
-  HYSCAN_DATA_SCHEMA_VIEW_BIN          = 101,
-  HYSCAN_DATA_SCHEMA_VIEW_DEC          = 102,
-  HYSCAN_DATA_SCHEMA_VIEW_HEX          = 103,
-  HYSCAN_DATA_SCHEMA_VIEW_DATE         = 104,
-  HYSCAN_DATA_SCHEMA_VIEW_TIME         = 105,
-  HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME    = 106,
-  HYSCAN_DATA_SCHEMA_VIEW_SCHEMA       = 107
+  HYSCAN_DATA_SCHEMA_VIEW_DEFAULT,
+  HYSCAN_DATA_SCHEMA_VIEW_BIN,
+  HYSCAN_DATA_SCHEMA_VIEW_DEC,
+  HYSCAN_DATA_SCHEMA_VIEW_HEX,
+  HYSCAN_DATA_SCHEMA_VIEW_DATE,
+  HYSCAN_DATA_SCHEMA_VIEW_TIME,
+  HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME,
+  HYSCAN_DATA_SCHEMA_VIEW_SCHEMA
 } HyScanDataSchemaViewType;
 
 /**
  * HyScanDataSchemaKeyAccess:
- * @HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT: По умолчанию
- * @HYSCAN_DATA_SCHEMA_ACCESS_READONLY: Только чтение
- * @HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY: Только запись
+ * @HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT: по умолчанию
+ * @HYSCAN_DATA_SCHEMA_ACCESS_READONLY: только чтение
+ * @HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY: только запись
  *
  * Атрибуты доступа к параметру.
  */
 typedef enum
 {
-  HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT    = 0,
-  HYSCAN_DATA_SCHEMA_ACCESS_READONLY   = 101,
-  HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY  = 102
+  HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT,
+  HYSCAN_DATA_SCHEMA_ACCESS_READONLY,
+  HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY
 } HyScanDataSchemaKeyAccess;
 
 /**
  * HyScanDataSchemaEnumValue:
- * @value: Численное значение параметра
- * @name: Название значения параметра
- * @description: Описание значения параметра
+ * @value: численное значение параметра
+ * @name: название значения параметра
+ * @description: описание значения параметра
  *
  * Значение перечисляемого типа #HYSCAN_DATA_SCHEMA_KEY_ENUM.
  */
@@ -149,9 +149,9 @@ struct _HyScanDataSchemaEnumValue
 
 /**
  * HyScanDataSchemaNode:
- * @path: Путь до узла
- * @nodes: (element-type HyScanDataSchemaNode) (transfer none): Дочерние узлы
- * @keys: (element-type HyScanDataSchemaKey) (transfer none): Параметры
+ * @path: путь до узла
+ * @nodes: (element-type HyScanDataSchemaNode) (transfer none): дочерние узлы
+ * @keys: (element-type HyScanDataSchemaKey) (transfer none): параметры
  *
  * Узел с параметрами и подузлами.
  */
@@ -164,12 +164,12 @@ struct _HyScanDataSchemaNode
 
 /**
  * HyScanDataSchemaKey:
- * @id: Идентификатор параметра
- * @name: Название параметра
- * @description: Описание параметра
- * @type: Тип параметра
- * @view: Рекомендуемый вид отображения параметра
- * @access: Атрибуты доступа к параметру
+ * @id: идентификатор параметра
+ * @name: название параметра
+ * @description: описание параметра
+ * @type: тип параметра
+ * @view: рекомендуемый вид отображения параметра
+ * @access: атрибуты доступа к параметру
  *
  * Описание параметра.
  */
@@ -284,6 +284,17 @@ HYSCAN_API
 void                           hyscan_data_schema_enum_value_free      (HyScanDataSchemaEnumValue *value);
 
 HYSCAN_API
+HyScanDataSchemaNode *         hyscan_data_schema_node_new             (const gchar               *path,
+                                                                        GList                     *nodes,
+                                                                        GList                     *keys);
+
+HYSCAN_API
+HyScanDataSchemaNode *         hyscan_data_schema_node_copy            (HyScanDataSchemaNode      *node);
+
+HYSCAN_API
+void                           hyscan_data_schema_node_free            (HyScanDataSchemaNode      *node);
+
+HYSCAN_API
 HyScanDataSchemaKey *          hyscan_data_schema_key_new              (const gchar               *id,
                                                                         const gchar               *name,
                                                                         const gchar               *description,
@@ -295,18 +306,6 @@ HyScanDataSchemaKey *          hyscan_data_schema_key_copy             (HyScanDa
 
 HYSCAN_API
 void                           hyscan_data_schema_key_free             (HyScanDataSchemaKey       *key);
-
-HYSCAN_API
-HyScanDataSchemaNode *         hyscan_data_schema_node_new             (const gchar               *path,
-                                                                        GList                     *nodes,
-                                                                        GList                     *keys);
-
-HYSCAN_API
-HyScanDataSchemaNode *         hyscan_data_schema_node_copy            (HyScanDataSchemaNode      *node);
-
-HYSCAN_API
-void                           hyscan_data_schema_node_free            (HyScanDataSchemaNode      *node);
-
 
 G_END_DECLS
 

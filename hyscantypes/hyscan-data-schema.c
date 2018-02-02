@@ -1503,9 +1503,9 @@ hyscan_data_schema_get_enum_values (HyScanDataSchema *schema,
 
 /**
  * hyscan_data_schema_enum_value_new:
- * @value: Численное значение параметра
- * @name: Название значения параметра
- * @description: Описание значения параметра
+ * @value: численное значение параметра
+ * @name: название значения параметра
+ * @description: описание значения параметра
  *
  * Функция создаёт новую структуру #HyScanDataSchemaEnumValue и заполняет её поля.
  *
@@ -1528,7 +1528,7 @@ hyscan_data_schema_enum_value_new (gint64       value,
 
 /**
  * hyscan_data_schema_enum_value_copy:
- * @value: Структура #HyScanDataSchemaEnumValue для копирования
+ * @value: структура #HyScanDataSchemaEnumValue для копирования
  *
  * Функция создаёт копию структуры #HyScanDataSchemaEnumValue.
  *
@@ -1550,7 +1550,7 @@ hyscan_data_schema_enum_value_copy (HyScanDataSchemaEnumValue *value)
 
 /**
  * hyscan_data_schema_enum_value_free:
- * @value: Структура #HyScanDataSchemaEnumValue для удаления
+ * @value: структура #HyScanDataSchemaEnumValue для удаления
  *
  * Функция удаляет структуру #HyScanDataSchemaEnumValue.
  */
@@ -1567,88 +1567,10 @@ hyscan_data_schema_enum_value_free (HyScanDataSchemaEnumValue *value)
 }
 
 /**
- * hyscan_data_schema_key_new:
- * @id: Идентификатор параметра
- * @name: Название параметра
- * @description: Описание параметра
- * @type: Тип параметра
- * @view: Рекомендуемый вид отображения параметра
- * @access: Атрибуты доступа к параметру
- *
- * Функция создаёт новую структуру #HyScanDataSchemaKey и заполняет её поля.
- *
- * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
- * Для удаления #hyscan_data_schema_key_free.
- */
-HyScanDataSchemaKey *
-hyscan_data_schema_key_new (const gchar               *id,
-                            const gchar               *name,
-                            const gchar               *description,
-                            HyScanDataSchemaKeyType    type,
-                            HyScanDataSchemaViewType   view,
-                            HyScanDataSchemaKeyAccess  access)
-{
-  HyScanDataSchemaKey new_key;
-
-  new_key.id = id;
-  new_key.name = name;
-  new_key.description = description;
-  new_key.type = type;
-  new_key.view = view;
-  new_key.access = access;
-
-  return hyscan_data_schema_key_copy (&new_key);
-}
-
-/**
- * hyscan_data_schema_key_copy:
- * @key: Структура #HyScanDataSchemaKey для копирования
- *
- * Функция создаёт копию структуры #HyScanDataSchemaKey.
- *
- * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
- * Для удаления #hyscan_data_schema_key_free.
- */
-HyScanDataSchemaKey *
-hyscan_data_schema_key_copy (HyScanDataSchemaKey *key)
-{
-  HyScanDataSchemaKey *new_key;
-
-  new_key = g_slice_new (HyScanDataSchemaKey);
-  new_key->id = g_strdup (key->id);
-  new_key->name = g_strdup (key->name);
-  new_key->description = g_strdup (key->description);
-  new_key->type = key->type;
-  new_key->view = key->view;
-  new_key->access = key->access;
-
-  return new_key;
-}
-
-/**
- * hyscan_data_schema_key_free:
- * @key: Структура #HyScanDataSchemaKey для удаления
- *
- * Функция удаляет структуру #HyScanDataSchemaKey.
- */
-void
-hyscan_data_schema_key_free (HyScanDataSchemaKey *key)
-{
-  if (key == NULL)
-    return;
-
-  g_free ((gchar*)key->id);
-  g_free ((gchar*)key->name);
-  g_free ((gchar*)key->description);
-
-  g_slice_free (HyScanDataSchemaKey, key);
-}
-
-/**
  * hyscan_data_schema_node_new:
- * @path: Путь до узла
- * @nodes: (element-type HyScanDataSchemaNode) (transfer none): Дочерние узлы
- * @keys: (element-type HyScanDataSchemaKey) (transfer none): Параметры
+ * @path: путь до узла
+ * @nodes: (element-type HyScanDataSchemaNode) (transfer none): дочерние узлы
+ * @keys: (element-type HyScanDataSchemaKey) (transfer none): параметры
  *
  * Функция создаёт новую структуру #HyScanDataSchemaNode и заполняет её поля.
  *
@@ -1671,7 +1593,7 @@ hyscan_data_schema_node_new (const gchar *path,
 
 /**
  * hyscan_data_schema_node_copy:
- * @node: Структура #HyScanDataSchemaNode для копирования
+ * @node: структура #HyScanDataSchemaNode для копирования
  *
  * Функция создаёт копию структуры #HyScanDataSchemaNode.
  *
@@ -1711,17 +1633,98 @@ hyscan_data_schema_node_copy (HyScanDataSchemaNode *node)
 
 /**
  * hyscan_data_schema_node_free:
- * @node: Структура #HyScanDataSchemaNode для удаления
+ * @node: структура #HyScanDataSchemaNode для удаления
  *
  * Функция удаляет структуру #HyScanDataSchemaNode.
  */
 void
 hyscan_data_schema_node_free (HyScanDataSchemaNode *node)
 {
+  if (node == NULL)
+    return;
+
   g_list_free_full (node->nodes, (GDestroyNotify)hyscan_data_schema_node_free);
   g_list_free_full (node->keys, (GDestroyNotify)hyscan_data_schema_key_free);
 
   g_free ((gchar*)node->path);
 
   g_slice_free (HyScanDataSchemaNode, node);
+}
+
+/**
+ * hyscan_data_schema_key_new:
+ * @id: идентификатор параметра
+ * @name: название параметра
+ * @description: описание параметра
+ * @type: тип параметра
+ * @view: рекомендуемый вид отображения параметра
+ * @access: атрибуты доступа к параметру
+ *
+ * Функция создаёт новую структуру #HyScanDataSchemaKey и заполняет её поля.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
+ * Для удаления #hyscan_data_schema_key_free.
+ */
+HyScanDataSchemaKey *
+hyscan_data_schema_key_new (const gchar               *id,
+                            const gchar               *name,
+                            const gchar               *description,
+                            HyScanDataSchemaKeyType    type,
+                            HyScanDataSchemaViewType   view,
+                            HyScanDataSchemaKeyAccess  access)
+{
+  HyScanDataSchemaKey new_key;
+
+  new_key.id = id;
+  new_key.name = name;
+  new_key.description = description;
+  new_key.type = type;
+  new_key.view = view;
+  new_key.access = access;
+
+  return hyscan_data_schema_key_copy (&new_key);
+}
+
+/**
+ * hyscan_data_schema_key_copy:
+ * @key: структура #HyScanDataSchemaKey для копирования
+ *
+ * Функция создаёт копию структуры #HyScanDataSchemaKey.
+ *
+ * Returns: (transfer full): Новая структура #HyScanDataSchemaKey.
+ * Для удаления #hyscan_data_schema_key_free.
+ */
+HyScanDataSchemaKey *
+hyscan_data_schema_key_copy (HyScanDataSchemaKey *key)
+{
+  HyScanDataSchemaKey *new_key;
+
+  new_key = g_slice_new (HyScanDataSchemaKey);
+  new_key->id = g_strdup (key->id);
+  new_key->name = g_strdup (key->name);
+  new_key->description = g_strdup (key->description);
+  new_key->type = key->type;
+  new_key->view = key->view;
+  new_key->access = key->access;
+
+  return new_key;
+}
+
+/**
+ * hyscan_data_schema_key_free:
+ * @key: структура #HyScanDataSchemaKey для удаления
+ *
+ * Функция удаляет структуру #HyScanDataSchemaKey.
+ */
+void
+hyscan_data_schema_key_free (HyScanDataSchemaKey *key)
+{
+  if (key == NULL)
+    return;
+
+  g_free ((gchar*)key->id);
+  g_free ((gchar*)key->name);
+  g_free ((gchar*)key->description);
+
+  g_slice_free (HyScanDataSchemaKey, key);
 }
