@@ -81,25 +81,25 @@ struct _HyScanBufferPrivate
   gpointer                     data;
 };
 
-static void             hyscan_buffer_object_finalize      (GObject               *object);
+static void                    hyscan_buffer_object_finalize   (GObject       *object);
 
-static inline gfloat           decode_adc_14le             (guint16                code);
-static inline gfloat           decode_adc_16le             (guint16                code);
-static inline gfloat           decode_adc_24le             (guint32                code);
-static inline gfloat           decode_uint8                (guint8                 code);
-static inline gfloat           decode_uint16               (guint16                code);
-static inline gfloat           decode_uint32               (guint32                code);
-static inline gfloat           decode_normal8              (guint8                 code);
-static inline gfloat           decode_normal16             (guint16                code);
+static inline gfloat           hyscan_buffer_decode_adc_14le   (guint16        code);
+static inline gfloat           hyscan_buffer_decode_adc_16le   (guint16        code);
+static inline gfloat           hyscan_buffer_decode_adc_24le   (guint32        code);
+static inline gfloat           hyscan_buffer_decode_amp_i8     (guint8         code);
+static inline gfloat           hyscan_buffer_decode_amp_i16    (guint16        code);
+static inline gfloat           hyscan_buffer_decode_amp_i32    (guint32        code);
+static inline gfloat           hyscan_buffer_decode_amp_f8     (guint8         code);
+static inline gfloat           hyscan_buffer_decode_amp_f16    (guint16        code);
 
-static inline guint16          encode_adc_14le             (gfloat                 value);
-static inline guint16          encode_adc_16le             (gfloat                 value);
-static inline guint32          encode_adc_24le             (gfloat                 value);
-static inline guint8           encode_uint8                (gfloat                 value);
-static inline guint16          encode_uint16               (gfloat                 value);
-static inline guint32          encode_uint32               (gfloat                 value);
-static inline guint8           encode_normal8              (gfloat                 value);
-static inline guint16          encode_normal16             (gfloat                 value);
+static inline guint16          hyscan_buffer_encode_adc_14le   (gfloat         value);
+static inline guint16          hyscan_buffer_encode_adc_16le   (gfloat         value);
+static inline guint32          hyscan_buffer_encode_adc_24le   (gfloat         value);
+static inline guint8           hyscan_buffer_encode_amp_i8     (gfloat         value);
+static inline guint16          hyscan_buffer_encode_amp_i16    (gfloat         value);
+static inline guint32          hyscan_buffer_encode_amp_i32    (gfloat         value);
+static inline guint8           hyscan_buffer_encode_amp_f8     (gfloat         value);
+static inline guint16          hyscan_buffer_encode_amp_f16    (gfloat         value);
 
 G_DEFINE_TYPE_WITH_PRIVATE (HyScanBuffer, hyscan_buffer, G_TYPE_OBJECT)
 
@@ -134,192 +134,208 @@ hyscan_buffer_object_finalize (GObject *object)
 /* функции декодирования данных. */
 
 static inline gfloat
-decode_adc_14le (guint16 code)
+hyscan_buffer_decode_adc_14le (guint16 code)
 {
+  gfloat scale = 2.0 / 16383.0;
   code = GUINT16_FROM_LE (code) & 0x3fff;
-  return 2.0 * (code / 16383.0) - 1.0;
+  return scale * code - 1.0;
 }
 
 static inline gfloat
-decode_adc_16le (guint16 code)
+hyscan_buffer_decode_adc_16le (guint16 code)
 {
+  gfloat scale = 2.0 / 65535.0;
   code = GUINT16_FROM_LE (code);
-  return 2.0 * (code / 65535.0) - 1.0;
+  return scale * code - 1.0;
 }
 
 static inline gfloat
-decode_adc_24le (guint32 code)
+hyscan_buffer_decode_adc_24le (guint32 code)
 {
+  gdouble scale = 2.0 / 16777215.0;
   code = GUINT32_FROM_LE (code) & 0x00ffffff;
-  return 2.0 * (code / 16777215.0) - 1.0;
+  return scale * code - 1.0;
 }
 
 static inline gfloat
-decode_uint8 (guint8 code)
+hyscan_buffer_decode_amp_i8 (guint8 code)
 {
-  return code / 255.0;
+  gfloat scale = 1.0 / 255.0;
+  return scale * code;
 }
 
 static inline gfloat
-decode_uint16 (guint16 code)
+hyscan_buffer_decode_amp_i16 (guint16 code)
 {
+  gfloat scale = 1.0 / 65536.0;
   code = GUINT16_FROM_LE (code);
-  return code / 65535.0;
+  return scale * code;
 }
 
 static inline gfloat
-decode_uint32 (guint32 code)
+hyscan_buffer_decode_amp_i32 (guint32 code)
 {
+  gfloat scale = 1.0 / 4294967295.0;
   code = GUINT32_FROM_LE (code);
-  return code / 4294967295.0;
+  return scale * code;
 }
 
 static inline gfloat
-decode_normal8 (guint8 code)
+hyscan_buffer_decode_amp_f8 (guint8 code)
 {
+  gfloat scale[4] = {1.0 / 63.0, 0.1 / 63.0, 0.01 / 63.0, 0.001 / 63.0};
   guint32 power;
-  gfloat value;
 
   power = code >> 6;
-  value = (code & 0x3f) / 63.0;
-
-  if (power == 1)
-    value /= 10.0;
-  else if (power == 2)
-    value /= 100.0;
-  else if (power == 3)
-    value /= 1000.0;
-
-  return value;
+  return scale[power] * (code & 0x3f);
 }
 
 static inline gfloat
-decode_normal16 (guint16 code)
+hyscan_buffer_decode_amp_f16 (guint16 code)
 {
-  gfloat value;
+  gfloat scale[8] = {1.0 / 8191.0, 0.1 / 8191.0, 0.01 / 8191.0, 0.001 / 8191.0,
+                     0.0001 / 8191.0, 0.00001 / 8191.0, 0.000001 / 8191.0, 0.0000001 / 8191.0};
   guint32 power;
 
   code = GUINT16_FROM_LE (code);
   power = code >> 13;
-  value = (code & 0x1fff) / 8191.0;
-
-  if (power == 1)
-    value /= 10.0;
-  else if (power == 2)
-    value /= 100.0;
-  else if (power == 3)
-    value /= 1000.0;
-  else if (power == 4)
-    value /= 10000.0;
-  else if (power == 5)
-    value /= 100000.0;
-  else if (power == 6)
-    value /= 1000000.0;
-  else if (power == 7)
-    value /= 10000000.0;
-
-  return value;
+  return scale[power] * (code & 0x1fff);
 }
 
 /* Функции кодирования данных. */
 
 static inline guint16
-encode_adc_14le (gfloat value)
+hyscan_buffer_encode_adc_14le (gfloat value)
 {
   guint16 code;
-  value = 0.5 * value + 0.5;
-  value = CLAMP (value, 0.0, 0.9999999);
-  code = 16384 * value;
+  value = 8192.0 * (value + 1.0);
+  code = CLAMP (value, 0.0, 16383.0);
   return GUINT16_TO_LE (code);
 }
 
 static inline guint16
-encode_adc_16le (gfloat value)
+hyscan_buffer_encode_adc_16le (gfloat value)
 {
   guint16 code;
-  value = 0.5 * value + 0.5;
-  value = CLAMP (value, 0.0, 0.9999999);
-  code = 65536 * value;
+  value = 32768.0 * (value + 1.0);
+  code = CLAMP (value, 0.0, 65535.0);
   return GUINT16_TO_LE (code);
 }
 
 static inline guint32
-encode_adc_24le (gfloat value)
+hyscan_buffer_encode_adc_24le (gfloat value)
 {
   guint32 code;
-  value = 0.5 * value + 0.5;
-  value = CLAMP (value, 0.0, 0.9999999);
-  code = 16777216 * value;
+  value = 8388608.0 * (value + 1.0);
+  code = CLAMP (value, 0.0, 16777215.0);
   return GUINT32_TO_LE (code);
 }
 
 static inline guint8
-encode_uint8 (gfloat value)
+hyscan_buffer_encode_amp_i8 (gfloat value)
 {
-  value = CLAMP (value, 0.0, 0.9999999);
-  return 256 * value;
+  guint8 code;
+  value = 256.0 * value;
+  code = CLAMP (value, 0.0, 255.0);
+  return code;
 }
 
 static inline guint16
-encode_uint16 (gfloat value)
+hyscan_buffer_encode_amp_i16 (gfloat value)
 {
   guint16 code;
-  value = CLAMP (value, 0.0, 0.9999999);
-  code = 65536 * value;
+  value = 65536.0 * value;
+  code = CLAMP (value, 0.0, 65535.0);
   return GUINT16_TO_LE (code);
 }
 
 static inline guint32
-encode_uint32 (gfloat value)
+hyscan_buffer_encode_amp_i32 (gfloat value)
 {
   guint32 code;
-  value = CLAMP (value, 0.0, 0.9999999);
-  code = 4294967296 * value;
+  value = 4294967296.0 * value;
+  code = CLAMP (value, 0.0, 4294967295.0);
   return GUINT32_TO_LE (code);
 }
 
 static inline guint8
-encode_normal8 (gfloat value)
+hyscan_buffer_encode_amp_f8 (gfloat value)
 {
   guint8 code;
 
-  value = CLAMP (value, 0.0, 0.9999999);
-
   if (value > 0.1)
-    code = (64 * value);
+    {
+      code = 0;
+      value = 64.0 * value;
+    }
   else if (value > 0.01)
-    code = (guint8)(640 * value) | 0x40;
+    {
+      code = 0x40;
+      value = 640.0 * value;
+    }
   else if (value > 0.001)
-    code = (guint8)(6400 * value) | 0x80;
+    {
+      code = 0x80;
+      value = 6400.0 * value;
+    }
   else
-    code = (guint8)(64000 * value) | 0xC0;
+    {
+      code = 0xC0;
+      value = 64000.0 * value;
+    }
+
+  code |= (guint8) CLAMP (value, 0.0, 63.0);
 
   return code;
 }
 
 static inline guint16
-encode_normal16 (gfloat value)
+hyscan_buffer_encode_amp_f16 (gfloat value)
 {
   guint16 code;
 
-  value = CLAMP (value, 0.0, 0.9999999);
-
   if (value > 0.1)
-    code = (8192 * value);
+    {
+      code = 0;
+      value = 8192.0 * value;
+    }
   else if (value > 0.01)
-    code = (guint16)(81920 * value) | 0x2000;
+    {
+      code = 0x2000;
+      value = 81920.0 * value;
+    }
   else if (value > 0.001)
-    code = (guint16)(819200 * value) | 0x4000;
+    {
+      code = 0x4000;
+      value = 819200.0 * value;
+    }
   else if (value > 0.0001)
-    code = (guint16)(8192000 * value) | 0x6000;
+    {
+      code = 0x6000;
+      value = 8192000.0 * value;
+    }
   else if (value > 0.00001)
-    code = (guint16)(81920000 * value) | 0x8000;
+    {
+      code = 0x8000;
+      value = 81920000.0 * value;
+    }
   else if (value > 0.000001)
-    code = (guint16)(819200000 * value) | 0xA000;
+    {
+      code = 0xA000;
+      value = 819200000.0 * value;
+    }
   else if (value > 0.0000001)
-    code = (guint16)(8192000000 * value) | 0xC000;
+    {
+      code = 0xC000;
+      value = 8192000000.0 * value;
+    }
   else
-    code = (guint16)(81920000000 * value) | 0xE000;
+    {
+      code = 0xE000;
+      value = 81920000000.0 * value;
+    }
+
+  code |= (guint16) CLAMP (value, 0.0, 8191.0);
 
   return GUINT16_TO_LE (code);
 }
@@ -368,28 +384,25 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
   /* Тип данных: действительные или комплексные. */
   switch (data_type)
     {
+    case HYSCAN_DATA_FLOAT:
     case HYSCAN_DATA_ADC_14LE:
     case HYSCAN_DATA_ADC_16LE:
     case HYSCAN_DATA_ADC_24LE:
-    case HYSCAN_DATA_UINT8:
-    case HYSCAN_DATA_UINT16:
-    case HYSCAN_DATA_UINT32:
-    case HYSCAN_DATA_FLOAT:
-    case HYSCAN_DATA_NORMAL8:
-    case HYSCAN_DATA_NORMAL16:
+    case HYSCAN_DATA_AMPLITUDE_INT8:
+    case HYSCAN_DATA_AMPLITUDE_INT16:
+    case HYSCAN_DATA_AMPLITUDE_INT32:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT8:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT16:
       n_points = data_size / hyscan_data_get_point_size (data_type);
       hyscan_buffer_set_size (buffer, n_points * sizeof (gfloat));
       hyscan_buffer_set_data_type (buffer, HYSCAN_DATA_FLOAT);
       float_buffer = hyscan_buffer_get_float (buffer, &n_points);
       break;
 
+    case HYSCAN_DATA_COMPLEX_FLOAT:
     case HYSCAN_DATA_COMPLEX_ADC_14LE:
     case HYSCAN_DATA_COMPLEX_ADC_16LE:
     case HYSCAN_DATA_COMPLEX_ADC_24LE:
-    case HYSCAN_DATA_COMPLEX_UINT8:
-    case HYSCAN_DATA_COMPLEX_UINT16:
-    case HYSCAN_DATA_COMPLEX_UINT32:
-    case HYSCAN_DATA_COMPLEX_FLOAT:
       n_points = data_size / hyscan_data_get_point_size (data_type);
       hyscan_buffer_set_size (buffer, n_points * sizeof (HyScanComplexFloat));
       hyscan_buffer_set_data_type (buffer, HYSCAN_DATA_COMPLEX_FLOAT);
@@ -403,100 +416,113 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
   /* Импорт данных. */
   switch (data_type)
     {
+    case HYSCAN_DATA_FLOAT:
+      {
+        memcpy (float_buffer, data, n_points * sizeof (gfloat));
+      }
+      break;
+
     case HYSCAN_DATA_ADC_14LE:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_adc_14le (*((guint16 *)data + i));
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_adc_14le (*raw_data++);
+      }
       break;
 
     case HYSCAN_DATA_ADC_16LE:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_adc_16le (*((guint16 *)data + i));
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_adc_16le (*raw_data++);
+      }
       break;
 
     case HYSCAN_DATA_ADC_24LE:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_adc_24le (*((guint32 *)data + i));
+      {
+        guint32 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_adc_24le (*raw_data++);
+      }
       break;
 
-    case HYSCAN_DATA_UINT8:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_uint8 (*((guint8 *)data + i));
+    case HYSCAN_DATA_AMPLITUDE_INT8:
+      {
+        guint8 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_amp_i8 (*raw_data++);
+      }
       break;
 
-    case HYSCAN_DATA_UINT16:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_uint16 (*((guint16 *)data + i));
+    case HYSCAN_DATA_AMPLITUDE_INT16:
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_amp_i16 (*raw_data++);
+      }
       break;
 
-    case HYSCAN_DATA_UINT32:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_uint32 (*((guint32 *)data + i));
+    case HYSCAN_DATA_AMPLITUDE_INT32:
+      {
+        guint32 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_amp_i32 (*raw_data++);
+      }
       break;
 
-    case HYSCAN_DATA_FLOAT:
-      memcpy (float_buffer, data, n_points * sizeof (gfloat));
+    case HYSCAN_DATA_AMPLITUDE_FLOAT8:
+      {
+        guint8 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_amp_f8 (*raw_data++);
+      }
       break;
 
-    case HYSCAN_DATA_NORMAL8:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_normal8 (*((guint8 *)data + i));
-      break;
-
-    case HYSCAN_DATA_NORMAL16:
-      for (i = 0; i < n_points; i++)
-        float_buffer[i] = decode_normal16 (*((guint16 *)data + i));
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_14LE:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_adc_14le (*((guint16 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_adc_14le (*((guint16 *)data + 2 * i + 1));
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_16LE:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_adc_16le (*((guint16 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_adc_16le (*((guint16 *)data + 2 * i + 1));
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_24LE:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_adc_24le (*((guint32 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_adc_24le (*((guint32 *)data + 2 * i + 1));
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT8:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_uint8 (*((guint8 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_uint8 (*((guint8 *)data + 2 * i + 1));
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT16:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_uint16 (*((guint16 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_uint16 (*((guint16 *)data + 2 * i + 1));
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT32:
-      for (i = 0; i < n_points; i++)
-        {
-          complex_float_buffer[i].re = decode_uint32 (*((guint32 *)data + 2 * i));
-          complex_float_buffer[i].im = decode_uint32 (*((guint32 *)data + 2 * i + 1));
-        }
+    case HYSCAN_DATA_AMPLITUDE_FLOAT16:
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          float_buffer[i] = hyscan_buffer_decode_amp_f16 (*raw_data++);
+      }
       break;
 
     case HYSCAN_DATA_COMPLEX_FLOAT:
-      memcpy (complex_float_buffer, data, n_points * sizeof (HyScanComplexFloat));
+      {
+        memcpy (complex_float_buffer, data, n_points * sizeof (HyScanComplexFloat));
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_14LE:
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          {
+            complex_float_buffer[i].re = hyscan_buffer_decode_adc_14le (*raw_data++);
+            complex_float_buffer[i].im = hyscan_buffer_decode_adc_14le (*raw_data++);
+          }
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_16LE:
+      {
+        guint16 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          {
+            complex_float_buffer[i].re = hyscan_buffer_decode_adc_16le (*raw_data++);
+            complex_float_buffer[i].im = hyscan_buffer_decode_adc_16le (*raw_data++);
+          }
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_24LE:
+      {
+        guint32 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          {
+            complex_float_buffer[i].re = hyscan_buffer_decode_adc_24le (*raw_data++);
+            complex_float_buffer[i].im = hyscan_buffer_decode_adc_24le (*raw_data++);
+          }
+      }
       break;
 
     default:
@@ -534,27 +560,24 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
   /* Тип данных: действительные или комплексные. */
   switch (type)
     {
+    case HYSCAN_DATA_FLOAT:
     case HYSCAN_DATA_ADC_14LE:
     case HYSCAN_DATA_ADC_16LE:
     case HYSCAN_DATA_ADC_24LE:
-    case HYSCAN_DATA_UINT8:
-    case HYSCAN_DATA_UINT16:
-    case HYSCAN_DATA_UINT32:
-    case HYSCAN_DATA_FLOAT:
-    case HYSCAN_DATA_NORMAL8:
-    case HYSCAN_DATA_NORMAL16:
+    case HYSCAN_DATA_AMPLITUDE_INT8:
+    case HYSCAN_DATA_AMPLITUDE_INT16:
+    case HYSCAN_DATA_AMPLITUDE_INT32:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT8:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT16:
       float_buffer = hyscan_buffer_get_float (buffer, &n_points);
       if (float_buffer == NULL)
         return FALSE;
       break;
 
+    case HYSCAN_DATA_COMPLEX_FLOAT:
     case HYSCAN_DATA_COMPLEX_ADC_14LE:
     case HYSCAN_DATA_COMPLEX_ADC_16LE:
     case HYSCAN_DATA_COMPLEX_ADC_24LE:
-    case HYSCAN_DATA_COMPLEX_UINT8:
-    case HYSCAN_DATA_COMPLEX_UINT16:
-    case HYSCAN_DATA_COMPLEX_UINT32:
-    case HYSCAN_DATA_COMPLEX_FLOAT:
       complex_float_buffer = hyscan_buffer_get_complex_float (buffer, &n_points);
       if (complex_float_buffer == NULL)
         return FALSE;
@@ -573,100 +596,111 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
   /* Экспорт данных. */
   switch (type)
     {
+    case HYSCAN_DATA_FLOAT:
+      {
+        memcpy (raw_data, float_buffer, n_points * sizeof (gfloat));
+      }
+      break;
+
     case HYSCAN_DATA_ADC_14LE:
-      for (i = 0; i < n_points; i++)
-        *((guint16*)raw_data + i) = encode_adc_14le (float_buffer[i]);
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data16++ = hyscan_buffer_encode_adc_14le (float_buffer[i]);
+      }
       break;
 
     case HYSCAN_DATA_ADC_16LE:
-      for (i = 0; i < n_points; i++)
-        *((guint16*)raw_data + i) = encode_adc_16le (float_buffer[i]);
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data16++ = hyscan_buffer_encode_adc_16le (float_buffer[i]);
+      }
       break;
 
     case HYSCAN_DATA_ADC_24LE:
-      for (i = 0; i < n_points; i++)
-        *((guint32*)raw_data + i) = encode_adc_24le (float_buffer[i]);
+      {
+        guint32 *raw_data32 = (guint32*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data32++ = hyscan_buffer_encode_adc_24le (float_buffer[i]);
+      }
       break;
 
-    case HYSCAN_DATA_UINT8:
-      for (i = 0; i < n_points; i++)
-        *((guint8*)raw_data + i) = encode_uint8 (float_buffer[i]);
+    case HYSCAN_DATA_AMPLITUDE_INT8:
+      {
+        for (i = 0; i < n_points; i++)
+          *raw_data++ = hyscan_buffer_encode_amp_i8 (float_buffer[i]);
+      }
       break;
 
-    case HYSCAN_DATA_UINT16:
-      for (i = 0; i < n_points; i++)
-        *((guint16*)raw_data + i) = encode_uint16 (float_buffer[i]);
+    case HYSCAN_DATA_AMPLITUDE_INT16:
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data16++ = hyscan_buffer_encode_amp_i16 (float_buffer[i]);
+      }
       break;
 
-    case HYSCAN_DATA_UINT32:
-      for (i = 0; i < n_points; i++)
-        *((guint32*)raw_data + i) = encode_uint32 (float_buffer[i]);
+    case HYSCAN_DATA_AMPLITUDE_INT32:
+      {
+        guint32 *raw_data32 = (guint32*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data32++ = hyscan_buffer_encode_amp_i32 (float_buffer[i]);
+      }
       break;
 
-    case HYSCAN_DATA_FLOAT:
-      memcpy (raw_data, float_buffer, n_points * sizeof (gfloat));
+    case HYSCAN_DATA_AMPLITUDE_FLOAT8:
+      {
+        for (i = 0; i < n_points; i++)
+          *raw_data++ = hyscan_buffer_encode_amp_f8 (float_buffer[i]);
+      }
       break;
 
-    case HYSCAN_DATA_NORMAL8:
-      for (i = 0; i < n_points; i++)
-        *((guint8*)raw_data + i) = encode_normal8 (float_buffer[i]);
-      break;
-
-    case HYSCAN_DATA_NORMAL16:
-      for (i = 0; i < n_points; i++)
-        *((guint16*)raw_data + i) = encode_normal16 (float_buffer[i]);
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_14LE:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint16*)raw_data + 2 * i) = encode_adc_14le (complex_float_buffer[i].re);
-          *((guint16*)raw_data + 2 * i + 1) = encode_adc_14le (complex_float_buffer[i].im);
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_16LE:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint16*)raw_data + 2 * i) = encode_adc_16le (complex_float_buffer[i].re);
-          *((guint16*)raw_data + 2 * i + 1) = encode_adc_16le (complex_float_buffer[i].im);
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_ADC_24LE:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint32*)raw_data + 2 * i) = encode_adc_24le (complex_float_buffer[i].re);
-          *((guint32*)raw_data + 2 * i + 1) = encode_adc_24le (complex_float_buffer[i].im);
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT8:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint8*)raw_data + 2 * i) = encode_uint8 (complex_float_buffer[i].re);
-          *((guint8*)raw_data + 2 * i + 1) = encode_uint8 (complex_float_buffer[i].im);
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT16:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint16*)raw_data + 2 * i) = encode_uint16 (complex_float_buffer[i].re);
-          *((guint16*)raw_data + 2 * i + 1) = encode_uint16 (complex_float_buffer[i].im);
-        }
-      break;
-
-    case HYSCAN_DATA_COMPLEX_UINT32:
-      for (i = 0; i < n_points; i++)
-        {
-          *((guint32*)raw_data + 2 * i) = encode_uint32 (complex_float_buffer[i].re);
-          *((guint32*)raw_data + 2 * i + 1) = encode_uint32 (complex_float_buffer[i].im);
-        }
+    case HYSCAN_DATA_AMPLITUDE_FLOAT16:
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          *raw_data16++ = hyscan_buffer_encode_amp_f16 (float_buffer[i]);
+      }
       break;
 
     case HYSCAN_DATA_COMPLEX_FLOAT:
-      memcpy (raw_data, complex_float_buffer, n_points * sizeof (HyScanComplexFloat));
+      {
+        memcpy (raw_data, complex_float_buffer, n_points * sizeof (HyScanComplexFloat));
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_14LE:
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          {
+            *raw_data16++ = hyscan_buffer_encode_adc_14le (complex_float_buffer[i].re);
+            *raw_data16++ = hyscan_buffer_encode_adc_14le (complex_float_buffer[i].im);
+          }
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_16LE:
+      {
+        guint16 *raw_data16 = (guint16*)raw_data;
+        for (i = 0; i < n_points; i++)
+          {
+            *raw_data16++ = hyscan_buffer_encode_adc_16le (complex_float_buffer[i].re);
+            *raw_data16++ = hyscan_buffer_encode_adc_16le (complex_float_buffer[i].im);
+          }
+      }
+      break;
+
+    case HYSCAN_DATA_COMPLEX_ADC_24LE:
+      {
+        guint32 *raw_data32 = (guint32*)raw_data;
+        for (i = 0; i < n_points; i++)
+          {
+            *raw_data32++ = hyscan_buffer_encode_adc_24le (complex_float_buffer[i].re);
+            *raw_data32++ = hyscan_buffer_encode_adc_24le (complex_float_buffer[i].im);
+          }
+      }
       break;
 
     default:

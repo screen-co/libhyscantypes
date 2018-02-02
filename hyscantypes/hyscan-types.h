@@ -48,146 +48,139 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
 
 /**
  * HyScanDataType:
- * @HYSCAN_DATA_INVALID: Недопустимый тип, ошибка.
- * @HYSCAN_DATA_BLOB: Неструктурированные двоичные данные.
- * @HYSCAN_DATA_STRING: Строка с нулём на конце.
- * @HYSCAN_DATA_ADC_14LE: Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian.
- * @HYSCAN_DATA_ADC_16LE: Действительные отсчёты АЦП 16 бит, формат little endian.
- * @HYSCAN_DATA_ADC_24LE : Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian.
- * @HYSCAN_DATA_COMPLEX_ADC_14LE: Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian.
- * @HYSCAN_DATA_COMPLEX_ADC_16LE: Комплексные отсчёты АЦП 16 бит, формат little endian.
- * @HYSCAN_DATA_COMPLEX_ADC_24LE: Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian.
- * @HYSCAN_DATA_UINT8: Действительные unsigned int8 значения.
- * @HYSCAN_DATA_UINT16: Действительные unsigned int16 значения.
- * @HYSCAN_DATA_UINT32: Действительные unsigned int32 значения.
- * @HYSCAN_DATA_FLOAT: Действительные float значения.
- * @HYSCAN_DATA_NORMAL8: Действительные значения с плавающей точкой, 8 бит, диапазон от 0 до 1.
- * @HYSCAN_DATA_NORMAL16: Действительные значения с плавающей точкой, 16 бит, диапазон от 0 до 1.
- * @HYSCAN_DATA_COMPLEX_UINT8: Комплексные unsigned int8 значения.
- * @HYSCAN_DATA_COMPLEX_UINT16: Комплексные unsigned int16 значения.
- * @HYSCAN_DATA_COMPLEX_UINT32: Комплексные unsigned int32 значения.
- * @HYSCAN_DATA_COMPLEX_FLOAT: Комплексные float значения.
+ * @HYSCAN_DATA_INVALID: недопустимый тип, ошибка
+ * @HYSCAN_DATA_BLOB: неструктурированные двоичные данные
+ * @HYSCAN_DATA_STRING: строка с нулём на конце
+ * @HYSCAN_DATA_FLOAT: действительные float значения
+ * @HYSCAN_DATA_COMPLEX_FLOAT: комплексные float значения
+ * @HYSCAN_DATA_ADC_14LE: действительные отсчёты АЦП младшие 14 бит из 16, формат little endian
+ * @HYSCAN_DATA_ADC_16LE: действительные отсчёты АЦП 16 бит, формат little endian
+ * @HYSCAN_DATA_ADC_24LE: действительные отсчёты АЦП младшие 24 бит из 32, формат little endian
+ * @HYSCAN_DATA_COMPLEX_ADC_14LE: комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian
+ * @HYSCAN_DATA_COMPLEX_ADC_16LE: комплексные отсчёты АЦП 16 бит, формат little endian
+ * @HYSCAN_DATA_COMPLEX_ADC_24LE: комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian
+ * @HYSCAN_DATA_AMPLITUDE_INT8: амплитудные значения, 8 бит
+ * @HYSCAN_DATA_AMPLITUDE_INT16: амплитудные значения, 16 бит
+ * @HYSCAN_DATA_AMPLITUDE_INT32: амплитудные значения, 32 бит
+ * @HYSCAN_DATA_AMPLITUDE_FLOAT8: амплитудные значения с плавающей точкой, 8 бит
+ * @HYSCAN_DATA_AMPLITUDE_FLOAT16: амплитудные значения с плавающей точкой, 16 бит
  *
- * Типы данных HyScan.
+ * Типы данных.
  */
 typedef enum
 {
-  HYSCAN_DATA_INVALID                      = 0,
+  HYSCAN_DATA_INVALID,
 
-  HYSCAN_DATA_BLOB                         = 101,
-  HYSCAN_DATA_STRING                       = 102,
+  HYSCAN_DATA_BLOB,
+  HYSCAN_DATA_STRING,
+  HYSCAN_DATA_FLOAT,
+  HYSCAN_DATA_COMPLEX_FLOAT,
 
-  HYSCAN_DATA_ADC_14LE                     = 201,
-  HYSCAN_DATA_ADC_16LE                     = 202,
-  HYSCAN_DATA_ADC_24LE                     = 203,
+  HYSCAN_DATA_ADC_14LE,
+  HYSCAN_DATA_ADC_16LE,
+  HYSCAN_DATA_ADC_24LE,
 
-  HYSCAN_DATA_COMPLEX_ADC_14LE             = 301,
-  HYSCAN_DATA_COMPLEX_ADC_16LE             = 302,
-  HYSCAN_DATA_COMPLEX_ADC_24LE             = 303,
+  HYSCAN_DATA_COMPLEX_ADC_14LE,
+  HYSCAN_DATA_COMPLEX_ADC_16LE,
+  HYSCAN_DATA_COMPLEX_ADC_24LE,
 
-  HYSCAN_DATA_UINT8                        = 401,
-  HYSCAN_DATA_UINT16                       = 402,
-  HYSCAN_DATA_UINT32                       = 403,
-  HYSCAN_DATA_FLOAT                        = 404,
-  HYSCAN_DATA_NORMAL8                      = 405,
-  HYSCAN_DATA_NORMAL16                     = 406,
-
-  HYSCAN_DATA_COMPLEX_UINT8                = 501,
-  HYSCAN_DATA_COMPLEX_UINT16               = 502,
-  HYSCAN_DATA_COMPLEX_UINT32               = 503,
-  HYSCAN_DATA_COMPLEX_FLOAT                = 504
+  HYSCAN_DATA_AMPLITUDE_INT8,
+  HYSCAN_DATA_AMPLITUDE_INT16,
+  HYSCAN_DATA_AMPLITUDE_INT32,
+  HYSCAN_DATA_AMPLITUDE_FLOAT8,
+  HYSCAN_DATA_AMPLITUDE_FLOAT16
 } HyScanDataType;
 
 /**
  * HyScanSourceType:
- * @HYSCAN_SOURCE_INVALID: Недопустимый тип, ошибка.
- * @HYSCAN_SOURCE_LOG: Информационные сообщения.
- * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD: Боковой обзор, правый борт.
- * @HYSCAN_SOURCE_SIDE_SCAN_PORT: Боковой обзор, левый борт.
- * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI: Боковой обзор, правый борт, высокое разрешение.
- * @HYSCAN_SOURCE_SIDE_SCAN_PORT_HI: Боковой обзор, левый борт, высокое разрешение.
- * @HYSCAN_SOURCE_ECHOSOUNDER: Эхолот.
- * @HYSCAN_SOURCE_ECHOSOUNDER_HI: Эхолот, высокое разрешение.
- * @HYSCAN_SOURCE_BATHYMETRY_STARBOARD: Батиметрия, правый борт.
- * @HYSCAN_SOURCE_BATHYMETRY_PORT: Батиметрия, левый борт.
- * @HYSCAN_SOURCE_PROFILER: Профилограф.
- * @HYSCAN_SOURCE_LOOK_AROUND_STARBOARD: Круговой обзор, правый борт.
- * @HYSCAN_SOURCE_LOOK_AROUND_PORT: Круговой обзор, левый борт.
- * @HYSCAN_SOURCE_FORWARD_LOOK: Вперёдсмотрящий гидролокатор.
- * @HYSCAN_SOURCE_SAS: Сообщения САД.
- * @HYSCAN_SOURCE_SAS_V2: Сообщения САД, версия 2.
- * @HYSCAN_SOURCE_NMEA_ANY: Любые сообщения NMEA.
- * @HYSCAN_SOURCE_NMEA_GGA: Сообщения NMEA GGA.
- * @HYSCAN_SOURCE_NMEA_RMC: Сообщения NMEA RMC.
- * @HYSCAN_SOURCE_NMEA_DPT: Сообщения NMEA DPT.
+ * @HYSCAN_SOURCE_INVALID: недопустимый тип, ошибка
+ * @HYSCAN_SOURCE_LOG: информационные сообщения
+ * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD: боковой обзор, правый борт
+ * @HYSCAN_SOURCE_SIDE_SCAN_PORT: боковой обзор, левый борт
+ * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI: боковой обзор, правый борт, высокое разрешение
+ * @HYSCAN_SOURCE_SIDE_SCAN_PORT_HI: боковой обзор, левый борт, высокое разрешение
+ * @HYSCAN_SOURCE_ECHOSOUNDER: эхолот
+ * @HYSCAN_SOURCE_ECHOSOUNDER_HI: эхолот, высокое разрешение
+ * @HYSCAN_SOURCE_BATHYMETRY_STARBOARD: батиметрия, правый борт
+ * @HYSCAN_SOURCE_BATHYMETRY_PORT: батиметрия, левый борт
+ * @HYSCAN_SOURCE_PROFILER: профилограф
+ * @HYSCAN_SOURCE_LOOK_AROUND_STARBOARD: круговой обзор, правый борт
+ * @HYSCAN_SOURCE_LOOK_AROUND_PORT: круговой обзор, левый борт
+ * @HYSCAN_SOURCE_FORWARD_LOOK: вперёдсмотрящий гидролокатор
+ * @HYSCAN_SOURCE_SAS: сообщения САД
+ * @HYSCAN_SOURCE_SAS_V2: сообщения САД, версия 2
+ * @HYSCAN_SOURCE_NMEA_ANY: любые сообщения NMEA
+ * @HYSCAN_SOURCE_NMEA_GGA: сообщения NMEA GGA
+ * @HYSCAN_SOURCE_NMEA_RMC: сообщения NMEA RMC
+ * @HYSCAN_SOURCE_NMEA_DPT: сообщения NMEA DPT
  *
  * Типы источников данных.
  */
 typedef enum
 {
-  HYSCAN_SOURCE_INVALID                    = 0,
+  HYSCAN_SOURCE_INVALID,
 
-  HYSCAN_SOURCE_LOG                        = 101,
+  HYSCAN_SOURCE_LOG,
 
-  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD        = 201,
-  HYSCAN_SOURCE_SIDE_SCAN_PORT             = 202,
-  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI     = 203,
-  HYSCAN_SOURCE_SIDE_SCAN_PORT_HI          = 204,
-  HYSCAN_SOURCE_ECHOSOUNDER                = 205,
-  HYSCAN_SOURCE_ECHOSOUNDER_HI             = 206,
-  HYSCAN_SOURCE_BATHYMETRY_STARBOARD       = 207,
-  HYSCAN_SOURCE_BATHYMETRY_PORT            = 208,
-  HYSCAN_SOURCE_PROFILER                   = 209,
-  HYSCAN_SOURCE_LOOK_AROUND_STARBOARD      = 210,
-  HYSCAN_SOURCE_LOOK_AROUND_PORT           = 211,
-  HYSCAN_SOURCE_FORWARD_LOOK               = 212,
+  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,
+  HYSCAN_SOURCE_SIDE_SCAN_PORT,
+  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI,
+  HYSCAN_SOURCE_SIDE_SCAN_PORT_HI,
+  HYSCAN_SOURCE_ECHOSOUNDER,
+  HYSCAN_SOURCE_ECHOSOUNDER_HI,
+  HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
+  HYSCAN_SOURCE_BATHYMETRY_PORT,
+  HYSCAN_SOURCE_PROFILER,
+  HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
+  HYSCAN_SOURCE_LOOK_AROUND_PORT,
+  HYSCAN_SOURCE_FORWARD_LOOK,
 
-  HYSCAN_SOURCE_SAS                        = 301,
-  HYSCAN_SOURCE_SAS_V2                     = 302,
+  HYSCAN_SOURCE_SAS,
+  HYSCAN_SOURCE_SAS_V2,
 
-  HYSCAN_SOURCE_NMEA_ANY                   = 401,
-  HYSCAN_SOURCE_NMEA_GGA                   = 402,
-  HYSCAN_SOURCE_NMEA_RMC                   = 403,
-  HYSCAN_SOURCE_NMEA_DPT                   = 404
+  HYSCAN_SOURCE_NMEA_ANY,
+  HYSCAN_SOURCE_NMEA_GGA,
+  HYSCAN_SOURCE_NMEA_RMC,
+  HYSCAN_SOURCE_NMEA_DPT
 } HyScanSourceType;
 
 /**
  * HyScanLogLevel:
- * @HYSCAN_LOG_LEVEL_DEBUG: Отладочное сообщение.
- * @HYSCAN_LOG_LEVEL_INFO: Информационное сообщение.
- * @HYSCAN_LOG_LEVEL_MESSAGE: Обычное сообщение.
- * @HYSCAN_LOG_LEVEL_WARNING: Предупреждающее сообщение.
- * @HYSCAN_LOG_LEVEL_CRITICAL: Критически важное сообщение.
- * @HYSCAN_LOG_LEVEL_ERROR: Сообщение об ошибке.
+ * @HYSCAN_LOG_LEVEL_DEBUG: отладочное сообщение
+ * @HYSCAN_LOG_LEVEL_INFO: информационное сообщение
+ * @HYSCAN_LOG_LEVEL_MESSAGE: обычное сообщение
+ * @HYSCAN_LOG_LEVEL_WARNING: предупреждающее сообщение
+ * @HYSCAN_LOG_LEVEL_CRITICAL: критически важное сообщение
+ * @HYSCAN_LOG_LEVEL_ERROR: сообщение об ошибке
  *
  * Типы информационных сообщений.
  */
 typedef enum
 {
-  HYSCAN_LOG_LEVEL_DEBUG                   = (1),
-  HYSCAN_LOG_LEVEL_INFO                    = (1 << 1),
-  HYSCAN_LOG_LEVEL_MESSAGE                 = (1 << 2),
-  HYSCAN_LOG_LEVEL_WARNING                 = (1 << 3),
-  HYSCAN_LOG_LEVEL_CRITICAL                = (1 << 4),
-  HYSCAN_LOG_LEVEL_ERROR                   = (1 << 5)
+  HYSCAN_LOG_LEVEL_DEBUG     = (1 << 0),
+  HYSCAN_LOG_LEVEL_INFO      = (1 << 1),
+  HYSCAN_LOG_LEVEL_MESSAGE   = (1 << 2),
+  HYSCAN_LOG_LEVEL_WARNING   = (1 << 3),
+  HYSCAN_LOG_LEVEL_CRITICAL  = (1 << 4),
+  HYSCAN_LOG_LEVEL_ERROR     = (1 << 5)
 } HyScanLogLevel;
 
 /**
  * HyScanTrackType:
- * @HYSCAN_TRACK_UNSPECIFIED: Неопределённый тип.
- * @HYSCAN_TRACK_CALIBRATION: Галс с данными калибровки.
- * @HYSCAN_TRACK_SURVEY: Галс с данными съёмки.
- * @HYSCAN_TRACK_TACK: Лавировочный галс.
+ * @HYSCAN_TRACK_UNSPECIFIED: неопределённый тип
+ * @HYSCAN_TRACK_CALIBRATION: галс с данными калибровки
+ * @HYSCAN_TRACK_SURVEY: галс с данными съёмки
+ * @HYSCAN_TRACK_TACK: лавировочный галс
  *
  * Типы галсов.
  */
 typedef enum
 {
-  HYSCAN_TRACK_UNSPECIFIED                 = 0,
+  HYSCAN_TRACK_UNSPECIFIED,
 
-  HYSCAN_TRACK_CALIBRATION                 = 101,
-  HYSCAN_TRACK_SURVEY                      = 102,
-  HYSCAN_TRACK_TACK                        = 103
+  HYSCAN_TRACK_CALIBRATION,
+  HYSCAN_TRACK_SURVEY,
+  HYSCAN_TRACK_TACK
 } HyScanTrackType;
 
 /**
@@ -299,48 +292,48 @@ struct _HyScanAcousticDataInfo
 };
 
 HYSCAN_API
-const gchar           *hyscan_data_get_name_by_type            (HyScanDataType                 type);
+const gchar           *hyscan_data_get_name_by_type            (HyScanDataType         type);
 
 HYSCAN_API
-HyScanDataType         hyscan_data_get_type_by_name            (const gchar                   *name);
+HyScanDataType         hyscan_data_get_type_by_name            (const gchar           *name);
 
 HYSCAN_API
-guint32                hyscan_data_get_point_size              (HyScanDataType                 type);
+guint32                hyscan_data_get_point_size              (HyScanDataType         type);
 
 HYSCAN_API
-const gchar           *hyscan_source_get_name_by_type          (HyScanSourceType               source);
+const gchar           *hyscan_source_get_name_by_type          (HyScanSourceType       source);
 
 HYSCAN_API
-HyScanSourceType       hyscan_source_get_type_by_name          (const gchar                   *name);
+HyScanSourceType       hyscan_source_get_type_by_name          (const gchar           *name);
 
 HYSCAN_API
-gboolean               hyscan_source_is_sensor                 (HyScanSourceType               source);
+gboolean               hyscan_source_is_sensor                 (HyScanSourceType       source);
 
 HYSCAN_API
-gboolean               hyscan_source_is_sonar                  (HyScanSourceType               source);
+gboolean               hyscan_source_is_sonar                  (HyScanSourceType       source);
 
 HYSCAN_API
-gboolean               hyscan_source_is_raw                    (HyScanSourceType               source);
+gboolean               hyscan_source_is_raw                    (HyScanSourceType       source);
 
 HYSCAN_API
-gboolean               hyscan_source_is_acoustic               (HyScanSourceType               source);
+gboolean               hyscan_source_is_acoustic               (HyScanSourceType       source);
 
 HYSCAN_API
-const gchar           *hyscan_channel_get_name_by_types        (HyScanSourceType               source,
-                                                                gboolean                       raw,
-                                                                guint                          channel);
+const gchar           *hyscan_channel_get_name_by_types        (HyScanSourceType       source,
+                                                                gboolean               raw,
+                                                                guint                  channel);
 
 HYSCAN_API
-gboolean               hyscan_channel_get_types_by_name        (const gchar                   *name,
-                                                                HyScanSourceType              *source,
-                                                                gboolean                      *raw,
-                                                                guint                         *channel);
+gboolean               hyscan_channel_get_types_by_name        (const gchar           *name,
+                                                                HyScanSourceType      *source,
+                                                                gboolean              *raw,
+                                                                guint                 *channel);
 
 HYSCAN_API
-const gchar           *hyscan_track_get_name_by_type           (HyScanTrackType                type);
+const gchar           *hyscan_track_get_name_by_type           (HyScanTrackType        type);
 
 HYSCAN_API
-HyScanTrackType        hyscan_track_get_type_by_name           (const gchar                   *name);
+HyScanTrackType        hyscan_track_get_type_by_name           (const gchar           *name);
 
 G_END_DECLS
 

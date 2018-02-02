@@ -40,20 +40,25 @@
  * #HyScanTypes содержит определения базовых типов данных HyScan и функции
  * для работы с ними.
  *
- * Все данные в HyScan имеют определённый тип #HyScanDataType. Для определения
- * типа данных и его характеристик используются следующие функции:
+ * Все данные в HyScan имеют определённый тип #HyScanDataType. Однако вся
+ * обработка численных данных производится в виде gfloat или #HyScanComplexFloat.
+ *  Для определения типа данных и его
+ * характеристик используются следующие функции:
  *
  * - #hyscan_data_get_type_by_name - функция определяет тип данных по имени;
  * - #hyscan_data_get_type_name - функция возвращает название данных для указанного типа;
  * - #hyscan_data_get_point_size - функция возвращает размер одного элемента данных в байтах.
  *
- * Эти типы используются только для данных записанных в системе хранения. В самом
- * HyScan обработка данных производится в виде действительных данных (тип gfloat)
- * или комплексных (тип #HyScanComplexFloat). Для преобразования данных предназначены
- * функции #hyscan_data_import_float и #hyscan_data_import_complex_float.
+ * Эти типы используются только для данных записанных в системе хранения. В
+ * самом HyScan обработка данных производится в виде действительных данных
+ * (тип gfloat) или комплексных (тип #HyScanComplexFloat). Для преобразования
+ * данных между различными типами можно использовать класс #HyScanBuffer. При
+ * преобразовании данных производится нормирование значений до величины
+ * [-1.0, 1.0] для действительных и комплексных значений, [0.0, 1.0] для
+ * амплитудных значений.
  *
- * Кроме этого вводится понятие - источник данных #HyScanSourceType. Все источники
- * данных разделены на два основных вида:
+ * Кроме этого вводится понятие - источник данных #HyScanSourceType. Все
+ * источники данных разделены на два основных вида:
  *
  * - датчики
  * - источники гидролокационных данных.
@@ -64,40 +69,41 @@
  * - источники акустических данных;
  * - источники батиметрических данных.
  *
- * Источники сырых гидролокационных данных содержат информацию об амплитуде эхо сигнала
- * дискретизированной во времени. Это вид первичной информации, получаемой от приёмников
- * гидролокатора. В зависимости от типа гидролокатора, информация данного типа требует
- * специализированной обработки, например свёртки или вычисления амплитуды. Кроме этого
- * источники сырых данных могут иметь несколько каналов. Индексирование каналов начинается
- * с единицы. Обычно несколько каналов данных имеют гидролокаторы использующие фазовую
- * обработку, например интерферометры.
+ * Источники сырых гидролокационных данных содержат информацию об амплитуде эхо
+ * сигнала дискретизированной во времени. Это вид первичной информации,
+ * получаемой от приёмников гидролокатора. В зависимости от типа гидролокатора,
+ * информация данного типа требует специализированной обработки, например
+ * свёртки или вычисления амплитуды. Кроме этого источники сырых данных могут
+ * иметь несколько каналов. Индексирование каналов начинается с единицы. Обычно
+ * несколько каналов данных имеют гидролокаторы использующие фазовую обработку,
+ * например интерферометры.
  *
- * Источники акустических данных содержат обработанную амплитудную информацию от
- * гидролокаторов бокового обзора, эхолота, профилографа и т.п.
+ * Источники акустических данных содержат обработанную амплитудную информацию
+ * от гидролокаторов бокового обзора, эхолота, профилографа и т.п.
  *
  * Источники батиметрических данных содержат обработанную информацию о глубине.
  *
- * Функции #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name используются
- * для получения названия источника данных по его типу и наоборот.
+ * Функции #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name
+ * используются для получения названия источника данных по его типу и наоборот.
  *
- * Функции #hyscan_source_is_sensor, #hyscan_source_is_sonar, #hyscan_source_is_raw и
- * #hyscan_source_is_acoustic используются для проверки принадлежности источника
+ * Функции #hyscan_source_is_sensor, #hyscan_source_is_sonar, #hyscan_source_is_raw
+ * и #hyscan_source_is_acoustic используются для проверки принадлежности источника
  * данных к определённому типу.
  *
- * Совокупность источника данных, его типа и номера канала образует логический канал
- * данных в системе хранения. Функции #hyscan_channel_get_name_by_types и
- * #hyscan_channel_get_types_by_name используются для преобразования типа источников
- * данных в название канала данных и наоборот.
+ * Совокупность источника данных, его типа и номера канала образует логический
+ * канал данных в системе хранения. Функции #hyscan_channel_get_name_by_types
+ * и #hyscan_channel_get_types_by_name используются для преобразования типа
+ * источников данных в название канала данных и наоборот.
  *
- * Запись гидролокационных данных ведётся в так называемые галсы. Исторически, галсом
- * называется прямолинейный участок движения судна, на котором производиится
+ * Запись гидролокационных данных ведётся в так называемые галсы. Исторически,
+ * галсом называется прямолинейный участок движения судна, на котором производится
  * гидроакустическая съёмка. Несколько галсов объединяются в проекты, которые
  * находятся в системе хранения - #HyScanDB.
  *
- * При записи галса, пользователь должен выбрать один из типов #HyScanTrackType в
- * качестве вспомогательной информации. Функции #hyscan_track_get_name_by_type и
- * #hyscan_track_get_type_by_name используются для преобразования типа галсов в
- * строковое представление и наоборот.
+ * При записи галса, пользователь должен выбрать один из типов #HyScanTrackType
+ * в качестве вспомогательной информации. Функции #hyscan_track_get_name_by_type
+ * и #hyscan_track_get_type_by_name используются для преобразования типа галсов
+ * в строковое представление и наоборот.
  *
  * Данные, записанные в каналы системы хранения, имеют дополнительную метаинформацию.
  * Для её представления используются структуры: #HyScanSoundVelocity, #HyScanAntennaPosition,
@@ -139,40 +145,36 @@ typedef struct
 /* Типы данных и их названия. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
-  { 0, "blob", HYSCAN_DATA_BLOB },
-  { 0, "string", HYSCAN_DATA_STRING },
+  { 0, "blob",                 HYSCAN_DATA_BLOB },
+  { 0, "string",               HYSCAN_DATA_STRING },
+  { 0, "float",                HYSCAN_DATA_FLOAT },
+  { 0, "complex-float",        HYSCAN_DATA_COMPLEX_FLOAT },
 
-  { 0, "adc14le", HYSCAN_DATA_ADC_14LE },
-  { 0, "adc16le", HYSCAN_DATA_ADC_16LE },
-  { 0, "adc24le", HYSCAN_DATA_ADC_24LE },
+  { 0, "adc14le",              HYSCAN_DATA_ADC_14LE },
+  { 0, "adc16le",              HYSCAN_DATA_ADC_16LE },
+  { 0, "adc24le",              HYSCAN_DATA_ADC_24LE },
 
-  { 0, "complex-adc14le", HYSCAN_DATA_COMPLEX_ADC_14LE },
-  { 0, "complex-adc16le", HYSCAN_DATA_COMPLEX_ADC_16LE },
-  { 0, "complex-adc24le", HYSCAN_DATA_COMPLEX_ADC_24LE },
+  { 0, "complex-adc14le",      HYSCAN_DATA_COMPLEX_ADC_14LE },
+  { 0, "complex-adc16le",      HYSCAN_DATA_COMPLEX_ADC_16LE },
+  { 0, "complex-adc24le",      HYSCAN_DATA_COMPLEX_ADC_24LE },
 
-  { 0, "uint8",  HYSCAN_DATA_UINT8 },
-  { 0, "uint16", HYSCAN_DATA_UINT16 },
-  { 0, "uint32", HYSCAN_DATA_UINT32 },
-  { 0, "float",  HYSCAN_DATA_FLOAT },
-  { 0, "normal8",  HYSCAN_DATA_NORMAL8 },
-  { 0, "normal16",  HYSCAN_DATA_NORMAL16 },
+  { 0, "amplitude-int8",       HYSCAN_DATA_AMPLITUDE_INT8 },
+  { 0, "amplitude-int16",      HYSCAN_DATA_AMPLITUDE_INT16 },
+  { 0, "amplitude-int32",      HYSCAN_DATA_AMPLITUDE_INT32 },
+  { 0, "amplitude-float8",     HYSCAN_DATA_AMPLITUDE_FLOAT8 },
+  { 0, "amplitude-float16",    HYSCAN_DATA_AMPLITUDE_FLOAT16 },
 
-  { 0, "complex-uint8",  HYSCAN_DATA_COMPLEX_UINT8 },
-  { 0, "complex-uint16", HYSCAN_DATA_COMPLEX_UINT16 },
-  { 0, "complex-uint32", HYSCAN_DATA_COMPLEX_UINT32 },
-  { 0, "complex-float",  HYSCAN_DATA_COMPLEX_FLOAT },
-
-  { 0, NULL, HYSCAN_DATA_INVALID }
+  { 0, NULL,                   HYSCAN_DATA_INVALID }
 };
 
 /* Типы галсов и их названия. */
 static HyScanTrackTypeInfo hyscan_track_type_info[] =
 {
-  { 0, "calibration", HYSCAN_TRACK_CALIBRATION },
-  { 0, "survey", HYSCAN_TRACK_SURVEY },
-  { 0, "tack", HYSCAN_TRACK_TACK },
+  { 0, "calibration",          HYSCAN_TRACK_CALIBRATION },
+  { 0, "survey",               HYSCAN_TRACK_SURVEY },
+  { 0, "tack",                 HYSCAN_TRACK_TACK },
 
-  { 0, NULL, HYSCAN_TRACK_UNSPECIFIED }
+  { 0, NULL,                   HYSCAN_TRACK_UNSPECIFIED }
 };
 
 /* Типы каналов и их названия. */
@@ -346,30 +348,25 @@ hyscan_data_get_point_size (HyScanDataType data_type)
     {
     case HYSCAN_DATA_BLOB:
     case HYSCAN_DATA_STRING:
-    case HYSCAN_DATA_UINT8:
-    case HYSCAN_DATA_NORMAL8:
+    case HYSCAN_DATA_AMPLITUDE_INT8:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT8:
       return sizeof (guint8);
 
     case HYSCAN_DATA_ADC_14LE:
     case HYSCAN_DATA_ADC_16LE:
-    case HYSCAN_DATA_UINT16:
-    case HYSCAN_DATA_NORMAL16:
+    case HYSCAN_DATA_AMPLITUDE_INT16:
+    case HYSCAN_DATA_AMPLITUDE_FLOAT16:
       return sizeof (guint16);
 
     case HYSCAN_DATA_ADC_24LE:
-    case HYSCAN_DATA_UINT32:
+    case HYSCAN_DATA_AMPLITUDE_INT32:
       return sizeof (guint32);
-
-    case HYSCAN_DATA_COMPLEX_UINT8:
-      return 2 * sizeof (guint8);
 
     case HYSCAN_DATA_COMPLEX_ADC_14LE:
     case HYSCAN_DATA_COMPLEX_ADC_16LE:
-    case HYSCAN_DATA_COMPLEX_UINT16:
       return 2 * sizeof (guint16);
 
     case HYSCAN_DATA_COMPLEX_ADC_24LE:
-    case HYSCAN_DATA_COMPLEX_UINT32:
       return 2 * sizeof (guint32);
 
     case HYSCAN_DATA_FLOAT:
