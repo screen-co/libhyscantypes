@@ -35,7 +35,7 @@
 #ifndef __HYSCAN_TYPES_H__
 #define __HYSCAN_TYPES_H__
 
-#include <glib.h>
+#include <glib-object.h>
 #include <hyscan-api.h>
 
 G_BEGIN_DECLS
@@ -292,48 +292,75 @@ struct _HyScanAcousticDataInfo
 };
 
 HYSCAN_API
-const gchar           *hyscan_data_get_name_by_type            (HyScanDataType         type);
+GType                   hyscan_antenna_position_get_type    (void);
 
 HYSCAN_API
-HyScanDataType         hyscan_data_get_type_by_name            (const gchar           *name);
+GType                   hyscan_raw_data_info_get_type       (void);
 
 HYSCAN_API
-guint32                hyscan_data_get_point_size              (HyScanDataType         type);
+GType                   hyscan_acoustic_data_info_get_type  (void);
 
 HYSCAN_API
-const gchar           *hyscan_source_get_name_by_type          (HyScanSourceType       source);
+HyScanAntennaPosition * hyscan_antenna_position_copy        (HyScanAntennaPosition  *position);
 
 HYSCAN_API
-HyScanSourceType       hyscan_source_get_type_by_name          (const gchar           *name);
+void                    hyscan_antenna_position_free        (HyScanAntennaPosition  *position);
 
 HYSCAN_API
-gboolean               hyscan_source_is_sensor                 (HyScanSourceType       source);
+HyScanRawDataInfo *     hyscan_raw_data_info_copy           (HyScanRawDataInfo      *info);
 
 HYSCAN_API
-gboolean               hyscan_source_is_sonar                  (HyScanSourceType       source);
+void                    hyscan_raw_data_info_free           (HyScanRawDataInfo      *info);
 
 HYSCAN_API
-gboolean               hyscan_source_is_raw                    (HyScanSourceType       source);
+HyScanAcousticDataInfo *hyscan_acoustic_data_info_copy      (HyScanAcousticDataInfo *info);
 
 HYSCAN_API
-gboolean               hyscan_source_is_acoustic               (HyScanSourceType       source);
+void                    hyscan_acoustic_data_info_free      (HyScanAcousticDataInfo *info);
 
 HYSCAN_API
-const gchar           *hyscan_channel_get_name_by_types        (HyScanSourceType       source,
-                                                                gboolean               raw,
-                                                                guint                  channel);
+const gchar *           hyscan_data_get_name_by_type        (HyScanDataType          type);
 
 HYSCAN_API
-gboolean               hyscan_channel_get_types_by_name        (const gchar           *name,
-                                                                HyScanSourceType      *source,
-                                                                gboolean              *raw,
-                                                                guint                 *channel);
+HyScanDataType          hyscan_data_get_type_by_name        (const gchar            *name);
 
 HYSCAN_API
-const gchar           *hyscan_track_get_name_by_type           (HyScanTrackType        type);
+guint32                 hyscan_data_get_point_size          (HyScanDataType          type);
 
 HYSCAN_API
-HyScanTrackType        hyscan_track_get_type_by_name           (const gchar           *name);
+const gchar            *hyscan_source_get_name_by_type      (HyScanSourceType        source);
+
+HYSCAN_API
+HyScanSourceType        hyscan_source_get_type_by_name      (const gchar            *name);
+
+HYSCAN_API
+gboolean                hyscan_source_is_sensor             (HyScanSourceType        source);
+
+HYSCAN_API
+gboolean                hyscan_source_is_sonar              (HyScanSourceType        source);
+
+HYSCAN_API
+gboolean                hyscan_source_is_raw                (HyScanSourceType        source);
+
+HYSCAN_API
+gboolean                hyscan_source_is_acoustic           (HyScanSourceType        source);
+
+HYSCAN_API
+const gchar *           hyscan_channel_get_name_by_types    (HyScanSourceType        source,
+                                                             gboolean                raw,
+                                                             guint                   channel);
+
+HYSCAN_API
+gboolean                hyscan_channel_get_types_by_name    (const gchar            *name,
+                                                             HyScanSourceType       *source,
+                                                             gboolean               *raw,
+                                                             guint                  *channel);
+
+HYSCAN_API
+const gchar *           hyscan_track_get_name_by_type       (HyScanTrackType         type);
+
+HYSCAN_API
+HyScanTrackType         hyscan_track_get_type_by_name       (const gchar            *name);
 
 G_END_DECLS
 

@@ -282,6 +282,105 @@ hyscan_types_initialize (void)
 }
 
 /**
+ * hyscan_antenna_position_copy:
+ * @position: структура #HyScanAntennaPosition для копирования
+ *
+ * Функция создаёт копию структуры #HyScanAntennaPosition.
+ *
+ * Returns: (transfer full): Новая структура #HyScanAntennaPosition.
+ * Для удаления #hyscan_antenna_position_free.
+ */
+HyScanAntennaPosition *
+hyscan_antenna_position_copy (HyScanAntennaPosition *position)
+{
+  if (position != NULL)
+    return g_slice_dup (HyScanAntennaPosition, position);
+
+  return NULL;
+}
+
+/**
+ * hyscan_antenna_position_free:
+ * @position: структура #HyScanAntennaPosition для удаления
+ *
+ * Функция удаляет структуру #HyScanAntennaPosition.
+ */
+void
+hyscan_antenna_position_free (HyScanAntennaPosition *position)
+{
+  if (position != NULL)
+    g_slice_free (HyScanAntennaPosition, position);
+}
+
+/**
+ * hyscan_raw_data_info_copy:
+ * @info: структура #HyScanRawDataInfo для копирования
+ *
+ * Функция создаёт копию структуры #HyScanRawDataInfo.
+ *
+ * Returns: (transfer full): Новая структура #HyScanRawDataInfo.
+ * Для удаления #hyscan_raw_data_info_free.
+ */
+HyScanRawDataInfo *
+hyscan_raw_data_info_copy (HyScanRawDataInfo *info)
+{
+  if (info != NULL)
+    return g_slice_dup (HyScanRawDataInfo, info);
+
+  return NULL;
+}
+
+/**
+ * hyscan_raw_data_info_free:
+ * @info: структура #HyScanRawDataInfo для удаления
+ *
+ * Функция удаляет структуру #HyScanRawDataInfo.
+ */
+void
+hyscan_raw_data_info_free (HyScanRawDataInfo *info)
+{
+  if (info != NULL)
+    g_slice_free (HyScanRawDataInfo, info);
+}
+
+/**
+ * hyscan_acoustic_data_info_copy:
+ * @info: структура #HyScanAcousticDataInfo для копирования
+ *
+ * Функция создаёт копию структуры #HyScanAcousticDataInfo.
+ *
+ * Returns: (transfer full): Новая структура #HyScanAcousticDataInfo.
+ * Для удаления #hyscan_acoustic_data_info_free.
+ */
+HyScanAcousticDataInfo *
+hyscan_acoustic_data_info_copy (HyScanAcousticDataInfo *info)
+{
+  if (info != NULL)
+    return g_slice_dup (HyScanAcousticDataInfo, info);
+
+  return NULL;
+}
+
+/**
+ * hyscan_acoustic_data_info_free:
+ * @info: структура #HyScanAcousticDataInfo для удаления
+ *
+ * Функция удаляет структуру #HyScanAcousticDataInfo.
+ */
+void
+hyscan_acoustic_data_info_free (HyScanAcousticDataInfo *info)
+{
+  if (info != NULL)
+    g_slice_free (HyScanAcousticDataInfo, info);
+}
+
+G_DEFINE_BOXED_TYPE (HyScanAntennaPosition, hyscan_antenna_position, hyscan_antenna_position_copy, hyscan_antenna_position_free)
+
+G_DEFINE_BOXED_TYPE (HyScanRawDataInfo, hyscan_raw_data_info, hyscan_raw_data_info_copy, hyscan_raw_data_info_free)
+
+G_DEFINE_BOXED_TYPE (HyScanAcousticDataInfo, hyscan_acoustic_data_info, hyscan_acoustic_data_info_copy, hyscan_acoustic_data_info_free)
+
+/**
  * hyscan_data_get_name_by_type:
  * @type: тип данныx
  *
