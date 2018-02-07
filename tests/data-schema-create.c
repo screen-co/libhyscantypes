@@ -193,6 +193,7 @@ test_schema_create_complex (HyScanDataSchemaBuilder *builder,
 gchar *
 test_schema_create (const gchar *schema_id)
 {
+  gchar *id;
   gchar *data;
   HyScanDataSchema *schema;
   HyScanDataSchemaBuilder *builder;
@@ -229,10 +230,11 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_complex (builder, "/builder/test/complex5");
 
   data = hyscan_data_schema_builder_get_data (builder);
+  id = hyscan_data_schema_builder_get_id (builder);
+  schema = hyscan_data_schema_new_from_string (data, id);
   g_object_unref (builder);
-
-  schema = hyscan_data_schema_new_from_string (data, schema_id);
   g_free (data);
+  g_free (id);
 
   builder = hyscan_data_schema_builder_new (schema_id);
   hyscan_data_schema_builder_schema_join (builder, "/orig", schema, "/builder");

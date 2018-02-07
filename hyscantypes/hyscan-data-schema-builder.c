@@ -66,8 +66,9 @@
  * Функция #hyscan_data_schema_builder_schema_join может использоваться для добавления
  * параметров их другой схемы в создаваемую.
  *
- * Для получения XML описания схемы, после определения параметров, необходимо
- * использовать функцию #hyscan_data_schema_builder_get_data.
+ * Для получения XML описания схемы и её идентификатора, после определения
+ * параметров, необходимо использовать функции #hyscan_data_schema_builder_get_data и
+ * #hyscan_data_schema_builder_get_id.
  *
  * Данный класс не является потокобезопасным.
  */
@@ -706,6 +707,22 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   hyscan_data_schema_node_free (nodes);
 
   return data;
+}
+
+/**
+ * hyscan_data_schema_builder_get_id:
+ * @builder: указатель на #HyScanDataSchemaBuilder
+ *
+ * Функция возвращает идентификатор схемы данных.
+ *
+ * Returns: Идентификатор схемы данных. Для удаления #g_free.
+ */
+gchar *
+hyscan_data_schema_builder_get_id (HyScanDataSchemaBuilder *builder)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
+
+  return g_strdup (builder->priv->schema_id);
 }
 
 /**
