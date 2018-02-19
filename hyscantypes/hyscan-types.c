@@ -90,11 +90,6 @@
  * и #hyscan_source_is_acoustic используются для проверки принадлежности источника
  * данных к определённому типу.
  *
- * Совокупность источника данных, его типа и номера канала образует логический
- * канал данных в системе хранения. Функции #hyscan_channel_get_name_by_types
- * и #hyscan_channel_get_types_by_name используются для преобразования типа
- * источников данных в название канала данных и наоборот.
- *
  * Запись гидролокационных данных ведётся в так называемые галсы. Исторически,
  * галсом называется прямолинейный участок движения судна, на котором производится
  * гидроакустическая съёмка. Несколько галсов объединяются в проекты, которые
@@ -104,6 +99,11 @@
  * в качестве вспомогательной информации. Функции #hyscan_track_get_name_by_type
  * и #hyscan_track_get_type_by_name используются для преобразования типа галсов
  * в строковое представление и наоборот.
+ *
+ * Совокупность источника данных, его типа и номера канала образует логический
+ * канал данных в системе хранения. Функции #hyscan_channel_get_name_by_types
+ * и #hyscan_channel_get_types_by_name используются для преобразования типа
+ * источников данных в название канала данных и наоборот.
  *
  * Данные, записанные в каналы системы хранения, имеют дополнительную метаинформацию.
  * Для её представления используются структуры: #HyScanSoundVelocity, #HyScanAntennaPosition,
@@ -121,6 +121,15 @@ typedef struct
   const gchar                 *name;
   HyScanDataType               type;
 } HyScanDataTypeInfo;
+
+/* Уровни сообщений и их названия. */
+typedef struct
+{
+  GQuark                       quark;
+  const gchar                 *name;
+
+  HyScanLogLevel               level;
+} HyScanLogLevelInfo;
 
 /* Типы галсов и их названия. */
 typedef struct
@@ -165,6 +174,19 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
   { 0, "amplitude-float16",    HYSCAN_DATA_AMPLITUDE_FLOAT16 },
 
   { 0, NULL,                   HYSCAN_DATA_INVALID }
+};
+
+/* Уровни сообщений и их названия. */
+static HyScanLogLevelInfo hyscan_log_level_info[] =
+{
+  { 0, "debug",                HYSCAN_LOG_LEVEL_DEBUG },
+  { 0, "info",                 HYSCAN_LOG_LEVEL_INFO },
+  { 0, "message",              HYSCAN_LOG_LEVEL_MESSAGE },
+  { 0, "warning",              HYSCAN_LOG_LEVEL_WARNING },
+  { 0, "critical",             HYSCAN_LOG_LEVEL_CRITICAL },
+  { 0, "error",                HYSCAN_LOG_LEVEL_ERROR },
+
+  { 0, NULL,                   0 }
 };
 
 /* Типы галсов и их названия. */
@@ -264,13 +286,16 @@ static void
 hyscan_types_initialize (void)
 {
   static gboolean hyscan_types_initialized = FALSE;
-  gint i;
+  guint i;
 
   if (hyscan_types_initialized)
     return;
 
   for (i = 0; hyscan_data_types_info[i].name != NULL; i++)
     hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].name);
+
+  for (i = 0; hyscan_log_level_info[i].name != NULL; i++)
+    hyscan_log_level_info[i].quark = g_quark_from_static_string (hyscan_log_level_info[i].name);
 
   for (i = 0; hyscan_track_type_info[i].name != NULL; i++)
     hyscan_track_type_info[i].quark = g_quark_from_static_string (hyscan_track_type_info[i].name);
@@ -291,7 +316,7 @@ hyscan_types_initialize (void)
  * Для удаления #hyscan_antenna_position_free.
  */
 HyScanAntennaPosition *
-hyscan_antenna_position_copy (HyScanAntennaPosition *position)
+hyscan_antenna_position_copy (const HyScanAntennaPosition *position)
 {
   if (position != NULL)
     return g_slice_dup (HyScanAntennaPosition, position);
@@ -322,7 +347,7 @@ hyscan_antenna_position_free (HyScanAntennaPosition *position)
  * Для удаления #hyscan_raw_data_info_free.
  */
 HyScanRawDataInfo *
-hyscan_raw_data_info_copy (HyScanRawDataInfo *info)
+hyscan_raw_data_info_copy (const HyScanRawDataInfo *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanRawDataInfo, info);
@@ -353,7 +378,7 @@ hyscan_raw_data_info_free (HyScanRawDataInfo *info)
  * Для удаления #hyscan_acoustic_data_info_free.
  */
 HyScanAcousticDataInfo *
-hyscan_acoustic_data_info_copy (HyScanAcousticDataInfo *info)
+hyscan_acoustic_data_info_copy (const HyScanAcousticDataInfo *info)
 {
   if (info != NULL)
     return g_slice_dup (HyScanAcousticDataInfo, info);
@@ -642,6 +667,112 @@ hyscan_source_is_acoustic (HyScanSourceType source)
 }
 
 /**
+ * hyscan_log_level_get_name_by_type:
+ * @level: тип сообщения
+ *
+ * Функция возвращает название типа информационного сообщения.
+ *
+ * Returns: Название типа информационного сообщения или NULL.
+ */
+const gchar *
+hyscan_log_level_get_name_by_type (HyScanLogLevel level)
+{
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем название типа. */
+  for (i = 0; hyscan_log_level_info[i].quark != 0; i++)
+    {
+      if (hyscan_log_level_info[i].level != level)
+        continue;
+      return hyscan_log_level_info[i].name;
+    }
+
+  return NULL;
+}
+
+/**
+ * hyscan_log_level_get_type_by_name:
+ * @name: название типа сообщения
+ *
+ * Функция возвращает тип информационного сообщения по его названию.
+ *
+ * Returns: Тип информационного сообщения.
+ */
+HyScanLogLevel
+hyscan_log_level_get_type_by_name (const gchar *name)
+{
+  GQuark quark;
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем тип по названию. */
+  quark = g_quark_try_string (name);
+  for (i = 0; hyscan_log_level_info[i].quark != 0; i++)
+    if (hyscan_log_level_info[i].quark == quark)
+      return hyscan_log_level_info[i].level;
+
+  return 0;
+}
+
+/**
+ * hyscan_track_get_name_by_type:
+ * @type: тип галса
+ *
+ * Функция возвращает название типа галса.
+ *
+ * Returns: Название типа галса или NULL.
+ */
+const gchar *
+hyscan_track_get_name_by_type (HyScanTrackType type)
+{
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем название типа. */
+  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
+    {
+      if (hyscan_track_type_info[i].type != type)
+        continue;
+      return hyscan_track_type_info[i].name;
+    }
+
+  return NULL;
+}
+
+/**
+ * hyscan_track_get_type_by_name:
+ * @name: название типа галса
+ *
+ * Функция возвращает тип галса по его названию.
+ *
+ * Returns: Тип галса.
+ */
+HyScanTrackType
+hyscan_track_get_type_by_name (const gchar *name)
+{
+  GQuark quark;
+  guint i;
+
+  /* Инициализация статических данных. */
+  hyscan_types_initialize ();
+
+  /* Ищем тип по названию. */
+  quark = g_quark_try_string (name);
+  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
+    if (hyscan_track_type_info[i].quark == quark)
+      return hyscan_track_type_info[i].type;
+
+  return HYSCAN_TRACK_UNSPECIFIED;
+}
+
+/**
  * hyscan_channel_get_name_by_types:
  * @source: тип источника данныx
  * @raw: признак сырых данныx
@@ -717,57 +848,4 @@ hyscan_channel_get_types_by_name (const gchar      *name,
     }
 
   return FALSE;
-}
-
-/**
- * hyscan_track_get_name_by_type:
- * @type: тип галса
- *
- * Функция возвращает название типа галса.
- *
- * Returns: Название типа галса или NULL.
- */
-const gchar *
-hyscan_track_get_name_by_type (HyScanTrackType type)
-{
-  guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
-  /* Ищем название типа. */
-  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
-    {
-      if (hyscan_track_type_info[i].type != type)
-        continue;
-      return hyscan_track_type_info[i].name;
-    }
-
-  return NULL;
-}
-
-/**
- * hyscan_track_get_type_by_name:
- * @name: название типа галса
- *
- * Функция возвращает тип галса по его названию.
- *
- * Returns: Тип галса.
- */
-HyScanTrackType
-hyscan_track_get_type_by_name (const gchar *name)
-{
-  GQuark quark;
-  guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
-  /* Ищем тип по названию. */
-  quark = g_quark_try_string (name);
-  for (i = 0; hyscan_track_type_info[i].quark != 0; i++)
-    if (hyscan_track_type_info[i].quark == quark)
-      return hyscan_track_type_info[i].type;
-
-  return HYSCAN_TRACK_UNSPECIFIED;
 }
