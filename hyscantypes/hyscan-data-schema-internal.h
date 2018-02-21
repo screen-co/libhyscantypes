@@ -37,6 +37,14 @@
 
 #include "hyscan-data-schema-builder.h"
 
+/* Данные узла. */
+typedef struct
+{
+  gchar                       *path;                           /* Путь до узла. */
+  gchar                       *name;                           /* Название узла. */
+  gchar                       *description;                    /* Описание узла. */
+} HyScanDataSchemaInternalNode;
+
 /* Данные параметра. */
 typedef struct
 {
@@ -57,28 +65,40 @@ typedef struct
 } HyScanDataSchemaInternalKey;
 
 /* Функция проверяет имя на предмет допустимости. */
-gboolean                       hyscan_data_schema_internal_validate_name       (const gchar                *name);
+gboolean                       hyscan_data_schema_internal_validate_name       (const gchar                 *name);
 
 /* Функция проверяет идентификатор на предмет допустимости. */
-gboolean                       hyscan_data_schema_internal_validate_id         (const gchar                *id);
+gboolean                       hyscan_data_schema_internal_validate_id         (const gchar                 *id);
 
 /* Функция проверяет значение перечисляемого типа на допустимость. */
-gboolean                       hyscan_data_schema_internal_enum_check          (GList                      *values,
-                                                                                gint64                      value);
+gboolean                       hyscan_data_schema_internal_enum_check          (GList                       *values,
+                                                                                gint64                       value);
 
 /* Функция освобождает память занятую списком со значениями типа enum. */
-void                           hyscan_data_schema_internal_enum_free           (GList                      *values);
+void                           hyscan_data_schema_internal_enum_free           (GList                       *values);
+
+/* Функция создаёт новую структуру HyScanDataSchemaInternalNode. */
+HyScanDataSchemaInternalNode * hyscan_data_schema_internal_node_new            (const gchar                 *path,
+                                                                                const gchar                 *name,
+                                                                                const gchar                 *description);
+
+/* Функция освобождает память занятую структурой HyScanDataSchemaInternalNode. */
+void                           hyscan_data_schema_internal_node_free           (HyScanDataSchemaInternalNode *node);
 
 /* Функция создаёт новую структуру HyScanDataSchemaInternalKey. */
-HyScanDataSchemaInternalKey *  hyscan_data_schema_internal_key_new             (const gchar                *id,
-                                                                                const gchar                *name,
-                                                                                const gchar                *description);
+HyScanDataSchemaInternalKey *  hyscan_data_schema_internal_key_new             (const gchar                 *id,
+                                                                                const gchar                 *name,
+                                                                                const gchar                 *description);
 
 /* Функция освобождает память занятую структурой HyScanDataSchemaInternalKey. */
 void                           hyscan_data_schema_internal_key_free            (HyScanDataSchemaInternalKey *key);
 
+/* Функция добавляет новый узел в список. */
+HyScanDataSchemaNode *         hyscan_data_schema_internal_insert_node         (HyScanDataSchemaNode        *node,
+                                                                                const gchar                 *path);
+
 /* Функция добавляет новый параметр в список. */
-void                           hyscan_data_schema_internal_node_insert_key     (HyScanDataSchemaNode       *node,
-                                                                                HyScanDataSchemaKey        *key);
+void                           hyscan_data_schema_internal_node_insert_key     (HyScanDataSchemaNode        *node,
+                                                                                HyScanDataSchemaKey         *key);
 
 #endif /* __HYSCAN_SCHEMA_INTERNAL_H__ */

@@ -638,6 +638,9 @@ int
 main (int    argc,
       char **argv)
 {
+  gchar *schema_file = NULL;
+  gboolean silent = FALSE;
+
   HyScanDataBox *data;
   HyScanDataBox *data2;
   HyScanDataSchema *schema;
@@ -646,8 +649,43 @@ main (int    argc,
   gchar *sparams;
   gsize i;
 
+  /* Разбор командной строки. */
+  {
+    gchar **args;
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+      {
+        { "dump-schema", 'd', 0, G_OPTION_ARG_STRING, &schema_file, "Dump test schema to file", NULL },
+        { "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Don't show messages", NULL },
+        { NULL }
+      };
+
+#ifdef G_OS_WIN32
+    args = g_win32_get_command_line ();
+#else
+    args = g_strdupv (argv);
+#endif
+
+    context = g_option_context_new ("");
+    g_option_context_set_help_enabled (context, TRUE);
+    g_option_context_add_main_entries (context, entries, NULL);
+    g_option_context_set_ignore_unknown_options (context, FALSE);
+    if (!g_option_context_parse_strv (context, &args, &error))
+      {
+        g_print ("%s\n", error->message);
+        return -1;
+      }
+
+    g_option_context_free (context);
+    g_strfreev (args);
+  }
+
   list = hyscan_param_list_new ();
   schema_data = test_schema_create ("test");
+
+  if (schema_file != NULL)
+    g_file_set_contents (schema_file, schema_data, -1, NULL);
 
   schema = hyscan_data_schema_new_from_string (schema_data, "test");
   data = hyscan_data_box_new_from_schema (schema);
@@ -663,7 +701,8 @@ main (int    argc,
     {
       HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
 
-      g_message ("check key: %s", keys_list[i]);
+      if (!silent)
+        g_message ("check key: %s", keys_list[i]);
 
       switch (type)
         {

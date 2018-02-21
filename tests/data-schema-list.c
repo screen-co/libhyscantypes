@@ -4,13 +4,38 @@
 #include <stdio.h>
 
 void print_node (HyScanDataSchema     *schema,
-                 HyScanDataSchemaNode *nodes)
+                 HyScanDataSchemaNode *nodes,
+                 guint                 level)
 {
   GList *list;
 
-  for (list = nodes->nodes; list != NULL; list = list->next)
-    print_node (schema, list->data);
+  const gchar *id;
+  gsize i;
 
+  /* Дочерние узлы. */
+  for (list = nodes->nodes; list != NULL; list = list->next)
+    print_node (schema, list->data, level + 2);
+
+  /* Сдвиг по уровню. */
+  for (i = 0; i < level; i++)
+    printf (" ");
+
+  /* Заголовок узла. */
+  id = nodes->path;
+  for (i = strlen (id); (id[i] != '/') && (i > 0); i--);
+  id += i;
+
+  if (id[0])
+    {
+      printf ("%s:", id);
+      if (nodes->name != NULL)
+        printf (" %s:", nodes->name);
+      if (nodes->description != NULL)
+        printf (" (%s):", nodes->description);
+      printf ("\n");
+    }
+
+  /* Параметры. */
   for (list = nodes->keys; list != NULL; list = list->next)
     {
       HyScanDataSchemaKey *key = list->data;
@@ -21,18 +46,32 @@ void print_node (HyScanDataSchema     *schema,
       else if (key->access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
         access = "(WRITEONLY)";
 
+      for (i = 0; i < level; i++)
+        printf (" ");
+
+      id = key->id;
+      for (i = strlen (id); (id[i] != '/') && (i > 0); i--);
+      id += i + 1;
+
+      printf ("  %s:", id);
+      if (key->name != NULL)
+        printf (" %s:", key->name);
       if (key->description != NULL)
-        printf ("%s (%s) %s\n", key->id, key->description, access);
-      else
-        printf ("%s %s\n", key->id, access);
+        printf (" (%s):", key->description);
+      printf ("  %s\n", access);
 
       switch (key->type)
         {
         case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
           {
             GVariant *default_value;
+
             default_value = hyscan_data_schema_key_get_default (schema, key->id);
+
+            for (i = 0; i < level; i++)
+              printf (" ");
             printf ("     Default value: %s\n", g_variant_get_boolean (default_value) ? "TRUE" : "FALSE");
+
             g_variant_unref (default_value);
           }
           break;
@@ -43,11 +82,16 @@ void print_node (HyScanDataSchema     *schema,
             GVariant *minimum_value;
             GVariant *maximum_value;
             GVariant *value_step;
+
             default_value = hyscan_data_schema_key_get_default (schema, key->id);
             minimum_value = hyscan_data_schema_key_get_minimum (schema, key->id);
             maximum_value = hyscan_data_schema_key_get_maximum (schema, key->id);
             value_step = hyscan_data_schema_key_get_step (schema, key->id);
+
+            for (i = 0; i < level; i++)
+              printf (" ");
             printf ("     Default value: %" G_GINT64_FORMAT, g_variant_get_int64 (default_value));
+
             if (key->access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
               {
                 if (g_variant_get_int64 (minimum_value) != G_MININT64)
@@ -75,11 +119,16 @@ void print_node (HyScanDataSchema     *schema,
             GVariant *minimum_value;
             GVariant *maximum_value;
             GVariant *value_step;
+
             default_value = hyscan_data_schema_key_get_default (schema, key->id);
             minimum_value = hyscan_data_schema_key_get_minimum (schema, key->id);
             maximum_value = hyscan_data_schema_key_get_maximum (schema, key->id);
             value_step = hyscan_data_schema_key_get_step (schema, key->id);
+
+            for (i = 0; i < level; i++)
+              printf (" ");
             printf ("     Default value: %.03lf", g_variant_get_double (default_value));
+
             if (key->access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
               {
                 if (g_variant_get_double (minimum_value) != -G_MAXDOUBLE)
@@ -104,10 +153,15 @@ void print_node (HyScanDataSchema     *schema,
         case HYSCAN_DATA_SCHEMA_KEY_STRING:
           {
             GVariant *default_value;
+
             default_value = hyscan_data_schema_key_get_default (schema, key->id);
+
+            for (i = 0; i < level; i++)
+              printf (" ");
             printf ("     Default value: %s\n",
                     default_value != NULL ?
                       g_variant_get_string (default_value, NULL) : "'no default value'");
+
             if (default_value != NULL)
               g_variant_unref (default_value);
           }
@@ -131,10 +185,13 @@ void print_node (HyScanDataSchema     *schema,
                     (enum_value->value != g_variant_get_int64 (default_value)))
                   continue;
 
+                for (i = 0; i < level; i++)
+                  printf (" ");
+
                 if (enum_value->value == g_variant_get_int64 (default_value))
-                  printf ("     * ");
+                  printf ("   * ");
                 else
-                  printf ("       ");
+                  printf ("     ");
 
                 if (enum_value->description != NULL)
                   printf ("%s (%s)\n", enum_value->name, enum_value->description);
@@ -171,7 +228,7 @@ main (int argc, char **argv)
   if (nodes == NULL)
     g_error ("can't list nodes");
 
-  print_node (schema, nodes);
+  print_node (schema, nodes, 0);
 
   hyscan_data_schema_node_free (nodes);
 

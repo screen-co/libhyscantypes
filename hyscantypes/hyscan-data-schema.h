@@ -150,6 +150,8 @@ struct _HyScanDataSchemaEnumValue
 /**
  * HyScanDataSchemaNode:
  * @path: путь до узла
+ * @name: название узла
+ * @description: описание узла
  * @nodes: (element-type HyScanDataSchemaNode) (transfer none): дочерние узлы
  * @keys: (element-type HyScanDataSchemaKey) (transfer none): параметры
  *
@@ -158,6 +160,8 @@ struct _HyScanDataSchemaEnumValue
 struct _HyScanDataSchemaNode
 {
   const gchar                         *path;
+  const gchar                         *name;
+  const gchar                         *description;
   GList                               *nodes;
   GList                               *keys;
 };
@@ -224,6 +228,14 @@ gboolean                       hyscan_data_schema_has_key              (HyScanDa
                                                                         const gchar               *key_id);
 
 HYSCAN_API
+const gchar *                  hyscan_data_schema_node_get_name        (HyScanDataSchema          *schema,
+                                                                        const gchar               *path);
+
+HYSCAN_API
+const gchar *                  hyscan_data_schema_node_get_description (HyScanDataSchema          *schema,
+                                                                        const gchar               *path);
+
+HYSCAN_API
 const gchar *                  hyscan_data_schema_key_get_name         (HyScanDataSchema          *schema,
                                                                         const gchar               *key_id);
 
@@ -285,6 +297,8 @@ void                           hyscan_data_schema_enum_value_free      (HyScanDa
 
 HYSCAN_API
 HyScanDataSchemaNode *         hyscan_data_schema_node_new             (const gchar               *path,
+                                                                        const gchar               *name,
+                                                                        const gchar               *description,
                                                                         GList                     *nodes,
                                                                         GList                     *keys);
 

@@ -90,6 +90,12 @@ gboolean                  hyscan_data_schema_builder_enum_value_create   (HyScan
                                                                           const gchar              *description);
 
 HYSCAN_API
+gboolean                  hyscan_data_schema_builder_node_set_name       (HyScanDataSchemaBuilder  *builder,
+                                                                          const gchar              *path,
+                                                                          const gchar              *name,
+                                                                          const gchar              *description);
+
+HYSCAN_API
 gboolean                  hyscan_data_schema_builder_key_boolean_create  (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *key_id,
                                                                           const gchar              *name,

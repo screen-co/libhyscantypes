@@ -106,6 +106,32 @@ hyscan_data_schema_internal_enum_free (GList *values)
   g_list_free_full (values, (GDestroyNotify)hyscan_data_schema_enum_value_free);
 }
 
+/* Функция создаёт новую структуру HyScanDataSchemaInternalNode. */
+HyScanDataSchemaInternalNode *
+hyscan_data_schema_internal_node_new (const gchar *path,
+                                      const gchar *name,
+                                      const gchar *description)
+{
+  HyScanDataSchemaInternalNode *new_node = g_slice_new0 (HyScanDataSchemaInternalNode);
+
+  new_node->path = g_strdup (path);
+  new_node->name = g_strdup (name);
+  new_node->description = g_strdup (description);
+
+  return new_node;
+}
+
+/* Функция освобождает память занятую структурой с узлом. */
+void
+hyscan_data_schema_internal_node_free (HyScanDataSchemaInternalNode *node)
+{
+  g_free (node->path);
+  g_free (node->name);
+  g_free (node->description);
+
+  g_slice_free (HyScanDataSchemaInternalNode, node);
+}
+
 /* Функция создаёт новую структуру HyScanDataSchemaInternalKey. */
 HyScanDataSchemaInternalKey *
 hyscan_data_schema_internal_key_new (const gchar *id,
@@ -138,19 +164,21 @@ hyscan_data_schema_internal_key_free (HyScanDataSchemaInternalKey *key)
   g_slice_free (HyScanDataSchemaInternalKey, key);
 }
 
-/* Функция добавляет новый параметр в список. */
-void
-hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
-                                             HyScanDataSchemaKey  *key)
+/* Функция добавляет новый узел в список и возвращает указатель на него. */
+HyScanDataSchemaNode *
+hyscan_data_schema_internal_insert_node (HyScanDataSchemaNode *node,
+                                         const gchar          *path)
 {
+  guint path_len;
   gchar **pathv;
   guint n_pathv;
   guint i;
 
   /* Поиск узла для параметра. */
-  pathv = g_strsplit (key->id, "/", -1);
+  path_len = strlen (path);
+  pathv = g_strsplit (path, "/", -1);
   n_pathv = g_strv_length (pathv);
-  for (i = 1; i < n_pathv - 1; i++)
+  for (i = 1; i < n_pathv; i++)
     {
       GList *nodes = node->nodes;
       gboolean has_node = FALSE;
@@ -159,15 +187,25 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
       while (nodes != NULL)
         {
           HyScanDataSchemaNode *cur_node = nodes->data;
-          const gchar *path = cur_node->path;
-          guint id_len = strlen (key->id);
-          guint path_len = strlen (path);
+          guint cur_path_len = strlen (cur_node->path);
 
-          /* Если совпадают, мы на правильном пути:) */
-          if (g_str_has_prefix (key->id, path) && (id_len > path_len) && (key->id[path_len] == '/'))
+          /* Точное совпадение пути. */
+          if (g_strcmp0 (path, cur_node->path) == 0)
+            {
+              has_node = TRUE;
+            }
+
+          /* Совпадает часть пути. */
+          else if (g_str_has_prefix (path, cur_node->path) &&
+                   (path_len > cur_path_len) &&
+                   (path[cur_path_len] == '/'))
+            {
+              has_node = TRUE;
+            }
+
+          if (has_node)
             {
               node = nodes->data;
-              has_node = TRUE;
               break;
             }
 
@@ -181,7 +219,7 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
           gchar *cur_path;
 
           cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
-          new_node= hyscan_data_schema_node_new (cur_path, NULL, NULL);
+          new_node= hyscan_data_schema_node_new (cur_path, NULL, NULL, NULL, NULL);
           g_free (cur_path);
 
           node->nodes = g_list_append (node->nodes, new_node);
@@ -191,6 +229,25 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
 
   g_strfreev (pathv);
 
+  return node;
+}
+
+/* Функция добавляет новый параметр в список. */
+void
+hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
+                                             HyScanDataSchemaKey  *key)
+{
+  gchar *path;
+  gsize i;
+
+  /* Обрезаем последний компонент пути. */
+  path = g_strdup (key->id);
+  for (i = strlen (path); (path[i] != '/') && (i > 0); i--);
+  path[i] = 0;
+
   /* Добавляем новый параметр. */
+  node = hyscan_data_schema_internal_insert_node (node, path);
   node->keys = g_list_append (node->keys, key);
+
+  g_free (path);
 }

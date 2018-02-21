@@ -1,6 +1,33 @@
 #include <hyscan-data-schema-builder.h>
 
 static void
+test_schema_set_node_description (HyScanDataSchemaBuilder *builder,
+                                  const gchar             *path)
+{
+  gchar **pathv;
+
+  pathv = g_strsplit (path, "/", -1);
+  if (g_strv_length (pathv) > 1)
+    {
+      gchar *description;
+      gchar *name;
+      guint i;
+
+      for (i = 0; pathv[i + 1] != NULL; i++);
+      name = g_strdup (pathv[i]);
+      name[0] = g_ascii_toupper (name[0]);
+      description = g_strdup_printf ("%s description", name);
+
+      hyscan_data_schema_builder_node_set_name (builder, path, name, description);
+
+      g_free (description);
+      g_free (name);
+    }
+
+  g_strfreev (pathv);
+}
+
+static void
 test_schema_create_enums_values (HyScanDataSchemaBuilder *builder)
 {
   hyscan_data_schema_builder_enum_create (builder, "enum1");
@@ -152,7 +179,7 @@ test_schema_create_complex (HyScanDataSchemaBuilder *builder,
                             const gchar             *path)
 {
   gchar *node_path;
-  gint i;
+  guint i;
 
   test_schema_create_boolean (builder, path, FALSE, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
   test_schema_create_integer (builder, path, 2, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
@@ -164,30 +191,38 @@ test_schema_create_complex (HyScanDataSchemaBuilder *builder,
   node_path = g_strdup_printf ("%s/booleans", path);
   test_schema_create_boolean (builder, node_path, TRUE, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
   test_schema_create_boolean (builder, node_path, FALSE, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_set_node_description (builder, node_path);
   g_free (node_path);
 
   for (i = 1; i <= 5; i++)
     {
       node_path = g_strdup_printf ("%s/integers", path);
       test_schema_create_integer (builder, node_path, i, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+      test_schema_set_node_description (builder, node_path);
       g_free (node_path);
 
       node_path = g_strdup_printf ("%s/doubles", path);
       test_schema_create_double (builder, node_path, i, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+      test_schema_set_node_description (builder, node_path);
       g_free (node_path);
 
       node_path = g_strdup_printf ("%s/strings", path);
       test_schema_create_string (builder, node_path, i, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+      test_schema_set_node_description (builder, node_path);
       g_free (node_path);
 
       node_path = g_strdup_printf ("%s/strings", path);
       test_schema_create_null_string (builder, node_path, i, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+      test_schema_set_node_description (builder, node_path);
       g_free (node_path);
 
       node_path = g_strdup_printf ("%s/enums", path);
       test_schema_create_enum (builder, node_path, i, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+      test_schema_set_node_description (builder, node_path);
       g_free (node_path);
     }
+
+  test_schema_set_node_description (builder, path);
 }
 
 gchar *
@@ -208,6 +243,7 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_string (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
   test_schema_create_null_string (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
   test_schema_create_enum (builder, "/builder/test", 1, HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  test_schema_set_node_description (builder, "/builder/test");
 
   test_schema_create_boolean (builder, "/builder/test/readonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   test_schema_create_integer (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
@@ -215,6 +251,7 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_string (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   test_schema_create_null_string (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
   test_schema_create_enum (builder, "/builder/test/readonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_READONLY);
+  test_schema_set_node_description (builder, "/builder/test/readonly");
 
   test_schema_create_boolean (builder, "/builder/test/writeonly", FALSE, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
   test_schema_create_integer (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
@@ -222,6 +259,7 @@ test_schema_create (const gchar *schema_id)
   test_schema_create_string (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
   test_schema_create_null_string (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
   test_schema_create_enum (builder, "/builder/test/writeonly", 2, HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY);
+  test_schema_set_node_description (builder, "/builder/test/writeonly");
 
   test_schema_create_complex (builder, "/builder/test/complex1");
   test_schema_create_complex (builder, "/builder/test/complex2");

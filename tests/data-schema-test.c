@@ -35,6 +35,56 @@ find_node (HyScanDataSchemaNode *node,
   return NULL;
 }
 
+/* Функция рекурсивно проверяет описание узлов. */
+void
+check_node (HyScanDataSchema     *schema,
+            HyScanDataSchemaNode *nodes,
+            gboolean              silent)
+{
+  GList *cur_node;
+  gchar **pathv;
+  guint i;
+
+  if (!silent)
+    g_message ("check node: %s", nodes->path);
+
+  /* Проверка текущего узла. */
+  pathv = g_strsplit (nodes->path, "/", -1);
+  if (g_strv_length (pathv) > 1)
+    {
+      gchar *description;
+      gchar *name;
+
+      for (i = 0; pathv[i + 1] != NULL; i++);
+      name = g_strdup (pathv[i]);
+      name[0] = g_ascii_toupper (name[0]);
+      description = g_strdup_printf ("%s description", name);
+
+      if ((g_strcmp0 (nodes->name, name) != 0) ||
+          (g_strcmp0 (nodes->description, description) != 0))
+        {
+          g_message ("%s: %s (%s)", nodes->path, nodes->name, nodes->description);
+          g_error ("%s: node description error", nodes->path);
+        }
+
+      g_free (description);
+      g_free (name);
+    }
+  g_strfreev (pathv);
+
+  /* Проверка дочерних узлов. */
+  if (nodes->nodes != NULL)
+    {
+      cur_node = nodes->nodes;
+      while (cur_node != NULL)
+        {
+          check_node (schema, cur_node->data, silent);
+
+          cur_node = g_list_next (cur_node);
+        }
+    }
+}
+
 /* Функция проверки описания параметра. */
 void
 check_key (HyScanDataSchema     *schema,
@@ -404,14 +454,50 @@ check_enum (HyScanDataSchema *schema,
 }
 
 int
-main (int argc, char **argv)
+main (int    argc,
+      char **argv)
 {
+  gchar *schema_file = NULL;
+  gboolean silent = FALSE;
+
   HyScanDataSchemaBuilder *builder;
   HyScanDataSchema *schema;
   gchar *schema_data;
   gchar **keys_list;
   HyScanDataSchemaNode *nodes;
   guint i;
+
+  /* Разбор командной строки. */
+  {
+    gchar **args;
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+      {
+        { "dump-schema", 'd', 0, G_OPTION_ARG_STRING, &schema_file, "Dump test schema to file", NULL },
+        { "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Don't show messages", NULL },
+        { NULL }
+      };
+
+#ifdef G_OS_WIN32
+    args = g_win32_get_command_line ();
+#else
+    args = g_strdupv (argv);
+#endif
+
+    context = g_option_context_new ("");
+    g_option_context_set_help_enabled (context, TRUE);
+    g_option_context_add_main_entries (context, entries, NULL);
+    g_option_context_set_ignore_unknown_options (context, FALSE);
+    if (!g_option_context_parse_strv (context, &args, &error))
+      {
+        g_print ("%s\n", error->message);
+        return -1;
+      }
+
+    g_option_context_free (context);
+    g_strfreev (args);
+  }
 
   schema_data = test_schema_create ("orig");
 
@@ -424,6 +510,9 @@ main (int argc, char **argv)
   g_object_unref (builder);
   g_object_unref (schema);
 
+  if (schema_file != NULL)
+    g_file_set_contents (schema_file, schema_data, -1, NULL);
+
   schema = hyscan_data_schema_new_from_string (schema_data, "test");
   g_free (schema_data);
 
@@ -432,11 +521,14 @@ main (int argc, char **argv)
   if ((keys_list == NULL) || (nodes == NULL))
     g_error ("empty schema");
 
+  check_node (schema, nodes, silent);
+
   for (i = 0; keys_list[i] != NULL; i++)
     {
       HyScanDataSchemaKeyType type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
 
-      g_message ("check key: %s", keys_list[i]);
+      if (!silent)
+        g_message ("check key: %s", keys_list[i]);
 
       check_key (schema, nodes, keys_list[i]);
 
