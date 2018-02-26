@@ -63,10 +63,12 @@
  * Пользователь может изменять данные в буфере в пределах установленного размера.
  *
  * Для упрощения работы с данными типа gfloat и #HyScanComplexFloat предназначены
- * вспомогательные функции #hyscan_buffer_set_float, #hyscan_buffer_set_complex_float,
- * #hyscan_buffer_get_float и #hyscan_buffer_get_complex_float. Они работают
- * аналогично функциям #hyscan_buffer_set_data и #hyscan_buffer_get_data, но
- * обеспечивают приведение типов данных.
+ * вспомогательные функции #hyscan_buffer_wrap_float,
+ * #hyscan_buffer_wrap_complex_float, #hyscan_buffer_set_float,
+ * #hyscan_buffer_set_complex_float, #hyscan_buffer_get_float
+ * и #hyscan_buffer_get_complex_float. Они работают аналогично функциям
+ * #hyscan_buffer_wrap_data, #hyscan_buffer_set_data и #hyscan_buffer_get_data,
+ * но обеспечивают приведение типов данных.
  */
 
 #include "hyscan-buffer.h"
@@ -892,7 +894,28 @@ hyscan_buffer_get_data (HyScanBuffer *buffer,
 }
 
 /**
+ * hyscan_buffer_wrap_float:
+ * @buffer: указатель на #HyScanBuffer
+ * @data: (array length=n_points) (transfer none): массив gfloat
+ * @n_points: число точек массива
+ *
+ * Функция конфигурирует буфер как обёртку над массивом gfloat.
+ *
+ * Данную функцию нельзя использовать через систему GIR, например
+ * в python-gi.
+ */
+void
+hyscan_buffer_wrap_float (HyScanBuffer *buffer,
+                          gfloat       *data,
+                          guint32       n_points)
+{
+  hyscan_buffer_wrap_data (buffer, HYSCAN_DATA_FLOAT,
+                           data, n_points * sizeof (gfloat));
+}
+
+/**
  * hyscan_buffer_set_float:
+ * @buffer: указатель на #HyScanBuffer
  * @data: (array length=n_points) (transfer none): массив gfloat
  * @n_points: число точек массива
  *
@@ -908,7 +931,28 @@ hyscan_buffer_set_float (HyScanBuffer *buffer,
 }
 
 /**
+* hyscan_buffer_wrap_complex_float:
+* @buffer: указатель на #HyScanBuffer
+* @data: (array length=n_points) (transfer none): массив HyScanComplexFloat
+* @n_points: число точек массива
+*
+* Функция конфигурирует буфер как обёртку над массивом HyScanComplexFloat.
+*
+* Данную функцию нельзя использовать через систему GIR, например
+* в python-gi.
+*/
+void
+hyscan_buffer_wrap_complex_float (HyScanBuffer       *buffer,
+                                  HyScanComplexFloat *data,
+                                  guint32             n_points)
+{
+  hyscan_buffer_wrap_data (buffer, HYSCAN_DATA_COMPLEX_FLOAT,
+                           data, n_points * sizeof (HyScanComplexFloat));
+}
+
+/**
  * hyscan_buffer_set_complex_float:
+ * @buffer: указатель на #HyScanBuffer
  * @data: (array length=n_points) (transfer none): массив #HyScanComplexFloat
  * @n_points: число точек массива
  *

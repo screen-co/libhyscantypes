@@ -64,67 +64,77 @@ struct _HyScanBufferClass
 };
 
 HYSCAN_API
-GType                  hyscan_buffer_get_type          (void);
+GType                  hyscan_buffer_get_type           (void);
 
 HYSCAN_API
-HyScanBuffer *         hyscan_buffer_new               (void);
+HyScanBuffer *         hyscan_buffer_new                (void);
 
 HYSCAN_API
-gboolean               hyscan_buffer_import_data       (HyScanBuffer          *buffer,
-                                                        HyScanBuffer          *raw);
+gboolean               hyscan_buffer_import_data        (HyScanBuffer          *buffer,
+                                                         HyScanBuffer          *raw);
 
 HYSCAN_API
-gboolean               hyscan_buffer_export_data       (HyScanBuffer          *buffer,
-                                                        HyScanBuffer          *raw,
-                                                        HyScanDataType         type);
+gboolean               hyscan_buffer_export_data        (HyScanBuffer          *buffer,
+                                                         HyScanBuffer          *raw,
+                                                         HyScanDataType         type);
 
 HYSCAN_API
-void                   hyscan_buffer_set_size          (HyScanBuffer          *buffer,
-                                                        guint32                size);
+void                   hyscan_buffer_set_size           (HyScanBuffer          *buffer,
+                                                         guint32                size);
 
 HYSCAN_API
-guint32                hyscan_buffer_get_size          (HyScanBuffer          *buffer);
+guint32                hyscan_buffer_get_size           (HyScanBuffer          *buffer);
 
 HYSCAN_API
-void                   hyscan_buffer_set_data_type     (HyScanBuffer          *buffer,
-                                                        HyScanDataType         type);
+void                   hyscan_buffer_set_data_type      (HyScanBuffer          *buffer,
+                                                         HyScanDataType         type);
 
 HYSCAN_API
-HyScanDataType         hyscan_buffer_get_data_type     (HyScanBuffer          *buffer);
+HyScanDataType         hyscan_buffer_get_data_type      (HyScanBuffer          *buffer);
 
 HYSCAN_API
-void                   hyscan_buffer_wrap_data         (HyScanBuffer          *buffer,
-                                                        HyScanDataType         type,
-                                                        gpointer               data,
-                                                        guint32                size);
+void                   hyscan_buffer_wrap_data          (HyScanBuffer          *buffer,
+                                                         HyScanDataType         type,
+                                                         gpointer               data,
+                                                         guint32                size);
 
 HYSCAN_API
-void                   hyscan_buffer_set_data          (HyScanBuffer          *buffer,
-                                                        HyScanDataType         type,
-                                                        gpointer               data,
-                                                        guint32                size);
+void                   hyscan_buffer_set_data           (HyScanBuffer          *buffer,
+                                                         HyScanDataType         type,
+                                                         gpointer               data,
+                                                         guint32                size);
 
 HYSCAN_API
-gpointer               hyscan_buffer_get_data          (HyScanBuffer          *buffer,
-                                                        guint32               *size);
+gpointer               hyscan_buffer_get_data           (HyScanBuffer          *buffer,
+                                                         guint32               *size);
 
 HYSCAN_API
-void                   hyscan_buffer_set_float         (HyScanBuffer          *buffer,
-                                                        gfloat                *data,
-                                                        guint32                n_points);
+void                   hyscan_buffer_wrap_float         (HyScanBuffer          *buffer,
+                                                         gfloat                *data,
+                                                         guint32                n_points);
 
 HYSCAN_API
-void                   hyscan_buffer_set_complex_float (HyScanBuffer          *buffer,
-                                                        HyScanComplexFloat    *data,
-                                                        guint32                n_points);
+void                   hyscan_buffer_set_float          (HyScanBuffer          *buffer,
+                                                         gfloat                *data,
+                                                         guint32                n_points);
 
 HYSCAN_API
-gfloat *               hyscan_buffer_get_float         (HyScanBuffer          *buffer,
-                                                        guint32               *n_points);
+void                   hyscan_buffer_wrap_complex_float (HyScanBuffer          *buffer,
+                                                         HyScanComplexFloat    *data,
+                                                         guint32                n_points);
 
 HYSCAN_API
-HyScanComplexFloat *   hyscan_buffer_get_complex_float (HyScanBuffer          *buffer,
-                                                        guint32               *n_points);
+void                   hyscan_buffer_set_complex_float  (HyScanBuffer          *buffer,
+                                                         HyScanComplexFloat    *data,
+                                                         guint32                n_points);
+
+HYSCAN_API
+gfloat *               hyscan_buffer_get_float          (HyScanBuffer          *buffer,
+                                                         guint32               *n_points);
+
+HYSCAN_API
+HyScanComplexFloat *   hyscan_buffer_get_complex_float  (HyScanBuffer          *buffer,
+                                                         guint32               *n_points);
 
 G_END_DECLS
 
