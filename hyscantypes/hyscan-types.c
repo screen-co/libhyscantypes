@@ -232,6 +232,9 @@ static HyScanChannelTypeInfo hyscan_channel_types_info[] =
   { 0, "profiler",             HYSCAN_SOURCE_PROFILER,                 FALSE, 1 },
   { 0, "profiler-raw",         HYSCAN_SOURCE_PROFILER,                 TRUE,  1 },
 
+  { 0, "echoprofiler",         HYSCAN_SOURCE_ECHOPROFILER,             FALSE, 1 },
+  { 0, "echoprofiler-raw",     HYSCAN_SOURCE_ECHOPROFILER,             TRUE,  1 },
+
   { 0, "around-starboard",     HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,    FALSE, 1 },
   { 0, "around-port",          HYSCAN_SOURCE_LOOK_AROUND_PORT,         FALSE, 1 },
   { 0, "around-starboard-raw", HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,    TRUE,  1 },
@@ -591,6 +594,7 @@ hyscan_source_is_sonar (HyScanSourceType source)
     case HYSCAN_SOURCE_BATHYMETRY_STARBOARD:
     case HYSCAN_SOURCE_BATHYMETRY_PORT:
     case HYSCAN_SOURCE_PROFILER:
+    case HYSCAN_SOURCE_ECHOPROFILER:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
     case HYSCAN_SOURCE_FORWARD_LOOK:
@@ -623,6 +627,7 @@ hyscan_source_is_raw (HyScanSourceType source)
     case HYSCAN_SOURCE_ECHOSOUNDER:
     case HYSCAN_SOURCE_ECHOSOUNDER_HI:
     case HYSCAN_SOURCE_PROFILER:
+    case HYSCAN_SOURCE_ECHOPROFILER:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
     case HYSCAN_SOURCE_FORWARD_LOOK:
@@ -655,6 +660,7 @@ hyscan_source_is_acoustic (HyScanSourceType source)
     case HYSCAN_SOURCE_ECHOSOUNDER:
     case HYSCAN_SOURCE_ECHOSOUNDER_HI:
     case HYSCAN_SOURCE_PROFILER:
+    case HYSCAN_SOURCE_ECHOPROFILER:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
       return TRUE;
