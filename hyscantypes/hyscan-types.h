@@ -65,24 +65,22 @@ typedef enum
 
   HYSCAN_DATA_BLOB                           = 101,            /**< Неструктурированные двоичные данные. */
   HYSCAN_DATA_STRING                         = 102,            /**< Строка с нулём на конце. */
+  HYSCAN_DATA_FLOAT                          = 103,            /**< Действительные float значения. */
+  HYSCAN_DATA_COMPLEX_FLOAT                  = 104,            /**< Комплексные float значения. */
 
   HYSCAN_DATA_ADC_14LE                       = 201,            /**< Действительные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
   HYSCAN_DATA_ADC_16LE                       = 202,            /**< Действительные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_ADC_24LE                       = 203,            /**< Действительные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
+  HYSCAN_DATA_ADC_24LE                       = 203,            /**< Действительные отсчёты АЦП младшие 24 бита из 32, формат little endian. */
 
   HYSCAN_DATA_COMPLEX_ADC_14LE               = 301,            /**< Комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian. */
   HYSCAN_DATA_COMPLEX_ADC_16LE               = 302,            /**< Комплексные отсчёты АЦП 16 бит, формат little endian. */
-  HYSCAN_DATA_COMPLEX_ADC_24LE               = 303,            /**< Комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian. */
+  HYSCAN_DATA_COMPLEX_ADC_24LE               = 303,            /**< Комплексные отсчёты АЦП младшие 24 бита из 32, формат little endian. */
 
-  HYSCAN_DATA_UINT8                          = 401,            /**< Действительные unsigned int8 значения. */
-  HYSCAN_DATA_UINT16                         = 402,            /**< Действительные unsigned int16 значения. */
-  HYSCAN_DATA_UINT32                         = 403,            /**< Действительные unsigned int32 значения. */
-  HYSCAN_DATA_FLOAT                          = 404,            /**< Действительные float значения. */
-
-  HYSCAN_DATA_COMPLEX_UINT8                  = 501,            /**< Комплексные unsigned int8 значения. */
-  HYSCAN_DATA_COMPLEX_UINT16                 = 502,            /**< Комплексные unsigned int16 значения. */
-  HYSCAN_DATA_COMPLEX_UINT32                 = 503,            /**< Комплексные unsigned int32 значения. */
-  HYSCAN_DATA_COMPLEX_FLOAT                  = 504             /**< Комплексные float значения. */
+  HYSCAN_DATA_AMPLITUDE_INT_8LE              = 401,            /**< Амплитудные значения целые 8 бит, формат little endian. */
+  HYSCAN_DATA_AMPLITUDE_INT_16LE             = 402,            /**< Амплитудные значения целые 16 бит, формат little endian. */
+  HYSCAN_DATA_AMPLITUDE_INT_24LE             = 403,            /**< Амплитудные значения целые младшие 24 бита из 32, формат little endian. */
+  HYSCAN_DATA_AMPLITUDE_INT_32LE             = 404,            /**< Амплитудные значения целые 32 бита, формат little endian. */
+  HYSCAN_DATA_AMPLITUDE_FLOAT                = 405,            /**< Амплитудные float значения. */
 } HyScanDataType;
 
 /** \brief Типы источников данных */
