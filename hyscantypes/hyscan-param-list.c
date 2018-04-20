@@ -62,6 +62,7 @@
  * - #hyscan_param_list_get_integer - считывает значение HYSCAN_DATA_SCHEMA_KEY_INTEGER параметра;
  * - #hyscan_param_list_get_double - считывает значение HYSCAN_DATA_SCHEMA_KEY_DOUBLE параметра;
  * - #hyscan_param_list_get_string - считывает значение HYSCAN_DATA_SCHEMA_KEY_STRING параметра;
+ * - #hyscan_param_list_dup_string - считывает значение HYSCAN_DATA_SCHEMA_KEY_STRING параметра;
  * - #hyscan_param_list_get_enum - считывает значение HYSCAN_DATA_SCHEMA_KEY_ENUM параметра.
  *
  * Текущий список имён параметров можно получить функцией #hyscan_param_list_params.
@@ -453,6 +454,23 @@ hyscan_param_list_get_string (HyScanParamList *list,
     return NULL;
 
   return g_variant_get_string (value, NULL);
+}
+
+/**
+ * hyscan_param_list_dup_string:
+ * @list: указатель на #HyScanParamList
+ * @name: название параметра
+ *
+ * Функция считывает значение #HYSCAN_DATA_SCHEMA_KEY_STRING параметра из списка
+ * и возвращает его копию.
+ *
+ * Returns: Значение параметра или NULL. Для удаления #g_free.
+ */
+gchar *
+hyscan_param_list_dup_string (HyScanParamList *list,
+                              const gchar     *name)
+{
+  return g_strdup (hyscan_param_list_get_string (list, name));
 }
 
 /**
