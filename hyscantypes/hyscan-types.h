@@ -43,7 +43,6 @@ G_BEGIN_DECLS
 typedef struct _HyScanComplexFloat HyScanComplexFloat;
 typedef struct _HyScanSoundVelocity HyScanSoundVelocity;
 typedef struct _HyScanAntennaPosition HyScanAntennaPosition;
-typedef struct _HyScanRawDataInfo HyScanRawDataInfo;
 typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
 
 /**
@@ -61,9 +60,11 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * @HYSCAN_DATA_COMPLEX_ADC_24LE: комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian
  * @HYSCAN_DATA_AMPLITUDE_INT8: амплитудные значения, 8 бит
  * @HYSCAN_DATA_AMPLITUDE_INT16: амплитудные значения, 16 бит
+ * @HYSCAN_DATA_AMPLITUDE_INT24: амплитудные значения, младшие 24 бит из 32
  * @HYSCAN_DATA_AMPLITUDE_INT32: амплитудные значения, 32 бит
  * @HYSCAN_DATA_AMPLITUDE_FLOAT8: амплитудные значения с плавающей точкой, 8 бит
  * @HYSCAN_DATA_AMPLITUDE_FLOAT16: амплитудные значения с плавающей точкой, 16 бит
+ * @HYSCAN_DATA_AMPLITUDE_FLOAT32: амплитудные значения с плавающей точкой, 32 бит
  *
  * Типы данных.
  */
@@ -86,10 +87,31 @@ typedef enum
 
   HYSCAN_DATA_AMPLITUDE_INT8,
   HYSCAN_DATA_AMPLITUDE_INT16,
+  HYSCAN_DATA_AMPLITUDE_INT24,
   HYSCAN_DATA_AMPLITUDE_INT32,
+
   HYSCAN_DATA_AMPLITUDE_FLOAT8,
-  HYSCAN_DATA_AMPLITUDE_FLOAT16
+  HYSCAN_DATA_AMPLITUDE_FLOAT16,
+  HYSCAN_DATA_AMPLITUDE_FLOAT32
 } HyScanDataType;
+
+/**
+ * HyScanDiscretizationType:
+ * @HYSCAN_DISCRETIZATION_INVALID: недопустимый тип, ошибка
+ * @HYSCAN_DISCRETIZATION_REAL: действительная оцифровка
+ * @HYSCAN_DISCRETIZATION_COMPLEX: комплексная оцифровка
+ * @HYSCAN_DISCRETIZATION_AMPLITUDE: амплитудная оцифровка
+ *
+ * Тип оцифровки данных.
+ */
+typedef enum
+{
+  HYSCAN_DISCRETIZATION_INVALID,
+
+  HYSCAN_DISCRETIZATION_REAL,
+  HYSCAN_DISCRETIZATION_COMPLEX,
+  HYSCAN_DISCRETIZATION_AMPLITUDE
+} HyScanDiscretizationType;
 
 /**
  * HyScanSourceType:
@@ -109,11 +131,11 @@ typedef enum
  * @HYSCAN_SOURCE_LOOK_AROUND_PORT: круговой обзор, левый борт
  * @HYSCAN_SOURCE_FORWARD_LOOK: вперёдсмотрящий гидролокатор
  * @HYSCAN_SOURCE_SAS: сообщения САД
- * @HYSCAN_SOURCE_SAS_V2: сообщения САД, версия 2
  * @HYSCAN_SOURCE_NMEA_ANY: любые сообщения NMEA
  * @HYSCAN_SOURCE_NMEA_GGA: сообщения NMEA GGA
  * @HYSCAN_SOURCE_NMEA_RMC: сообщения NMEA RMC
  * @HYSCAN_SOURCE_NMEA_DPT: сообщения NMEA DPT
+ * @HYSCAN_SOURCE_LAST: финальный идентификатор
  *
  * Типы источников данных.
  */
@@ -138,12 +160,12 @@ typedef enum
   HYSCAN_SOURCE_FORWARD_LOOK,
 
   HYSCAN_SOURCE_SAS,
-  HYSCAN_SOURCE_SAS_V2,
-
   HYSCAN_SOURCE_NMEA_ANY,
   HYSCAN_SOURCE_NMEA_GGA,
   HYSCAN_SOURCE_NMEA_RMC,
-  HYSCAN_SOURCE_NMEA_DPT
+  HYSCAN_SOURCE_NMEA_DPT,
+
+  HYSCAN_SOURCE_LAST
 } HyScanSourceType;
 
 /**
@@ -224,7 +246,7 @@ struct _HyScanSoundVelocity
  * указываются относительно центра масс судна. При этом ось X направлена
  * в нос, ось Y на правый борт, ось Z вверх.
  *
- * Углы установки антенны указываются для вектора, перпиндикулярного её
+ * Углы установки антенны указываются для вектора, перпендикулярного её
  * рабочей плоскости. Угол psi учитывает разворот антенны по курсу от её
  * нормального положения. Угол gamma учитывает разворот антенны по крену.
  * Угол theta учитывает разворот антенны по дифференту от её нормального
@@ -245,24 +267,29 @@ struct _HyScanAntennaPosition
 };
 
 /**
- * HyScanRawDataInfo:
+ * HyScanAcousticDataInfo:
  * @data_type: тип данныx
  * @data_rate: частота дискретизации, Гц
+ * @signal_frequency: несущая частота излучаемого сигнала, Гц
+ * @signal_bandwidth: полоса излучаемого сигнала, Гц
  * @antenna_voffset: смещение антенны в "решётке" в вертикальной плоскости, м
  * @antenna_hoffset: смещение антенны в "решётке" в горизонтальной плоскости, м
  * @antenna_vpattern: диаграмма направленности в вертикальной плоскости, рад
  * @antenna_hpattern: диаграмма направленности в горизонтальной плоскости, рад
- * @antenna_frequency: центральная частота, Гц
- * @antenna_bandwidth: полоса пропускания, Гц
- * @adc_vref: опорное напряжение, В
- * @adc_offset: смещение нуля, отсчёты
+ * @antenna_frequency: центральная частота антенны, Гц
+ * @antenna_bandwidth: полоса пропускания антенны, Гц
+ * @adc_vref: опорное напряжение АЦП, В
+ * @adc_offset: смещение нуля АЦП, отсчёты
  *
- * Параметры сырых гидролокационных данных.
+ * Параметры гидроакустических данных.
  */
-struct _HyScanRawDataInfo
+struct _HyScanAcousticDataInfo
 {
   HyScanDataType                           data_type;
   gdouble                                  data_rate;
+
+  gdouble                                  signal_frequency;
+  gdouble                                  signal_bandwidth;
 
   gdouble                                  antenna_voffset;
   gdouble                                  antenna_hoffset;
@@ -275,100 +302,65 @@ struct _HyScanRawDataInfo
   gint                                     adc_offset;
 };
 
-/**
- * HyScanAcousticDataInfo:
- * @data_type: тип данныx
- * @data_rate: частота дискретизации, Гц
- * @antenna_vpattern: диаграмма направленности в вертикальной плоскости, рад
- * @antenna_hpattern: диаграмма направленности в горизонтальной плоскости, рад
- *
- * Параметры акустических данных.
- */
-struct _HyScanAcousticDataInfo
-{
-  HyScanDataType                           data_type;
-  gdouble                                  data_rate;
-
-  gdouble                                  antenna_vpattern;
-  gdouble                                  antenna_hpattern;
-};
+HYSCAN_API
+GType                     hyscan_antenna_position_get_type        (void);
 
 HYSCAN_API
-GType                   hyscan_antenna_position_get_type    (void);
+GType                     hyscan_acoustic_data_info_get_type      (void);
 
 HYSCAN_API
-GType                   hyscan_raw_data_info_get_type       (void);
+HyScanAntennaPosition *   hyscan_antenna_position_copy            (const HyScanAntennaPosition  *position);
 
 HYSCAN_API
-GType                   hyscan_acoustic_data_info_get_type  (void);
+void                      hyscan_antenna_position_free            (HyScanAntennaPosition        *position);
 
 HYSCAN_API
-HyScanAntennaPosition * hyscan_antenna_position_copy        (const HyScanAntennaPosition  *position);
+HyScanAcousticDataInfo *  hyscan_acoustic_data_info_copy          (const HyScanAcousticDataInfo *info);
 
 HYSCAN_API
-void                    hyscan_antenna_position_free        (HyScanAntennaPosition        *position);
+void                      hyscan_acoustic_data_info_free          (HyScanAcousticDataInfo       *info);
 
 HYSCAN_API
-HyScanRawDataInfo *     hyscan_raw_data_info_copy           (const HyScanRawDataInfo      *info);
+const gchar *             hyscan_data_get_name_by_type            (HyScanDataType                type);
 
 HYSCAN_API
-void                    hyscan_raw_data_info_free           (HyScanRawDataInfo            *info);
+HyScanDataType            hyscan_data_get_type_by_name            (const gchar                  *name);
 
 HYSCAN_API
-HyScanAcousticDataInfo *hyscan_acoustic_data_info_copy      (const HyScanAcousticDataInfo *info);
+guint32                   hyscan_data_get_point_size              (HyScanDataType                type);
 
 HYSCAN_API
-void                    hyscan_acoustic_data_info_free      (HyScanAcousticDataInfo       *info);
+const gchar *             hyscan_discretization_get_name_by_type  (HyScanDiscretizationType      type);
 
 HYSCAN_API
-const gchar *           hyscan_data_get_name_by_type        (HyScanDataType                type);
+HyScanDiscretizationType  hyscan_discretization_get_type_by_name  (const gchar                  *name);
 
 HYSCAN_API
-HyScanDataType          hyscan_data_get_type_by_name        (const gchar                  *name);
+HyScanDiscretizationType  hyscan_discretization_get_type_by_data  (HyScanDataType                type);
 
 HYSCAN_API
-guint32                 hyscan_data_get_point_size          (HyScanDataType                type);
+const gchar              *hyscan_source_get_name_by_type          (HyScanSourceType              source);
 
 HYSCAN_API
-const gchar            *hyscan_source_get_name_by_type      (HyScanSourceType              source);
+HyScanSourceType          hyscan_source_get_type_by_name          (const gchar                  *name);
 
 HYSCAN_API
-HyScanSourceType        hyscan_source_get_type_by_name      (const gchar                  *name);
+gboolean                  hyscan_source_is_sensor                 (HyScanSourceType              source);
 
 HYSCAN_API
-gboolean                hyscan_source_is_sensor             (HyScanSourceType              source);
+gboolean                  hyscan_source_is_sonar                  (HyScanSourceType              source);
 
 HYSCAN_API
-gboolean                hyscan_source_is_sonar              (HyScanSourceType              source);
+const gchar *             hyscan_log_level_get_name_by_type       (HyScanLogLevel                level);
 
 HYSCAN_API
-gboolean                hyscan_source_is_raw                (HyScanSourceType              source);
+HyScanLogLevel            hyscan_log_level_get_type_by_name       (const gchar                  *name);
 
 HYSCAN_API
-gboolean                hyscan_source_is_acoustic           (HyScanSourceType              source);
+const gchar *             hyscan_track_get_name_by_type           (HyScanTrackType               type);
 
 HYSCAN_API
-const gchar *           hyscan_log_level_get_name_by_type   (HyScanLogLevel                level);
-
-HYSCAN_API
-HyScanLogLevel          hyscan_log_level_get_type_by_name   (const gchar                  *name);
-
-HYSCAN_API
-const gchar *           hyscan_track_get_name_by_type       (HyScanTrackType               type);
-
-HYSCAN_API
-HyScanTrackType         hyscan_track_get_type_by_name       (const gchar                  *name);
-
-HYSCAN_API
-const gchar *           hyscan_channel_get_name_by_types    (HyScanSourceType              source,
-                                                             gboolean                      raw,
-                                                             guint                         channel);
-
-HYSCAN_API
-gboolean                hyscan_channel_get_types_by_name    (const gchar                  *name,
-                                                             HyScanSourceType             *source,
-                                                             gboolean                     *raw,
-                                                             guint                        *channel);
+HyScanTrackType           hyscan_track_get_type_by_name           (const gchar                  *name);
 
 G_END_DECLS
 
