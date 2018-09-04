@@ -1419,11 +1419,11 @@ hyscan_data_schema_key_get_access (HyScanDataSchema *schema,
 {
   HyScanDataSchemaInternalKey *ikey;
 
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), TRUE);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
 
   ikey = g_hash_table_lookup (schema->priv->keys, key_id);
   if (ikey == NULL)
-    return TRUE;
+    return HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT;
 
   return ikey->access;
 }
