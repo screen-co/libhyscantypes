@@ -73,7 +73,8 @@
  *     <key id="Last" name="Last name" type="string"/>
  *   </schema>
  *
- *   <schema id="person">
+ *   <schema id="person" name="Person">
+ *     <description>Person info</descruption>
  *     <node id="name" name="Person name" schema="name">
  *       <description>Person name</descruption>
  *     </node>
@@ -93,13 +94,20 @@
  *
  * Все данные с описанием схем хранятся в теге &lt;schemalist&gt;. Опциональным
  * атрибутом этого тега является "gettext-domain" - имя домена с переводами для
- * имён и описаний параметров схем. При загрузке схемы классом #HyScanDataSchema,
- * будет использован этот домен для поиска переводов.
+ * имён и описаний параметров схем. При загрузке схемы классом
+ * #HyScanDataSchema, будет использован этот домен для поиска переводов.
  *
  * Описание может хранить несколько схем одновременно. Для определения схемы
- * используется тег &lt;schema&gt;. Тег содержит обязательный атрибут "id" -
- * идентификатор схемы. По этому идентификатору схема загружается классом
- * #HyScanDataSchema или может использоваться в составе другой схемы.
+ * используется тег &lt;schema&gt;. Тег содержит следующие обязательные
+ * атрибуты:
+ *
+ * - id - идентификатор схемы;
+ * - name - название схемы (может содержать перевод).
+ *
+ * По идентификатору (id) схема загружается классом #HyScanDataSchema или
+ * может использоваться в составе другой схемы. Тэг &lt;schema&gt; может
+ * содержать вложенный тэг &lt;description&gt с описанием схемы. Описание схемы
+ * может содержать перевод.
  *
  * Включение одной схемы в другую осуществляется тегом &lt;node&gt;. Обязательными
  * атрибутами, в этом случае, являются:
@@ -251,13 +259,16 @@ struct _HyScanDataSchemaPrivate
 {
   gchar                       *schema_data;            /* Описание схемы в формате XML. */
   gchar                       *schema_id;              /* Идентификатор используемой схемы. */
+  gchar                       *schema_name;            /* Название используемой схемы. */
+  gchar                       *schema_description;     /* Описание используемой схемы. */
   gchar                       *gettext_domain;         /* Название домена переводов. */
-
-  gchar                      **keys_list;              /* Список имён параметров. */
 
   GHashTable                  *keys;                   /* Список параметров. */
   GHashTable                  *nodes;                  /* Список узлов. */
   GHashTable                  *enums;                  /* Список значений перечисляемых типов. */
+
+  GArray                      *keys_list;              /* Список параметров по порядку их описания в схеме. */
+  GArray                      *nodes_list;             /* Список узлов по порядку их описания в схеме. */
 };
 
 static void            hyscan_data_schema_set_property         (GObject                    *object,
@@ -267,33 +278,25 @@ static void            hyscan_data_schema_set_property         (GObject         
 static void            hyscan_data_schema_object_constructed   (GObject                    *object);
 static void            hyscan_data_schema_object_finalize      (GObject                    *object);
 
-static gint            hyscan_data_schema_compare_keys         (HyScanDataSchemaInternalKey *ikey1,
-                                                                HyScanDataSchemaInternalKey *ikey2,
-                                                                gpointer                     user_data);
-
 static GList *         hyscan_data_schema_parse_enum_values    (xmlNodePtr                  node,
                                                                 const gchar                *gettext_domain);
 
 static HyScanDataSchemaInternalKey *
-                       hyscan_data_schema_parse_key            (xmlNodePtr                  node,
-                                                                const gchar                *path,
-                                                                GHashTable                 *enums,
-                                                                const gchar                *gettext_domain);
-static gboolean        hyscan_data_schema_parse_node           (xmlNodePtr                  node,
+                       hyscan_data_schema_parse_key            (HyScanDataSchemaPrivate    *priv,
+                                                                xmlNodePtr                  node,
+                                                                const gchar                *path);
+
+static gboolean        hyscan_data_schema_parse_node           (HyScanDataSchemaPrivate    *priv,
+                                                                xmlNodePtr                  node,
                                                                 const gchar                *schema_path,
-                                                                const gchar                *path,
-                                                                GHashTable                 *nodes,
-                                                                GHashTable                 *keys,
-                                                                GHashTable                 *enums,
-                                                                const gchar                *gettext_domain);
-static gboolean        hyscan_data_schema_parse_schema         (xmlDocPtr                   doc,
+                                                                const gchar                *path);
+
+static gboolean        hyscan_data_schema_parse_schema         (HyScanDataSchemaPrivate    *priv,
+                                                                xmlDocPtr                   doc,
                                                                 const gchar                *schema_path,
                                                                 const gchar                *schema,
                                                                 const gchar                *path,
-                                                                GHashTable                 *nodes,
-                                                                GHashTable                 *keys,
-                                                                GHashTable                 *enums,
-                                                                const gchar                *gettext_domain);
+                                                                gboolean                    is_root);
 
 G_DEFINE_BOXED_TYPE (HyScanDataSchemaEnumValue, hyscan_data_schema_enum_value,
                      hyscan_data_schema_enum_value_copy, hyscan_data_schema_enum_value_free)
@@ -366,7 +369,6 @@ hyscan_data_schema_object_constructed (GObject *object)
   xmlChar *gettext_domain;
 
   gboolean status;
-  guint n_keys;
 
   /* Таблица параметров. */
   priv->keys =  g_hash_table_new_full (g_str_hash,
@@ -374,11 +376,15 @@ hyscan_data_schema_object_constructed (GObject *object)
                                        NULL,
                                        (GDestroyNotify)hyscan_data_schema_internal_key_free);
 
+  priv->keys_list = g_array_new (TRUE, TRUE, sizeof (gpointer));
+
   /* Таблица узлов. */
   priv->nodes = g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        NULL,
                                        (GDestroyNotify)hyscan_data_schema_internal_node_free);
+
+  priv->nodes_list = g_array_new (TRUE, TRUE, sizeof (gpointer));
 
   /* Таблица enum типов и их значений. */
   priv->enums = g_hash_table_new_full (g_str_hash,
@@ -447,34 +453,12 @@ hyscan_data_schema_object_constructed (GObject *object)
     }
 
   /* Обработка описания схемы. */
-  status = hyscan_data_schema_parse_schema (doc,
-                                            "/", priv->schema_id, "/",
-                                            priv->nodes, priv->keys, priv->enums,
-                                            priv->gettext_domain);
+  status = hyscan_data_schema_parse_schema (priv, doc, "/", priv->schema_id, "/", TRUE);
   if (!status)
     {
       g_hash_table_remove_all (priv->keys);
       g_hash_table_remove_all (priv->nodes);
       g_hash_table_remove_all (priv->enums);
-    }
-
-  /* Список имён параметров. */
-  n_keys = g_hash_table_size (priv->keys);
-  if (n_keys > 0)
-    {
-      HyScanDataSchemaInternalKey *key;
-      GHashTableIter iter;
-      guint i;
-
-      priv->keys_list = g_malloc ((n_keys + 1) * sizeof (gchar*));
-      g_hash_table_iter_init (&iter, priv->keys);
-      for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer*)&key); i++)
-        priv->keys_list[i] = key->id;
-      priv->keys_list[i] = NULL;
-
-      g_qsort_with_data (priv->keys_list, n_keys, sizeof (gchar*),
-                         (GCompareDataFunc)hyscan_data_schema_compare_keys,
-                         NULL);
     }
 
 exit:
@@ -487,26 +471,20 @@ hyscan_data_schema_object_finalize (GObject *object)
   HyScanDataSchema *schema = HYSCAN_DATA_SCHEMA (object);
   HyScanDataSchemaPrivate *priv = schema->priv;
 
+  g_array_free (priv->keys_list, TRUE);
+  g_array_free (priv->nodes_list, TRUE);
+
   g_hash_table_unref (priv->keys);
   g_hash_table_unref (priv->nodes);
   g_hash_table_unref (priv->enums);
 
-  g_free (priv->keys_list);
-
   g_free (priv->schema_data);
+  g_free (priv->schema_description);
+  g_free (priv->schema_name);
   g_free (priv->schema_id);
   g_free (priv->gettext_domain);
 
   G_OBJECT_CLASS (hyscan_data_schema_parent_class)->finalize (object);
-}
-
-/* Функция сравнения двух параметров по идентификаторам (для сортировки списка). */
-gint
-hyscan_data_schema_compare_keys (HyScanDataSchemaInternalKey *ikey1,
-                                 HyScanDataSchemaInternalKey *ikey2,
-                                 gpointer                     user_data)
-{
-  return g_strcmp0 (ikey1->id, ikey2->id);
 }
 
 /* Функция обрабатывает описание значений типа enum. */
@@ -546,8 +524,8 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
               break;
             }
       enum_value = hyscan_data_schema_enum_value_new (g_ascii_strtoll ((const gchar *)value, NULL, 10),
-                                                      (const gchar*)name,
-                                                      g_dgettext (gettext_domain, (const gchar *)description));
+                     g_dgettext (gettext_domain, (const gchar*)name),
+                     g_dgettext (gettext_domain, (const gchar *)description));
 
       values = g_list_prepend (values, enum_value);
 
@@ -561,10 +539,9 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
 
 /* Функция обрабатывает описание параметра. */
 static HyScanDataSchemaInternalKey *
-hyscan_data_schema_parse_key (xmlNodePtr   node,
-                              const gchar *path,
-                              GHashTable  *enums,
-                              const gchar *gettext_domain)
+hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
+                              xmlNodePtr               node,
+                              const gchar             *path)
 {
   HyScanDataSchemaInternalKey *ikey = NULL;
 
@@ -664,7 +641,7 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
     }
   else
     {
-      enum_values = g_hash_table_lookup (enums, enumx);
+      enum_values = g_hash_table_lookup (priv->enums, enumx);
       if (enum_values == NULL)
         {
           g_warning ("HyScanDataSchema: incorrect enum id '%s' in key '%s%s'", enumx, path, idx);
@@ -705,8 +682,8 @@ hyscan_data_schema_parse_key (xmlNodePtr   node,
   /* Описание параметра. */
   key_id= g_strdup_printf ("%s%s", path, (const gchar *)idx);
   ikey = hyscan_data_schema_internal_key_new (key_id,
-                                              (const gchar *)namex,
-                                              (const gchar *)descriptionx);
+           g_dgettext (priv->gettext_domain, (const gchar *)namex),
+           g_dgettext (priv->gettext_domain, (const gchar *)descriptionx));
   g_free (key_id);
 
   ikey->type = key_type;
@@ -855,13 +832,10 @@ exit:
 
 /* Функция обрабатывает описание узла схемы. */
 static gboolean
-hyscan_data_schema_parse_node (xmlNodePtr   node,
-                               const gchar *schema_path,
-                               const gchar *path,
-                               GHashTable  *nodes,
-                               GHashTable  *keys,
-                               GHashTable  *enums,
-                               const gchar *gettext_domain)
+hyscan_data_schema_parse_node (HyScanDataSchemaPrivate *priv,
+                               xmlNodePtr               node,
+                               const gchar             *schema_path,
+                               const gchar             *path)
 {
   for (; node != NULL; node = node->next)
     {
@@ -879,22 +853,22 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
       /* Параметр. */
       else if (g_ascii_strcasecmp ((gchar*)node->name, "key") == 0)
         {
-          HyScanDataSchemaInternalKey *ikey = hyscan_data_schema_parse_key (node, path,
-                                                                            enums, gettext_domain);
+          HyScanDataSchemaInternalKey *ikey = hyscan_data_schema_parse_key (priv, node, path);
           if (ikey == NULL)
             {
               status = FALSE;
             }
           else
             {
-              if (g_hash_table_contains (keys, ikey->id))
+              if (g_hash_table_contains (priv->keys, ikey->id))
                 {
                   g_warning ("HyScanDataSchema: duplicated key '%s'", ikey->id);
                   status = FALSE;
                 }
               else
                 {
-                g_hash_table_insert (keys, ikey->id, ikey);
+                  g_hash_table_insert (priv->keys, ikey->id, ikey);
+                  g_array_append_val (priv->keys_list, ikey->id);
                 }
             }
         }
@@ -919,6 +893,7 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
               g_warning ("HyScanDataSchema: unknown element id in '%s'", path);
               return FALSE;
             }
+
           if (!hyscan_data_schema_internal_validate_name ((gchar*)id))
             {
               g_warning ("HyScanDataSchema: incorrect node name '%s' in node '%s'", id, path);
@@ -926,20 +901,18 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
               return FALSE;
             }
 
-          /* Описание узла из схемы или не месте. */
+          /* Описание узла из схемы или на месте. */
           schema = xmlGetProp (node, (xmlChar *)"schema");
           if (schema != NULL)
             {
               gchar *key_path;
 
               key_path = g_strdup_printf ("%s%s/", path, id);
-              status = hyscan_data_schema_parse_schema (node->doc,
-                                                        schema_path, (gchar*)schema, key_path,
-                                                        nodes, keys, enums,
-                                                        gettext_domain);
-
+              status = hyscan_data_schema_parse_schema (priv, node->doc, schema_path,
+                                                        (const gchar*)schema, key_path, FALSE);
               g_free (key_path);
             }
+
           /* Название узла. */
           name = xmlGetProp (node, (xmlChar *)"name");
 
@@ -959,14 +932,14 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
             {
               HyScanDataSchemaInternalNode *node;
 
-              node = hyscan_data_schema_internal_node_new (node_path, (gchar*)name, (gchar*)description);
-              g_hash_table_insert (nodes, node->path, node);
+              node = hyscan_data_schema_internal_node_new (node_path,
+                       g_dgettext (priv->gettext_domain, (const gchar*)name),
+                       g_dgettext (priv->gettext_domain, (const gchar*)description));
+              g_hash_table_insert (priv->nodes, node->path, node);
+              g_array_append_val (priv->nodes_list, node->path);
             }
 
-          status = hyscan_data_schema_parse_node (node->children,
-                                                  schema_path, key_path,
-                                                  nodes, keys, enums,
-                                                  gettext_domain);
+          status = hyscan_data_schema_parse_node (priv, node->children, schema_path, key_path);
 
           g_free (node_path);
           g_free (key_path);
@@ -986,14 +959,12 @@ hyscan_data_schema_parse_node (xmlNodePtr   node,
 
 /* Функция обрабатывает описание схемы. */
 static gboolean
-hyscan_data_schema_parse_schema (xmlDocPtr    doc,
-                                 const gchar *schema_path,
-                                 const gchar *schema,
-                                 const gchar *path,
-                                 GHashTable  *nodes,
-                                 GHashTable  *keys,
-                                 GHashTable  *enums,
-                                 const gchar *gettext_domain)
+hyscan_data_schema_parse_schema (HyScanDataSchemaPrivate *priv,
+                                 xmlDocPtr                doc,
+                                 const gchar             *schema_path,
+                                 const gchar             *schema,
+                                 const gchar             *path,
+                                 gboolean                 is_root)
 {
   xmlNodePtr node;
   gchar **schemas;
@@ -1019,6 +990,7 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
 
   for (node = node->children; node != NULL; node = node->next)
     {
+      xmlNodePtr curnode;
       xmlChar *id;
       gchar *cpath;
       gboolean status;
@@ -1036,11 +1008,36 @@ hyscan_data_schema_parse_schema (xmlDocPtr    doc,
         }
       xmlFree (id);
 
+      /* Названиеи описание схемы считываем только для корня. */
+      if (is_root)
+        {
+          xmlChar *name = xmlGetProp (node, (xmlChar *)"name");
+          if (name != NULL)
+            {
+              const gchar *translation;
+              translation = g_dgettext (priv->gettext_domain, (const gchar*)name);
+              priv->schema_name = g_strdup (translation);
+              xmlFree (name);
+            }
+
+          for (curnode = node->children; curnode != NULL; curnode = curnode->next)
+            if (curnode->type == XML_ELEMENT_NODE)
+              if (g_ascii_strcasecmp ((gchar*)curnode->name, "description") == 0)
+                {
+                  xmlChar *description = xmlNodeGetContent (curnode);
+                  if (description != NULL)
+                    {
+                      const gchar *translation;
+                      translation = g_dgettext (priv->gettext_domain, (const gchar*)description);
+                      priv->schema_description = g_strdup (translation);
+                      xmlFree (description);
+                    }
+                  break;
+                }
+        }
+
       cpath = g_strdup_printf ("%s%s/", schema_path, (gchar*)schema);
-      status = hyscan_data_schema_parse_node (node->children,
-                                              cpath, path,
-                                              nodes, keys, enums,
-                                              gettext_domain);
+      status = hyscan_data_schema_parse_node (priv, node->children, cpath, path);
       if (!status)
         {
           g_free (cpath);
@@ -1179,9 +1176,16 @@ hyscan_data_schema_get_id (HyScanDataSchema *schema)
 gchar **
 hyscan_data_schema_list_keys (HyScanDataSchema *schema)
 {
+  HyScanDataSchemaPrivate *priv;
+
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
-  return g_strdupv (schema->priv->keys_list);
+  priv = schema->priv;
+
+  if (priv->keys_list->len == 0)
+    return NULL;
+
+  return g_strdupv ((gchar**)priv->keys_list->data);
 }
 
 /**
@@ -1198,26 +1202,28 @@ hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
 {
   HyScanDataSchemaPrivate *priv;
   HyScanDataSchemaNode *nodes;
-
-  GHashTableIter iter;
-  gpointer path, key;
+  guint i;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   priv = schema->priv;
 
-  if (priv->keys_list == NULL)
+  if (priv->keys_list->len == 0)
     return NULL;
 
-  nodes = hyscan_data_schema_node_new ("", NULL, NULL, NULL, NULL);
+  nodes = hyscan_data_schema_node_new ("",
+                                       priv->schema_name,
+                                       priv->schema_description,
+                                       NULL, NULL);
 
   /* Описания узлов. */
-  g_hash_table_iter_init (&iter, priv->nodes);
-  while (g_hash_table_iter_next (&iter, &path, NULL))
+  for (i = 0; i < priv->nodes_list->len; i++)
     {
       HyScanDataSchemaInternalNode *inode;
       HyScanDataSchemaNode *node;
+      const gchar *path;
 
+      path = g_array_index (priv->nodes_list, gpointer, i);
       inode = g_hash_table_lookup (priv->nodes, path);
       node = hyscan_data_schema_internal_insert_node (nodes, path);
 
@@ -1226,12 +1232,13 @@ hyscan_data_schema_list_nodes (HyScanDataSchema *schema)
     }
 
   /* Описание параметров. */
-  g_hash_table_iter_init (&iter, priv->keys);
-  while (g_hash_table_iter_next (&iter, &key, NULL))
+  for (i = 0; i < priv->keys_list->len; i++)
     {
       HyScanDataSchemaInternalKey *ikey;
       HyScanDataSchemaKey *new_key;
+      const gchar *key;
 
+      key = g_array_index (priv->keys_list, gpointer, i);
       ikey = g_hash_table_lookup (priv->keys, key);
       new_key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
                                             ikey->type, ikey->view, ikey->access);
@@ -1277,6 +1284,9 @@ hyscan_data_schema_node_get_name (HyScanDataSchema *schema,
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
+  if ((path[0] == '/') && (path[1] == 0))
+    return schema->priv->schema_name;
+
   inode = g_hash_table_lookup (schema->priv->nodes, path);
   if (inode == NULL)
     return NULL;
@@ -1300,6 +1310,9 @@ hyscan_data_schema_node_get_description (HyScanDataSchema *schema,
   HyScanDataSchemaInternalNode *inode;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  if ((path[0] == '/') && (path[1] == 0))
+    return schema->priv->schema_description;
 
   inode = g_hash_table_lookup (schema->priv->nodes, path);
   if (inode == NULL)

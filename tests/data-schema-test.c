@@ -36,6 +36,9 @@
 #include <hyscan-data-schema-builder.h>
 #include <libxml/parser.h>
 
+#define SCHEMA_NAME        "Test schema"
+#define SCHEMA_DESCRIPTION "Test schema description"
+
 gchar *test_schema_create (const gchar *schema_id);
 
 /* Функция ищет параметр в списке. */
@@ -539,6 +542,7 @@ main (int    argc,
   g_free (schema_data);
 
   builder = hyscan_data_schema_builder_new ("test");
+  hyscan_data_schema_builder_schema_set_name (builder, SCHEMA_NAME, SCHEMA_DESCRIPTION);
   hyscan_data_schema_builder_schema_join (builder, "/", schema, "/orig");
   schema_data = hyscan_data_schema_builder_get_data (builder);
   g_object_unref (builder);
@@ -554,6 +558,14 @@ main (int    argc,
   nodes = hyscan_data_schema_list_nodes (schema);
   if ((keys_list == NULL) || (nodes == NULL))
     g_error ("empty schema");
+
+  if ((g_strcmp0 (nodes->name, SCHEMA_NAME) != 0) ||
+      (g_strcmp0 (nodes->description, SCHEMA_DESCRIPTION) != 0) ||
+      (g_strcmp0 (hyscan_data_schema_node_get_name (schema, "/"), SCHEMA_NAME) != 0) ||
+      (g_strcmp0 (hyscan_data_schema_node_get_description (schema, "/"), SCHEMA_DESCRIPTION) != 0))
+    {
+      g_error ("schema name/description error");
+    }
 
   check_node (schema, nodes, silent);
 
