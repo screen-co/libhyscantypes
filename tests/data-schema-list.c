@@ -37,9 +37,9 @@
 #include <string.h>
 #include <stdio.h>
 
-void print_node (HyScanDataSchema     *schema,
-                 HyScanDataSchemaNode *nodes,
-                 guint                 level)
+void print_node (HyScanDataSchema           *schema,
+                 const HyScanDataSchemaNode *nodes,
+                 guint                       level)
 {
   GList *list;
 
@@ -248,7 +248,7 @@ int
 main (int argc, char **argv)
 {
   HyScanDataSchema *schema;
-  HyScanDataSchemaNode *nodes;
+  const HyScanDataSchemaNode *nodes;
 
   if (argc != 3)
     {
@@ -263,8 +263,6 @@ main (int argc, char **argv)
     g_error ("can't list nodes");
 
   print_node (schema, nodes, 0);
-
-  hyscan_data_schema_node_free (nodes);
 
   g_object_unref (schema);
 

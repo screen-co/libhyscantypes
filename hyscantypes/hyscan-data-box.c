@@ -94,7 +94,7 @@ struct _HyScanDataBoxPrivate
   gchar                       *schema_id;              /* Идентификатор схемы. */
   HyScanDataSchema            *schema;                 /* Схема параметров. */
 
-  gchar                      **keys_list;              /* Список параметров. */
+  const gchar * const         *keys_list;              /* Список параметров. */
   GHashTable                  *params;                 /* Значения параметров. */
 
   guint32                      mod_count;              /* Глобальный счётчик изменений значений параметра. */
@@ -284,7 +284,6 @@ hyscan_data_box_object_finalize (GObject *object)
 
   g_mutex_clear (&priv->lock);
   g_hash_table_unref (priv->params);
-  g_strfreev (priv->keys_list);
 
   g_object_unref (priv->schema);
   g_free (priv->schema_data);

@@ -43,8 +43,8 @@ gchar *test_schema_create (const gchar *schema_id);
 
 /* Функция ищет параметр в списке. */
 HyScanDataSchemaKey *
-find_node (HyScanDataSchemaNode *node,
-           const gchar          *key_id)
+find_node (const HyScanDataSchemaNode *node,
+           const gchar                *key_id)
 {
   GList *keys = node->keys;
   GList *nodes = node->nodes;
@@ -74,9 +74,9 @@ find_node (HyScanDataSchemaNode *node,
 
 /* Функция рекурсивно проверяет описание узлов. */
 void
-check_node (HyScanDataSchema     *schema,
-            HyScanDataSchemaNode *nodes,
-            gboolean              silent)
+check_node (HyScanDataSchema           *schema,
+            const HyScanDataSchemaNode *nodes,
+            gboolean                    silent)
 {
   GList *cur_node;
   gchar **pathv;
@@ -124,9 +124,9 @@ check_node (HyScanDataSchema     *schema,
 
 /* Функция проверки описания параметра. */
 void
-check_key (HyScanDataSchema     *schema,
-           HyScanDataSchemaNode *nodes,
-           const gchar          *key_id)
+check_key (HyScanDataSchema           *schema,
+           const HyScanDataSchemaNode *nodes,
+           const gchar                *key_id)
 {
   HyScanDataSchemaKey *key;
 
@@ -500,8 +500,8 @@ main (int    argc,
   HyScanDataSchemaBuilder *builder;
   HyScanDataSchema *schema;
   gchar *schema_data;
-  gchar **keys_list;
-  HyScanDataSchemaNode *nodes;
+  const gchar * const *keys_list;
+  const HyScanDataSchemaNode *nodes;
   guint i;
 
   /* Разбор командной строки. */
@@ -604,9 +604,6 @@ main (int    argc,
           break;
         }
     }
-
-  g_strfreev (keys_list);
-  hyscan_data_schema_node_free (nodes);
 
   g_object_unref (schema);
 

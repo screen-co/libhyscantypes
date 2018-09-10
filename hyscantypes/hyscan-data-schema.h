@@ -218,10 +218,10 @@ HYSCAN_API
 const gchar *                  hyscan_data_schema_get_id               (HyScanDataSchema          *schema);
 
 HYSCAN_API
-gchar **                       hyscan_data_schema_list_keys            (HyScanDataSchema          *schema);
+const gchar * const *          hyscan_data_schema_list_keys            (HyScanDataSchema          *schema);
 
 HYSCAN_API
-HyScanDataSchemaNode *         hyscan_data_schema_list_nodes           (HyScanDataSchema          *schema);
+const HyScanDataSchemaNode *   hyscan_data_schema_list_nodes           (HyScanDataSchema          *schema);
 
 HYSCAN_API
 gboolean                       hyscan_data_schema_has_key              (HyScanDataSchema          *schema,

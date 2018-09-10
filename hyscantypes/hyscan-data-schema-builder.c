@@ -100,11 +100,8 @@ struct _HyScanDataSchemaBuilderPrivate
   gchar                       *gettext_domain;         /* Домен gettext. */
 
   GHashTable                  *keys;                   /* Список параметров. */
-  GHashTable                  *nodes;                  /* Список узлов. */
+  HyScanDataSchemaNode        *nodes;                  /* Список узлов. */
   GHashTable                  *enums;                  /* Список значений перечисляемых типов. */
-
-  GArray                      *keys_list;              /* Список параметров по порядку их описания в схеме. */
-  GArray                      *nodes_list;             /* Список узлов по порядку их описания в схеме. */
 };
 
 static void            hyscan_data_schema_builder_set_property         (GObject               *object,
@@ -189,15 +186,8 @@ hyscan_data_schema_builder_object_constructed (GObject *object)
                                        NULL,
                                        (GDestroyNotify)hyscan_data_schema_internal_key_free);
 
-  priv->keys_list = g_array_new (TRUE, TRUE, sizeof (gpointer));
-
-  /* Таблица узлов. */
-  priv->nodes = g_hash_table_new_full (g_str_hash,
-                                       g_str_equal,
-                                       NULL,
-                                       (GDestroyNotify)hyscan_data_schema_internal_node_free);
-
-  priv->nodes_list = g_array_new (TRUE, TRUE, sizeof (gpointer));
+  /* Список узлов. */
+  priv->nodes = hyscan_data_schema_node_new ("", NULL, NULL, NULL, NULL);
 
   /* Таблица enum типов и их значений. */
   priv->enums = g_hash_table_new_full (g_str_hash,
@@ -212,11 +202,8 @@ hyscan_data_schema_builder_object_finalize (GObject *object)
   HyScanDataSchemaBuilder *data_schema_builder = HYSCAN_DATA_SCHEMA_BUILDER (object);
   HyScanDataSchemaBuilderPrivate *priv = data_schema_builder->priv;
 
-  g_array_free (priv->keys_list, TRUE);
-  g_array_free (priv->nodes_list, TRUE);
-
   g_hash_table_unref (priv->enums);
-  g_hash_table_unref (priv->nodes);
+  hyscan_data_schema_node_free (priv->nodes);
   g_hash_table_unref (priv->keys);
 
   g_free (priv->schema_id);
@@ -674,48 +661,13 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   GHashTableIter iter;
   gpointer key, value;
 
-  HyScanDataSchemaNode *nodes;
-
   GOutputStream *ostream;
   gchar zero = 0;
   gchar *data;
-  guint i;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
 
   priv = builder->priv;
-
-  nodes = hyscan_data_schema_node_new ("", NULL, NULL, NULL, NULL);
-
-  /* Описания узлов. */
-  for (i = 0; i < priv->nodes_list->len; i++)
-    {
-      HyScanDataSchemaInternalNode *inode;
-      HyScanDataSchemaNode *node;
-      const gchar *path;
-
-      path = g_array_index (priv->nodes_list, gpointer, i);
-      inode = g_hash_table_lookup (priv->nodes, path);
-      node = hyscan_data_schema_internal_insert_node (nodes, path);
-
-      node->name = g_strdup (inode->name);
-      node->description = g_strdup (inode->description);
-    }
-
-  /* Описание параметров. */
-  for (i = 0; i < priv->keys_list->len; i++)
-    {
-      HyScanDataSchemaInternalKey *ikey;
-      HyScanDataSchemaKey *new_key;
-      const gchar *key;
-
-      key = g_array_index (priv->keys_list, gpointer, i);
-      ikey = g_hash_table_lookup (priv->keys, key);
-      new_key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
-                                            ikey->type, ikey->view, ikey->access);
-
-      hyscan_data_schema_internal_node_insert_key (nodes, new_key);
-    }
 
   /* Виртуальный поток вывода данных в память. */
   ostream = g_memory_output_stream_new_resizable ();
@@ -762,7 +714,7 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
                               priv->schema_description);
     }
 
-  hyscan_data_schema_builder_dump_node (ostream, priv->keys, nodes, 0);
+  hyscan_data_schema_builder_dump_node (ostream, priv->keys, priv->nodes, 0);
 
   g_output_stream_printf (ostream, NULL, NULL, NULL,
                           "  </schema>\n");
@@ -775,8 +727,6 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   g_output_stream_close (ostream, NULL, NULL);
   data = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (ostream));
   g_object_unref (ostream);
-
-  hyscan_data_schema_node_free (nodes);
 
   return data;
 }
@@ -922,23 +872,24 @@ hyscan_data_schema_builder_node_set_name (HyScanDataSchemaBuilder *builder,
                                           const gchar             *description)
 {
   HyScanDataSchemaBuilderPrivate *priv;
-  HyScanDataSchemaInternalNode *inode;
+  HyScanDataSchemaNode *node;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
   priv = builder->priv;
 
-  if (g_hash_table_contains (priv->nodes, path))
-    return FALSE;
-
   if (!hyscan_data_schema_internal_validate_id (path))
     return FALSE;
 
-  inode = hyscan_data_schema_internal_node_new (path, name, description);
+  node = hyscan_data_schema_internal_insert_node (priv->nodes, path);
 
-  g_array_append_val (priv->nodes_list, inode->path);
+  g_free ((gchar*)node->name);
+  g_free ((gchar*)node->description);
 
-  return g_hash_table_insert (priv->nodes, inode->path, inode);
+  node->name = g_strdup (name);
+  node->description = g_strdup (description);
+
+  return TRUE;
 }
 
 /**
@@ -962,6 +913,7 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
 {
   HyScanDataSchemaBuilderPrivate *priv;
   HyScanDataSchemaInternalKey *ikey;
+  HyScanDataSchemaKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -977,7 +929,9 @@ hyscan_data_schema_builder_key_boolean_create (HyScanDataSchemaBuilder *builder,
   ikey->type = HYSCAN_DATA_SCHEMA_KEY_BOOLEAN;
   ikey->default_value = g_variant_new_boolean (default_value);
 
-  g_array_append_val (priv->keys_list, ikey->id);
+  key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                    ikey->type, ikey->view, ikey->access);
+  hyscan_data_schema_internal_node_insert_key (priv->nodes, key);
 
   return g_hash_table_insert (priv->keys, ikey->id, ikey);
 }
@@ -1003,6 +957,7 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
 {
   HyScanDataSchemaBuilderPrivate *priv;
   HyScanDataSchemaInternalKey *ikey;
+  HyScanDataSchemaKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -1018,7 +973,9 @@ hyscan_data_schema_builder_key_integer_create (HyScanDataSchemaBuilder *builder,
   ikey->type = HYSCAN_DATA_SCHEMA_KEY_INTEGER;
   ikey->default_value = g_variant_new_int64 (default_value);
 
-  g_array_append_val (priv->keys_list, ikey->id);
+  key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                    ikey->type, ikey->view, ikey->access);
+  hyscan_data_schema_internal_node_insert_key (priv->nodes, key);
 
   return g_hash_table_insert (priv->keys, ikey->id, ikey);
 }
@@ -1044,6 +1001,7 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
 {
   HyScanDataSchemaBuilderPrivate *priv;
   HyScanDataSchemaInternalKey *ikey;
+  HyScanDataSchemaKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -1059,7 +1017,9 @@ hyscan_data_schema_builder_key_double_create (HyScanDataSchemaBuilder *builder,
   ikey->type = HYSCAN_DATA_SCHEMA_KEY_DOUBLE;
   ikey->default_value = g_variant_new_double (default_value);
 
-  g_array_append_val (priv->keys_list, ikey->id);
+  key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                    ikey->type, ikey->view, ikey->access);
+  hyscan_data_schema_internal_node_insert_key (priv->nodes, key);
 
   return g_hash_table_insert (priv->keys, ikey->id, ikey);
 }
@@ -1085,6 +1045,7 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
 {
   HyScanDataSchemaBuilderPrivate *priv;
   HyScanDataSchemaInternalKey *ikey;
+  HyScanDataSchemaKey *key;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
 
@@ -1101,7 +1062,9 @@ hyscan_data_schema_builder_key_string_create (HyScanDataSchemaBuilder *builder,
   if (default_value != NULL)
     ikey->default_value = g_variant_new_string (default_value);
 
-  g_array_append_val (priv->keys_list, ikey->id);
+  key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                    ikey->type, ikey->view, ikey->access);
+  hyscan_data_schema_internal_node_insert_key (priv->nodes, key);
 
   return g_hash_table_insert (priv->keys, ikey->id, ikey);
 }
@@ -1129,6 +1092,7 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
 {
   HyScanDataSchemaBuilderPrivate *priv;
   HyScanDataSchemaInternalKey *ikey;
+  HyScanDataSchemaKey *key;
   GList *values;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
@@ -1156,7 +1120,9 @@ hyscan_data_schema_builder_key_enum_create (HyScanDataSchemaBuilder *builder,
   ikey->enum_id = g_strdup (enum_id);
   ikey->default_value = g_variant_new_int64 (default_value);
 
-  g_array_append_val (priv->keys_list, ikey->id);
+  key = hyscan_data_schema_key_new (ikey->id, ikey->name, ikey->description,
+                                    ikey->type, ikey->view, ikey->access);
+  hyscan_data_schema_internal_node_insert_key (priv->nodes, key);
 
   return g_hash_table_insert (priv->keys, ikey->id, ikey);
 }
@@ -1339,7 +1305,7 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
   GHashTable *nodes;
   GHashTable *enums;
   guint src_offset;
-  gchar **keys;
+  const gchar * const *keys;
 
   gboolean status = FALSE;
   guint i;
@@ -1525,7 +1491,6 @@ exit:
   g_hash_table_unref (enums);
   g_free (builder_dst_root);
   g_free (schema_src_root);
-  g_strfreev (keys);
 
   return status;
 }

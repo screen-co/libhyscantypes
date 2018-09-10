@@ -616,7 +616,7 @@ compare_values (HyScanDataBox *data,
   HyScanDataSchema *schema;
   HyScanParamList *list1;
   HyScanParamList *list2;
-  gchar **keys_list;
+  const gchar * const *keys_list;
   gsize i;
 
   schema = hyscan_param_schema (HYSCAN_PARAM (data));
@@ -662,7 +662,6 @@ compare_values (HyScanDataBox *data,
       g_variant_unref (value2);
     }
 
-  g_strfreev (keys_list);
   g_object_unref (schema);
   g_object_unref (list1);
   g_object_unref (list2);
@@ -679,7 +678,7 @@ main (int    argc,
   HyScanDataBox *data2;
   HyScanDataSchema *schema;
   gchar *schema_data;
-  gchar **keys_list;
+  const gchar * const *keys_list;
   gchar *sparams;
   gsize i;
 
@@ -764,8 +763,6 @@ main (int    argc,
           break;
         }
     }
-
-  g_strfreev (keys_list);
 
   if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
     g_error ("modification counter error");
