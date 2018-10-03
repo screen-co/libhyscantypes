@@ -1,6 +1,6 @@
 /* hyscan-types.c
  *
- * Copyright 2015-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2015-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *
@@ -289,6 +289,37 @@ hyscan_types_initialize (void)
 }
 
 /**
+ * hyscan_sound_velocity_copy:
+ * @position: структура #HyScanSoundVelocity для копирования
+ *
+ * Функция создаёт копию структуры #HyScanSoundVelocity.
+ *
+ * Returns: (transfer full): Новая структура #HyScanSoundVelocity.
+ * Для удаления #hyscan_sound_velocity_free.
+ */
+HyScanSoundVelocity *
+hyscan_sound_velocity_copy (const HyScanSoundVelocity *svp)
+{
+  if (svp != NULL)
+    return g_slice_dup (HyScanSoundVelocity, svp);
+
+  return NULL;
+}
+
+/**
+ * hyscan_sound_velocity_free:
+ * @position: структура #HyScanSoundVelocity для удаления
+ *
+ * Функция удаляет структуру #HyScanSoundVelocity.
+ */
+void
+hyscan_sound_velocity_free (HyScanSoundVelocity *svp)
+{
+  if (svp != NULL)
+    g_slice_free (HyScanSoundVelocity, svp);
+}
+
+/**
  * hyscan_antenna_position_copy:
  * @position: структура #HyScanAntennaPosition для копирования
  *
@@ -349,6 +380,8 @@ hyscan_acoustic_data_info_free (HyScanAcousticDataInfo *info)
   if (info != NULL)
     g_slice_free (HyScanAcousticDataInfo, info);
 }
+
+G_DEFINE_BOXED_TYPE (HyScanSoundVelocity, hyscan_sound_velocity, hyscan_sound_velocity_copy, hyscan_sound_velocity_free)
 
 G_DEFINE_BOXED_TYPE (HyScanAntennaPosition, hyscan_antenna_position, hyscan_antenna_position_copy, hyscan_antenna_position_free)
 

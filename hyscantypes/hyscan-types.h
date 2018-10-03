@@ -1,6 +1,6 @@
 /* hyscan-types.h
  *
- * Copyright 2015-2017 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2015-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *
@@ -216,8 +216,8 @@ typedef enum
  */
 struct _HyScanComplexFloat
 {
-  gfloat                                   re;
-  gfloat                                   im;
+  gfloat                  re;
+  gfloat                  im;
 };
 
 /**
@@ -229,8 +229,8 @@ struct _HyScanComplexFloat
  */
 struct _HyScanSoundVelocity
 {
-  gdouble                                  depth;
-  gdouble                                  velocity;
+  gdouble                 depth;
+  gdouble                 velocity;
 };
 
 /**
@@ -257,13 +257,13 @@ struct _HyScanSoundVelocity
  */
 struct _HyScanAntennaPosition
 {
-  gdouble                                  x;
-  gdouble                                  y;
-  gdouble                                  z;
+  gdouble                 x;
+  gdouble                 y;
+  gdouble                 z;
 
-  gdouble                                  psi;
-  gdouble                                  gamma;
-  gdouble                                  theta;
+  gdouble                 psi;
+  gdouble                 gamma;
+  gdouble                 theta;
 };
 
 /**
@@ -285,28 +285,37 @@ struct _HyScanAntennaPosition
  */
 struct _HyScanAcousticDataInfo
 {
-  HyScanDataType                           data_type;
-  gdouble                                  data_rate;
+  HyScanDataType          data_type;
+  gdouble                 data_rate;
 
-  gdouble                                  signal_frequency;
-  gdouble                                  signal_bandwidth;
+  gdouble                 signal_frequency;
+  gdouble                 signal_bandwidth;
 
-  gdouble                                  antenna_voffset;
-  gdouble                                  antenna_hoffset;
-  gdouble                                  antenna_vpattern;
-  gdouble                                  antenna_hpattern;
-  gdouble                                  antenna_frequency;
-  gdouble                                  antenna_bandwidth;
+  gdouble                 antenna_voffset;
+  gdouble                 antenna_hoffset;
+  gdouble                 antenna_vpattern;
+  gdouble                 antenna_hpattern;
+  gdouble                 antenna_frequency;
+  gdouble                 antenna_bandwidth;
 
-  gdouble                                  adc_vref;
-  gint                                     adc_offset;
+  gdouble                 adc_vref;
+  gint                    adc_offset;
 };
+
+HYSCAN_API
+GType                     hyscan_sound_velocity_get_type          (void);
 
 HYSCAN_API
 GType                     hyscan_antenna_position_get_type        (void);
 
 HYSCAN_API
 GType                     hyscan_acoustic_data_info_get_type      (void);
+
+HYSCAN_API
+HyScanSoundVelocity *     hyscan_sound_velocity_copy              (const HyScanSoundVelocity    *svp);
+
+HYSCAN_API
+void                      hyscan_sound_velocity_free              (HyScanSoundVelocity          *svp);
 
 HYSCAN_API
 HyScanAntennaPosition *   hyscan_antenna_position_copy            (const HyScanAntennaPosition  *position);
