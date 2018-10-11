@@ -299,7 +299,7 @@ hyscan_types_initialize (void)
 
 /**
  * hyscan_sound_velocity_copy:
- * @position: структура #HyScanSoundVelocity для копирования
+ * @svp: структура #HyScanSoundVelocity для копирования
  *
  * Функция создаёт копию структуры #HyScanSoundVelocity.
  *
@@ -317,7 +317,7 @@ hyscan_sound_velocity_copy (const HyScanSoundVelocity *svp)
 
 /**
  * hyscan_sound_velocity_free:
- * @position: структура #HyScanSoundVelocity для удаления
+ * @svp: структура #HyScanSoundVelocity для удаления
  *
  * Функция удаляет структуру #HyScanSoundVelocity.
  */
