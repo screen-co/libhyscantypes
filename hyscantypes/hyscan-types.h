@@ -169,6 +169,29 @@ typedef enum
 } HyScanSourceType;
 
 /**
+ * HyScanChannelType:
+ * @HYSCAN_CHANNEL_INVALID: недопустимый тип, ошибка
+ * @HYSCAN_CHANNEL_DATA: канал данныx
+ * @HYSCAN_CHANNEL_NOISE: канал шума
+ * @HYSCAN_CHANNEL_SIGNAL: канал сигналов
+ * @HYSCAN_CHANNEL_TVG: канал параметров ВАРУ
+ * @HYSCAN_CHANNEL_LAST: финальный идентификатор
+ *
+ * Типы каналов данных.
+ */
+typedef enum
+{
+  HYSCAN_CHANNEL_INVALID,
+
+  HYSCAN_CHANNEL_DATA,
+  HYSCAN_CHANNEL_NOISE,
+  HYSCAN_CHANNEL_SIGNAL,
+  HYSCAN_CHANNEL_TVG,
+
+  HYSCAN_CHANNEL_LAST
+} HyScanChannelType;
+
+/**
  * HyScanLogLevel:
  * @HYSCAN_LOG_LEVEL_DEBUG: отладочное сообщение
  * @HYSCAN_LOG_LEVEL_INFO: информационное сообщение
@@ -201,7 +224,6 @@ typedef enum
 typedef enum
 {
   HYSCAN_TRACK_UNSPECIFIED,
-
   HYSCAN_TRACK_CALIBRATION,
   HYSCAN_TRACK_SURVEY,
   HYSCAN_TRACK_TACK
@@ -370,6 +392,17 @@ const gchar *             hyscan_track_get_name_by_type           (HyScanTrackTy
 
 HYSCAN_API
 HyScanTrackType           hyscan_track_get_type_by_name           (const gchar                  *name);
+
+HYSCAN_API
+const gchar *             hyscan_channel_get_name_by_types        (HyScanSourceType              source,
+                                                                   HyScanChannelType             type,
+                                                                   guint                         channel);
+
+HYSCAN_API
+gboolean                  hyscan_channel_get_types_by_name        (const gchar                  *name,
+                                                                   HyScanSourceType             *source,
+                                                                   HyScanChannelType            *type,
+                                                                   guint                        *channel);
 
 G_END_DECLS
 

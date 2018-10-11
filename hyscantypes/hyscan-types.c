@@ -90,11 +90,20 @@
  * дополнительную метаинформацию. Для её представления используются структуры:
  * #HyScanSoundVelocity, #HyScanAntennaPosition, #HyScanRawDataInfo и
  * #HyScanAcousticDataInfo.
+ *
+ * Для формирования названия канала данных можно использовать функцию
+ * #hyscan_channel_get_name_by_types. Функция #hyscan_channel_get_types_by_name
+ * используется для получения типа источника данных по названию канала.
  */
 
 #include "hyscan-types.h"
 
 #include <string.h>
+
+#define DATA_CHANNEL_PREFIX    ""
+#define NOISE_CHANNEL_PREFIX   "-noise"
+#define SIGNAL_CHANNEL_PREFIX  "-signal"
+#define TVG_CHANNEL_PREFIX     "-tvg"
 
 /* Типы данных и их названия. */
 typedef struct
@@ -774,4 +783,153 @@ hyscan_track_get_type_by_name (const gchar *name)
     }
 
   return HYSCAN_TRACK_UNSPECIFIED;
+}
+
+/**
+ * hyscan_channel_get_name_by_types:
+ * @source: тип источника данных
+ * @type: тип канала данных
+ * @channel: индекс канала данных
+ *
+ * Функция возвращает название канала данных для указанных характеристик.
+ *
+ * Returns: Название канала данных.
+ */
+const gchar *
+hyscan_channel_get_name_by_types (HyScanSourceType  source,
+                                  HyScanChannelType type,
+                                  guint             channel)
+{
+  const gchar *source_name;
+  const gchar *channel_type;
+  gchar channel_name[256];
+  GQuark id;
+
+  if (channel == 0)
+    return NULL;
+
+  source_name = hyscan_source_get_name_by_type (source);
+  if (source_name == NULL)
+    return NULL;
+
+  if (source == HYSCAN_SOURCE_LOG)
+    return source_name;
+
+  if (hyscan_source_is_sensor (source))
+    type = HYSCAN_CHANNEL_DATA;
+
+  switch (type)
+    {
+    case HYSCAN_CHANNEL_DATA:
+      channel_type = DATA_CHANNEL_PREFIX;
+      break;
+
+    case HYSCAN_CHANNEL_NOISE:
+      channel_type = NOISE_CHANNEL_PREFIX;
+      break;
+
+    case HYSCAN_CHANNEL_SIGNAL:
+      channel_type = SIGNAL_CHANNEL_PREFIX;
+      break;
+
+    case HYSCAN_CHANNEL_TVG:
+      channel_type = TVG_CHANNEL_PREFIX;
+      break;
+
+    default:
+      return NULL;
+    }
+
+  if (channel == 1)
+    {
+      g_snprintf (channel_name, sizeof (channel_name),
+                  "%s%s", source_name, channel_type);
+    }
+  else
+    {
+      g_snprintf (channel_name, sizeof (channel_name),
+                  "%s%s-%u", source_name, channel_type, channel);
+    }
+
+  id = g_quark_from_string (channel_name);
+
+  return g_quark_to_string (id);
+}
+
+/**
+ * hyscan_channel_get_types_by_name:
+ * @name: название канала данных
+ * @source: (out): тип источника данных
+ * @type: (out): тип канала данных
+ * @channel: (out): индекс канала данных
+ *
+ * Функция возвращает характеристики канала данных по его имени.
+ *
+ * Returns: %TRUE если характеристики канала определены, иначе %FALSE.
+ */
+gboolean
+hyscan_channel_get_types_by_name (const gchar       *name,
+                                  HyScanSourceType  *source,
+                                  HyScanChannelType *type,
+                                  guint             *channel)
+{
+  const gchar *cur;
+  gchar *end;
+  guint i;
+
+  for (i = 0; hyscan_source_types_info[i].name != NULL; i++)
+    {
+      cur = name;
+      if (g_str_has_prefix (cur, hyscan_source_types_info[i].name))
+        {
+          *source = hyscan_source_types_info[i].type;
+
+          /* Проверяем что название источника данных не имеет продолжения. */
+          cur += strlen (hyscan_source_types_info[i].name);
+          if (*cur == 0)
+            {
+              *type = HYSCAN_CHANNEL_DATA;
+              *channel = 1;
+              return TRUE;
+            }
+          else if (*cur != '-')
+            {
+              continue;
+            }
+
+          /* Определяем тип канала данных. */
+          if (g_str_has_prefix (cur, NOISE_CHANNEL_PREFIX))
+            {
+              *type = HYSCAN_CHANNEL_NOISE;
+              cur += sizeof (NOISE_CHANNEL_PREFIX) - 1;
+            }
+          else if (g_str_has_prefix (cur, SIGNAL_CHANNEL_PREFIX))
+            {
+              *type = HYSCAN_CHANNEL_SIGNAL;
+              cur += sizeof (SIGNAL_CHANNEL_PREFIX) - 1;
+            }
+          else if (g_str_has_prefix (cur, TVG_CHANNEL_PREFIX))
+            {
+              *type = HYSCAN_CHANNEL_TVG;
+              cur += sizeof (TVG_CHANNEL_PREFIX) - 1;
+            }
+
+          /* Определяем индекс канала данных. */
+          if (*cur == 0)
+            {
+              *channel = 1;
+              return TRUE;
+            }
+          else
+            {
+              cur += 1;
+            }
+
+          *channel = g_ascii_strtoull (cur, &end, 10);
+          if ((*channel > 0) || (*end == 0))
+            return TRUE;
+        }
+    }
+
+  return FALSE;
 }
