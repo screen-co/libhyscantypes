@@ -315,7 +315,7 @@ hyscan_param_list_set_string (HyScanParamList *list,
                               const gchar     *name,
                               const gchar     *value)
 {
-  hyscan_param_list_set (list, name, g_variant_new_string (value));
+  hyscan_param_list_set (list, name, (value != NULL) ? g_variant_new_string (value) : NULL);
 }
 
 /**
