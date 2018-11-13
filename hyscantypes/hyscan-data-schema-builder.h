@@ -73,6 +73,9 @@ HyScanDataSchemaBuilder * hyscan_data_schema_builder_new_with_gettext    (const 
                                                                           const gchar              *gettext_domain);
 
 HYSCAN_API
+HyScanDataSchema *        hyscan_data_schema_builder_get_schema          (HyScanDataSchemaBuilder  *builder);
+
+HYSCAN_API
 gchar *                   hyscan_data_schema_builder_get_data            (HyScanDataSchemaBuilder  *builder);
 
 HYSCAN_API

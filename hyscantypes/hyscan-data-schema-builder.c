@@ -76,6 +76,9 @@
  * параметров, необходимо использовать функции #hyscan_data_schema_builder_get_data и
  * #hyscan_data_schema_builder_get_id.
  *
+ * Для создания схемы данных предназначена функция
+ * #hyscan_data_schema_builder_get_schema.
+ *
  * Данный класс не является потокобезопасным.
  */
 
@@ -207,6 +210,8 @@ hyscan_data_schema_builder_object_finalize (GObject *object)
   g_hash_table_unref (priv->keys);
 
   g_free (priv->schema_id);
+  g_free (priv->schema_name);
+  g_free (priv->schema_description);
   g_free (priv->gettext_domain);
 
   G_OBJECT_CLASS (hyscan_data_schema_builder_parent_class)->finalize (object);
@@ -643,6 +648,29 @@ hyscan_data_schema_builder_new_with_gettext (const gchar *schema_id,
                        "schema-id", schema_id,
                        "gettext-domain", gettext_domain,
                        NULL);
+}
+
+/**
+ * hyscan_data_schema_builder_get_schema:
+ * @builder: указатель на #HyScanDataSchemaBuilder
+ *
+ * Функция создаёт схему данных.
+ *
+ * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ */
+HyScanDataSchema *
+hyscan_data_schema_builder_get_schema (HyScanDataSchemaBuilder *builder)
+{
+  HyScanDataSchema *schema;
+  gchar *data;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
+
+  data = hyscan_data_schema_builder_get_data (builder);
+  schema = hyscan_data_schema_new_from_string (data, builder->priv->schema_id);
+  g_free (data);
+
+  return schema;
 }
 
 /**
