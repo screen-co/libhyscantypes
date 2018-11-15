@@ -135,6 +135,7 @@ typedef enum
  * @HYSCAN_SOURCE_NMEA_GGA: сообщения NMEA GGA
  * @HYSCAN_SOURCE_NMEA_RMC: сообщения NMEA RMC
  * @HYSCAN_SOURCE_NMEA_DPT: сообщения NMEA DPT
+ * @HYSCAN_SOURCE_1PPS: сообщения 1PPS
  * @HYSCAN_SOURCE_LAST: финальный идентификатор
  *
  * Типы источников данных.
@@ -164,6 +165,7 @@ typedef enum
   HYSCAN_SOURCE_NMEA_GGA,
   HYSCAN_SOURCE_NMEA_RMC,
   HYSCAN_SOURCE_NMEA_DPT,
+  HYSCAN_SOURCE_1PPS,
 
   HYSCAN_SOURCE_LAST
 } HyScanSourceType;

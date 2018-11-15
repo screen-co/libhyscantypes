@@ -235,6 +235,8 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "nmea-rmc",             HYSCAN_SOURCE_NMEA_RMC },
   { 0, "nmea-dpt",             HYSCAN_SOURCE_NMEA_DPT },
 
+  { 0, "1pps",                 HYSCAN_SOURCE_1PPS },
+
   { 0, NULL,                   HYSCAN_SOURCE_INVALID }
 };
 
@@ -631,6 +633,7 @@ hyscan_source_is_sensor (HyScanSourceType source)
     case HYSCAN_SOURCE_NMEA_GGA:
     case HYSCAN_SOURCE_NMEA_RMC:
     case HYSCAN_SOURCE_NMEA_DPT:
+    case HYSCAN_SOURCE_1PPS:
       return TRUE;
 
     default:
