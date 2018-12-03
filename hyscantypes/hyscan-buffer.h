@@ -70,12 +70,16 @@ HYSCAN_API
 HyScanBuffer *         hyscan_buffer_new                (void);
 
 HYSCAN_API
+void                   hyscan_buffer_copy_data          (HyScanBuffer          *buffer,
+                                                         HyScanBuffer          *orig);
+
+HYSCAN_API
 gboolean               hyscan_buffer_import_data        (HyScanBuffer          *buffer,
-                                                         HyScanBuffer          *raw);
+                                                         HyScanBuffer          *orig);
 
 HYSCAN_API
 gboolean               hyscan_buffer_export_data        (HyScanBuffer          *buffer,
-                                                         HyScanBuffer          *raw,
+                                                         HyScanBuffer          *orig,
                                                          HyScanDataType         type);
 
 HYSCAN_API

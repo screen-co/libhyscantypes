@@ -46,8 +46,9 @@
  *
  * Создание объекта класс осуществляется функцией #hyscan_buffer_new.
  *
- * Для импорта данных используется функция #hyscan_buffer_import, для
- * экспорта #hyscan_buffer_export.
+ * Для импорта данных используется функция #hyscan_buffer_import_data, для
+ * экспорта #hyscan_buffer_export_date. Функция #hyscan_buffer_copy_data
+ * копирует данные без преобразования.
  *
  * Изменить размер буфера можно с помощью функции #hyscan_buffer_set_size, а
  * тип хранимых в нём данных, с помощью функции #hyscan_buffer_set_data_type.
@@ -398,7 +399,6 @@ hyscan_buffer_encode_float16le (gfloat value)
   return GUINT16_TO_LE (code16);
 }
 
-
 static inline guint32
 hyscan_buffer_encode_float32le (gfloat value)
 {
@@ -423,12 +423,37 @@ hyscan_buffer_new (void)
 }
 
 /**
+ * hyscan_buffer_copy:
+ * @buffer: указатель на #HyScanBuffer
+ * @orig: указатель на #HyScanBuffer
+ *
+ * Функция копирует данные из внешнего буфера @orig без преобразования.
+ * Если буфер находился в режиме обёртки над блоком данных, для копии
+ * память будет выделена динамически.
+ */
+void
+hyscan_buffer_copy_data (HyScanBuffer *buffer,
+                         HyScanBuffer *orig)
+{
+  HyScanDataType type;
+  gpointer data;
+  guint32 size;
+
+  g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
+
+  type = hyscan_buffer_get_data_type (orig);
+  data = hyscan_buffer_get_data (orig, &size);
+
+  hyscan_buffer_set_data (buffer, type, data, size);
+}
+
+/**
  * hyscan_buffer_import_data:
  * @buffer: указатель на #HyScanBuffer
  * @raw: указатель на #HyScanBuffer с данными для импорта
  *
- * Функция импортирует данные из внешнего буфера и преобразовывает их в массив
- * gfloat или #HyScanComplexFloat в зависимости от их типа.
+ * Функция импортирует данные из внешнего буфера @raw и преобразовывает их в
+ * массив gfloat или #HyScanComplexFloat в зависимости от их типа.
  *
  * Returns: %TRUE если данные успешно импортированы, иначе %FALSE.
  */
@@ -644,8 +669,8 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
  * @raw: указатель на #HyScanBuffer для экспортируемых данныx
  * @type: тип экспортируемых данныx
  *
- * Функция экспортирует данные gfloat или #HyScanComplexFloat во внешний буфер и
- * преобразовывает их в указанный тип.
+ * Функция экспортирует данные gfloat или #HyScanComplexFloat во внешний буфер
+ * @raw и преобразовывает их в указанный тип.
  *
  * Returns: %TRUE если данные успешно экспортированы, иначе %FALSE.
  */

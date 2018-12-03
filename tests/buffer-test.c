@@ -80,6 +80,7 @@ main (int    argc,
   HyScanBuffer *in;
   HyScanBuffer *out;
   HyScanBuffer *raw;
+  HyScanBuffer *copy;
   HyScanBuffer *wrapper;
 
   gfloat *float_data_in;
@@ -97,6 +98,7 @@ main (int    argc,
   in = hyscan_buffer_new ();
   out = hyscan_buffer_new ();
   raw = hyscan_buffer_new ();
+  copy = hyscan_buffer_new ();
   wrapper = hyscan_buffer_new ();
 
   /* Тест форматов действительных данных. */
@@ -122,7 +124,8 @@ main (int    argc,
       if (!hyscan_buffer_export_data (in, raw, float_test_info[i].type))
         g_error ("can't export data");
 
-      raw_data = hyscan_buffer_get_data (raw, &raw_size);
+      hyscan_buffer_copy_data (copy, raw);
+      raw_data = hyscan_buffer_get_data (copy, &raw_size);
       wrapped_data = g_memdup (raw_data, raw_size);
       hyscan_buffer_wrap_data (wrapper, float_test_info[i].type,
                                wrapped_data, raw_size);
@@ -171,7 +174,8 @@ main (int    argc,
       if (!hyscan_buffer_export_data (in, raw, complex_float_test_info[i].type))
         g_error ("can't export data");
 
-      raw_data = hyscan_buffer_get_data (raw, &raw_size);
+      hyscan_buffer_copy_data (copy, raw);
+      raw_data = hyscan_buffer_get_data (copy, &raw_size);
       hyscan_buffer_set_data (wrapper, complex_float_test_info[i].type,
                               raw_data, raw_size);
 
@@ -197,6 +201,7 @@ main (int    argc,
   g_object_unref (in);
   g_object_unref (out);
   g_object_unref (raw);
+  g_object_unref (copy);
   g_object_unref (wrapper);
 
   g_message ("All done.");

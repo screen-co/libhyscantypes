@@ -81,14 +81,11 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * значения от -Vref/2 до +Vref/2, где Vref - величина опорного напряжения АЦП.
  * При преобразовании нормируются в диапазоне от -1 до 1.
  *
- * Значения типа HYSCAN_DATA_FLOATX и HYSCAN_DATA_COMPLEX_FLOAT должны находится
- * в диапазоне от -1 до 1.
- *
  * Типы данных HYSCAN_DATA_AMPLITUDE_INTX имеют диапазон значений от 0 до
  * максимально возможного. При преобразовании нормируются в диапазоне от 0 до 1.
  *
- * Значения типа HYSCAN_DATA_AMPLITUDE_FLOATX должны находится в диапазоне
- * от 0 до 1.
+ * Диапазон значений типов данных HYSCAN_DATA_FLOATX, HYSCAN_DATA_COMPLEX_FLOAT
+ * и HYSCAN_DATA_AMPLITUDE_FLOATX зависит от методики использования.
  */
 typedef enum
 {
