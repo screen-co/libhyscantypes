@@ -49,25 +49,28 @@ struct _test_info
 
 test_info float_test_info [] =
 {
-  { "HYSCAN_DATA_FLOAT",             HYSCAN_DATA_FLOAT,              0.0, 1.0, 0.0 },
-  { "HYSCAN_DATA_ADC_14LE",          HYSCAN_DATA_ADC_14LE,          -1.0, 1.0, 2.0 / 16384.0 },
-  { "HYSCAN_DATA_ADC_16LE",          HYSCAN_DATA_ADC_16LE,          -1.0, 1.0, 2.0 / 65536.0 },
-  { "HYSCAN_DATA_ADC_24LE",          HYSCAN_DATA_ADC_24LE,          -1.0, 1.0, 2.0 / 16777216.0 },
-  { "HYSCAN_DATA_AMPLITUDE_INT8",    HYSCAN_DATA_AMPLITUDE_INT8,     0.0, 1.0, 1.0 / 256.0 },
-  { "HYSCAN_DATA_AMPLITUDE_INT16",   HYSCAN_DATA_AMPLITUDE_INT16,    0.0, 1.0, 1.0 / 16384.0 },
-  { "HYSCAN_DATA_AMPLITUDE_INT24",   HYSCAN_DATA_AMPLITUDE_INT24,    0.0, 1.0, 2.0 / 16777216.0 },
-  { "HYSCAN_DATA_AMPLITUDE_INT32",   HYSCAN_DATA_AMPLITUDE_INT32,    0.0, 1.0, 2.0 / 4294967296.0 },
-  { "HYSCAN_DATA_AMPLITUDE_FLOAT8",  HYSCAN_DATA_AMPLITUDE_FLOAT8,   0.0, 1.0, 2.0 / 64.0 },
-  { "HYSCAN_DATA_AMPLITUDE_FLOAT16", HYSCAN_DATA_AMPLITUDE_FLOAT16,  0.0, 1.0, 2.0 / 8192.0 },
-  { "HYSCAN_DATA_AMPLITUDE_FLOAT32", HYSCAN_DATA_AMPLITUDE_FLOAT32,  0.0, 1.0, 0.0 }
+  { "HYSCAN_DATA_FLOAT",               HYSCAN_DATA_FLOAT,                0.0, 1.0, 0.0 },
+  { "HYSCAN_DATA_ADC14LE",             HYSCAN_DATA_ADC14LE,             -1.0, 1.0, 2.0 / 16384.0 },
+  { "HYSCAN_DATA_ADC16LE",             HYSCAN_DATA_ADC16LE,             -1.0, 1.0, 2.0 / 65536.0 },
+  { "HYSCAN_DATA_ADC24LE",             HYSCAN_DATA_ADC24LE,             -1.0, 1.0, 4.0 / 16777216.0 },
+  { "HYSCAN_DATA_FLOAT16LE",           HYSCAN_DATA_FLOAT16LE,           -1.0, 1.0, 1.0 / 2048.0 },
+  { "HYSCAN_DATA_FLOAT32LE",           HYSCAN_DATA_FLOAT32LE,           -1.0, 1.0, 0.0 },
+  { "HYSCAN_DATA_AMPLITUDE_INT8",      HYSCAN_DATA_AMPLITUDE_INT8,       0.0, 1.0, 1.0 / 256.0 },
+  { "HYSCAN_DATA_AMPLITUDE_INT16LE",   HYSCAN_DATA_AMPLITUDE_INT16LE,    0.0, 1.0, 1.0 / 16384.0 },
+  { "HYSCAN_DATA_AMPLITUDE_INT24LE",   HYSCAN_DATA_AMPLITUDE_INT24LE,    0.0, 1.0, 2.0 / 16777216.0 },
+  { "HYSCAN_DATA_AMPLITUDE_INT32LE",   HYSCAN_DATA_AMPLITUDE_INT32LE,    0.0, 1.0, 2.0 / 4294967296.0 },
+  { "HYSCAN_DATA_AMPLITUDE_FLOAT16LE", HYSCAN_DATA_AMPLITUDE_FLOAT16LE,  0.0, 1.0, 1.0 / 2048.0 },
+  { "HYSCAN_DATA_AMPLITUDE_FLOAT32LE", HYSCAN_DATA_AMPLITUDE_FLOAT32LE,  0.0, 1.0, 0.0 }
 };
 
 test_info complex_float_test_info [] =
 {
-  { "HYSCAN_DATA_COMPLEX_FLOAT",     HYSCAN_DATA_COMPLEX_FLOAT,     0.0, 1.0, 0.0 },
-  { "HYSCAN_DATA_COMPLEX_ADC_14LE",  HYSCAN_DATA_COMPLEX_ADC_14LE, -1.0, 1.0, 4.0 / 16384.0 },
-  { "HYSCAN_DATA_COMPLEX_ADC_16LE",  HYSCAN_DATA_COMPLEX_ADC_16LE, -1.0, 1.0, 4.0 / 65536.0 },
-  { "HYSCAN_DATA_COMPLEX_ADC_24LE",  HYSCAN_DATA_COMPLEX_ADC_24LE, -1.0, 1.0, 4.0 / 16777216.0 }
+  { "HYSCAN_DATA_COMPLEX_FLOAT",       HYSCAN_DATA_COMPLEX_FLOAT,        0.0, 1.0, 0.0 },
+  { "HYSCAN_DATA_COMPLEX_ADC14LE",     HYSCAN_DATA_COMPLEX_ADC14LE,     -1.0, 1.0, 4.0 / 16384.0 },
+  { "HYSCAN_DATA_COMPLEX_ADC16LE",     HYSCAN_DATA_COMPLEX_ADC16LE,     -1.0, 1.0, 4.0 / 65536.0 },
+  { "HYSCAN_DATA_COMPLEX_ADC24LE",     HYSCAN_DATA_COMPLEX_ADC24LE,     -1.0, 1.0, 5.0 / 16777216.0 },
+  { "HYSCAN_DATA_COMPLEX_FLOAT16LE",   HYSCAN_DATA_COMPLEX_FLOAT16LE,   -1.0, 1.0, 1.0 / 2048.0 },
+  { "HYSCAN_DATA_COMPLEX_FLOAT32LE",   HYSCAN_DATA_COMPLEX_FLOAT32LE,   -1.0, 1.0, 0.0 }
 };
 
 int
@@ -137,7 +140,7 @@ main (int    argc,
       /* Проверка данных. */
       for (j = 0; j < N_POINTS; j++)
         if (fabs (float_data_in[j] - float_data_out[j]) > float_test_info[i].max_error)
-          g_error ("data error at %d: %f %f", j, float_data_in[j], float_data_out[j]);
+          g_error ("data error at %d: %.12f %.12f", j, float_data_in[j], float_data_out[j]);
     }
 
   /* Тест форматов комплексных данных. */
@@ -185,7 +188,7 @@ main (int    argc,
         if ((fabs (complex_float_data_in[j].re - complex_float_data_out[j].re) > complex_float_test_info[i].max_error) ||
             (fabs (complex_float_data_in[j].im - complex_float_data_out[j].im) > complex_float_test_info[i].max_error))
           {
-            g_error ("data error at %d: (%f %f) (%f %f)", i,
+            g_error ("data error at %d: (%.12f %.12f) (%.12f %.12f)", i,
                      complex_float_data_in[j].re, complex_float_data_in[j].im,
                      complex_float_data_out[j].re, complex_float_data_out[j].im);
           }

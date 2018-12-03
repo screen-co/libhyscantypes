@@ -50,23 +50,45 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * @HYSCAN_DATA_INVALID: недопустимый тип, ошибка
  * @HYSCAN_DATA_BLOB: неструктурированные двоичные данные
  * @HYSCAN_DATA_STRING: строка с нулём на конце
- * @HYSCAN_DATA_FLOAT: действительные float значения
- * @HYSCAN_DATA_COMPLEX_FLOAT: комплексные float значения
- * @HYSCAN_DATA_ADC_14LE: действительные отсчёты АЦП младшие 14 бит из 16, формат little endian
- * @HYSCAN_DATA_ADC_16LE: действительные отсчёты АЦП 16 бит, формат little endian
- * @HYSCAN_DATA_ADC_24LE: действительные отсчёты АЦП младшие 24 бит из 32, формат little endian
- * @HYSCAN_DATA_COMPLEX_ADC_14LE: комплексные отсчёты АЦП младшие 14 бит из 16, формат little endian
- * @HYSCAN_DATA_COMPLEX_ADC_16LE: комплексные отсчёты АЦП 16 бит, формат little endian
- * @HYSCAN_DATA_COMPLEX_ADC_24LE: комплексные отсчёты АЦП младшие 24 бит из 32, формат little endian
+ * @HYSCAN_DATA_FLOAT: действительные float значения, нативный порядок байт
+ * @HYSCAN_DATA_COMPLEX_FLOAT: комплексные float значения, нативный порядок байт
+ * @HYSCAN_DATA_ADC14LE: действительные отсчёты АЦП младшие 14 бит из 16
+ * @HYSCAN_DATA_ADC16LE: действительные отсчёты АЦП 16 бит
+ * @HYSCAN_DATA_ADC24LE: действительные отсчёты АЦП младшие 24 бит из 32
+ * @HYSCAN_DATA_FLOAT16LE: действительные значения
+ * @HYSCAN_DATA_FLOAT32LE: действительные значения
+ * @HYSCAN_DATA_COMPLEX_ADC14LE: комплексные отсчёты АЦП младшие 14 бит из 16
+ * @HYSCAN_DATA_COMPLEX_ADC16LE: комплексные отсчёты АЦП 16 бит
+ * @HYSCAN_DATA_COMPLEX_ADC24LE: комплексные отсчёты АЦП младшие 24 бит из 32
+ * @HYSCAN_DATA_COMPLEX_FLOAT16LE: комплексные значения
+ * @HYSCAN_DATA_COMPLEX_FLOAT32LE: комплексные значения
  * @HYSCAN_DATA_AMPLITUDE_INT8: амплитудные значения, 8 бит
- * @HYSCAN_DATA_AMPLITUDE_INT16: амплитудные значения, 16 бит
- * @HYSCAN_DATA_AMPLITUDE_INT24: амплитудные значения, младшие 24 бит из 32
- * @HYSCAN_DATA_AMPLITUDE_INT32: амплитудные значения, 32 бит
- * @HYSCAN_DATA_AMPLITUDE_FLOAT8: амплитудные значения с плавающей точкой, 8 бит
- * @HYSCAN_DATA_AMPLITUDE_FLOAT16: амплитудные значения с плавающей точкой, 16 бит
- * @HYSCAN_DATA_AMPLITUDE_FLOAT32: амплитудные значения с плавающей точкой, 32 бит
+ * @HYSCAN_DATA_AMPLITUDE_INT16LE: амплитудные значения, 16 бит
+ * @HYSCAN_DATA_AMPLITUDE_INT24LE: амплитудные значения, младшие 24 бит из 32
+ * @HYSCAN_DATA_AMPLITUDE_INT32LE: амплитудные значения, 32 бит
+ * @HYSCAN_DATA_AMPLITUDE_FLOAT16LE: амплитудные значения с плавающей точкой, 16 бит
+ * @HYSCAN_DATA_AMPLITUDE_FLOAT32LE: амплитудные значения с плавающей точкой, 32 бит
  *
  * Типы данных.
+ *
+ * Все типы с окончанием LE предполагают хранение данных в порядке байт
+ * little endian. Типы @HYSCAN_DATA_FLOAT и @HYSCAN_DATA_COMPLEX_FLOAT
+ * используются для обработки внутри программы и не предназначены для
+ * долговременного хранения данных.
+ *
+ * Типы данных HYSCAN_DATA_ADCX и HYSCAN_DATA_COMPLEX_ADCX - беззнаковые, имеют
+ * диапазон значений от 0 до максимального возможного. Этим диапазоном кодируются
+ * значения от -Vref/2 до +Vref/2, где Vref - величина опорного напряжения АЦП.
+ * При преобразовании нормируются в диапазоне от -1 до 1.
+ *
+ * Значения типа HYSCAN_DATA_FLOATX и HYSCAN_DATA_COMPLEX_FLOAT должны находится
+ * в диапазоне от -1 до 1.
+ *
+ * Типы данных HYSCAN_DATA_AMPLITUDE_INTX имеют диапазон значений от 0 до
+ * максимально возможного. При преобразовании нормируются в диапазоне от 0 до 1.
+ *
+ * Значения типа HYSCAN_DATA_AMPLITUDE_FLOATX должны находится в диапазоне
+ * от 0 до 1.
  */
 typedef enum
 {
@@ -77,22 +99,27 @@ typedef enum
   HYSCAN_DATA_FLOAT,
   HYSCAN_DATA_COMPLEX_FLOAT,
 
-  HYSCAN_DATA_ADC_14LE,
-  HYSCAN_DATA_ADC_16LE,
-  HYSCAN_DATA_ADC_24LE,
+  HYSCAN_DATA_ADC14LE,
+  HYSCAN_DATA_ADC16LE,
+  HYSCAN_DATA_ADC24LE,
 
-  HYSCAN_DATA_COMPLEX_ADC_14LE,
-  HYSCAN_DATA_COMPLEX_ADC_16LE,
-  HYSCAN_DATA_COMPLEX_ADC_24LE,
+  HYSCAN_DATA_FLOAT16LE,
+  HYSCAN_DATA_FLOAT32LE,
+
+  HYSCAN_DATA_COMPLEX_ADC14LE,
+  HYSCAN_DATA_COMPLEX_ADC16LE,
+  HYSCAN_DATA_COMPLEX_ADC24LE,
+
+  HYSCAN_DATA_COMPLEX_FLOAT16LE,
+  HYSCAN_DATA_COMPLEX_FLOAT32LE,
 
   HYSCAN_DATA_AMPLITUDE_INT8,
-  HYSCAN_DATA_AMPLITUDE_INT16,
-  HYSCAN_DATA_AMPLITUDE_INT24,
-  HYSCAN_DATA_AMPLITUDE_INT32,
+  HYSCAN_DATA_AMPLITUDE_INT16LE,
+  HYSCAN_DATA_AMPLITUDE_INT24LE,
+  HYSCAN_DATA_AMPLITUDE_INT32LE,
 
-  HYSCAN_DATA_AMPLITUDE_FLOAT8,
-  HYSCAN_DATA_AMPLITUDE_FLOAT16,
-  HYSCAN_DATA_AMPLITUDE_FLOAT32
+  HYSCAN_DATA_AMPLITUDE_FLOAT16LE,
+  HYSCAN_DATA_AMPLITUDE_FLOAT32LE
 } HyScanDataType;
 
 /**

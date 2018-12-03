@@ -159,35 +159,43 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
   { 0, "complex-float",        HYSCAN_DATA_COMPLEX_FLOAT,
     sizeof (HyScanComplexFloat), HYSCAN_DISCRETIZATION_COMPLEX },
 
-  { 0, "adc14le",              HYSCAN_DATA_ADC_14LE,
+  { 0, "adc14le",              HYSCAN_DATA_ADC14LE,
     sizeof (guint16),          HYSCAN_DISCRETIZATION_REAL },
-  { 0, "adc16le",              HYSCAN_DATA_ADC_16LE,
+  { 0, "adc16le",              HYSCAN_DATA_ADC16LE,
     sizeof (guint16),          HYSCAN_DISCRETIZATION_REAL },
-  { 0, "adc24le",              HYSCAN_DATA_ADC_24LE,
+  { 0, "adc24le",              HYSCAN_DATA_ADC24LE,
     sizeof (guint32),          HYSCAN_DISCRETIZATION_REAL },
 
-  { 0, "complex-adc14le",      HYSCAN_DATA_COMPLEX_ADC_14LE,
-    2*sizeof (guint16),        HYSCAN_DISCRETIZATION_COMPLEX },
-  { 0, "complex-adc16le",      HYSCAN_DATA_COMPLEX_ADC_16LE,
-    2*sizeof (guint16),        HYSCAN_DISCRETIZATION_COMPLEX },
-  { 0, "complex-adc24le",      HYSCAN_DATA_COMPLEX_ADC_24LE,
-    2*sizeof (guint32),        HYSCAN_DISCRETIZATION_COMPLEX },
+  { 0, "float16le",            HYSCAN_DATA_FLOAT16LE,
+    sizeof (guint16),          HYSCAN_DISCRETIZATION_REAL },
+  { 0, "float32le",            HYSCAN_DATA_FLOAT32LE,
+    sizeof (guint32),          HYSCAN_DISCRETIZATION_REAL },
+
+  { 0, "complex-adc14le",      HYSCAN_DATA_COMPLEX_ADC14LE,
+    2 * sizeof (guint16),      HYSCAN_DISCRETIZATION_COMPLEX },
+  { 0, "complex-adc16le",      HYSCAN_DATA_COMPLEX_ADC16LE,
+    2 * sizeof (guint16),      HYSCAN_DISCRETIZATION_COMPLEX },
+  { 0, "complex-adc24le",      HYSCAN_DATA_COMPLEX_ADC24LE,
+    2 * sizeof (guint32),      HYSCAN_DISCRETIZATION_COMPLEX },
+
+  { 0, "complex-float16le",    HYSCAN_DATA_COMPLEX_FLOAT16LE,
+    2 * sizeof (guint16),      HYSCAN_DISCRETIZATION_COMPLEX },
+  { 0, "complex-float32le",    HYSCAN_DATA_COMPLEX_FLOAT32LE,
+    2 * sizeof (guint32),      HYSCAN_DISCRETIZATION_COMPLEX },
 
   { 0, "amplitude-int8",       HYSCAN_DATA_AMPLITUDE_INT8,
     sizeof (guint8),           HYSCAN_DISCRETIZATION_AMPLITUDE },
-  { 0, "amplitude-int16",      HYSCAN_DATA_AMPLITUDE_INT16,
+  { 0, "amplitude-int16le",    HYSCAN_DATA_AMPLITUDE_INT16LE,
     sizeof (guint16),          HYSCAN_DISCRETIZATION_AMPLITUDE },
-  { 0, "amplitude-int24",      HYSCAN_DATA_AMPLITUDE_INT24,
+  { 0, "amplitude-int24le",    HYSCAN_DATA_AMPLITUDE_INT24LE,
     sizeof (guint32),          HYSCAN_DISCRETIZATION_AMPLITUDE },
-  { 0, "amplitude-int32",      HYSCAN_DATA_AMPLITUDE_INT32,
+  { 0, "amplitude-int32le",    HYSCAN_DATA_AMPLITUDE_INT32LE,
     sizeof (guint32),          HYSCAN_DISCRETIZATION_AMPLITUDE },
 
-  { 0, "amplitude-float8",     HYSCAN_DATA_AMPLITUDE_FLOAT8,
-    sizeof (guint8),           HYSCAN_DISCRETIZATION_AMPLITUDE },
-  { 0, "amplitude-float16",    HYSCAN_DATA_AMPLITUDE_FLOAT16,
+  { 0, "amplitude-float16le",  HYSCAN_DATA_AMPLITUDE_FLOAT16LE,
     sizeof (guint16),          HYSCAN_DISCRETIZATION_AMPLITUDE },
-  { 0, "amplitude-float32",    HYSCAN_DATA_AMPLITUDE_FLOAT32,
-      sizeof (guint32),        HYSCAN_DISCRETIZATION_AMPLITUDE },
+  { 0, "amplitude-float32le",  HYSCAN_DATA_AMPLITUDE_FLOAT32LE,
+    sizeof (guint32),          HYSCAN_DISCRETIZATION_AMPLITUDE },
 
   { 0, NULL,                   HYSCAN_DATA_INVALID,
     0,                         HYSCAN_DISCRETIZATION_INVALID }
@@ -790,9 +798,9 @@ hyscan_track_get_type_by_name (const gchar *name)
 
 /**
  * hyscan_channel_get_name_by_types:
- * @source: тип источника данных
- * @type: тип канала данных
- * @channel: индекс канала данных
+ * @source: тип источника данныx
+ * @type: тип канала данныx
+ * @channel: индекс канала данныx
  *
  * Функция возвращает название канала данных для указанных характеристик.
  *
@@ -861,10 +869,10 @@ hyscan_channel_get_name_by_types (HyScanSourceType  source,
 
 /**
  * hyscan_channel_get_types_by_name:
- * @name: название канала данных
- * @source: (out): тип источника данных
- * @type: (out): тип канала данных
- * @channel: (out): индекс канала данных
+ * @name: название канала данныx
+ * @source: (out): тип источника данныx
+ * @type: (out): тип канала данныx
+ * @channel: (out): индекс канала данныx
  *
  * Функция возвращает характеристики канала данных по его имени.
  *
