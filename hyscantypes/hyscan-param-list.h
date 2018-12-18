@@ -70,6 +70,10 @@ HYSCAN_API
 HyScanParamList *      hyscan_param_list_new              (void);
 
 HYSCAN_API
+void                   hyscan_param_list_update           (HyScanParamList    *list,
+                                                           HyScanParamList    *orig);
+
+HYSCAN_API
 const gchar * const *  hyscan_param_list_params           (HyScanParamList    *list);
 
 HYSCAN_API

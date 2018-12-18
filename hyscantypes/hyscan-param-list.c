@@ -71,6 +71,8 @@
  *
  * Очистить список параметров можно функцией #hyscan_param_list_clear.
  *
+ * Добавить ключи из одного списка параметров в другой можно функцией #hyscan_param_list_update
+ *
  * Данный класс не является потокобезопасным.
  */
 
@@ -155,6 +157,39 @@ HyScanParamList *
 hyscan_param_list_new (void)
 {
   return g_object_new (HYSCAN_TYPE_PARAM_LIST, NULL);
+}
+
+/**
+ * hyscan_param_list_update:
+ * @list: указатель на #HyScanParamList приемник
+ * @list: указатель на #HyScanParamList источник
+ *
+ * Функция копирует параметры из одного #HyScanParamList в другой. Если
+ * какие-то параметры присутствуют в обеих списках, они будут перезаписаны.
+ * Если какие-то параметры присутствуют только в приемнике, то они удалены
+ * не будут
+ */
+void
+hyscan_param_list_update (HyScanParamList *list,
+                          HyScanParamList *orig)
+{
+  const gchar * const * params;
+  GVariant * value;
+
+  g_return_if_fail (HYSCAN_IS_PARAM_LIST (list));
+  g_return_if_fail (HYSCAN_IS_PARAM_LIST (orig));
+
+  params = hyscan_param_list_params (orig);
+
+  if (params == NULL)
+    return;
+
+  for (; *params != NULL; ++params)
+    {
+      value = hyscan_param_list_get (orig, *params);
+      hyscan_param_list_set (list, *params, value);
+      g_variant_unref (value);
+    }
 }
 
 /**

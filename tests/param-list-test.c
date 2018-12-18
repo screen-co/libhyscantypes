@@ -54,6 +54,7 @@ main (int    argc,
       char **argv)
 {
   HyScanParamList *list;
+  HyScanParamList *copy;
   const gchar * const * names;
   gchar *name;
   guint i;
@@ -208,6 +209,9 @@ main (int    argc,
   if (names == NULL)
     g_error ("parameters list is empty (set)");
 
+  copy = hyscan_param_list_new ();
+  hyscan_param_list_update (copy, list);
+
   /* Проверяем, что все параметры есть в списке. */
   for (i = 0; i < N_PARAMS; i++)
     {
@@ -222,16 +226,16 @@ main (int    argc,
       name = g_strdup_printf ("/boolean/name.%d", i);
       bvalue = (i % 5) ? TRUE : FALSE;
 
-      if (!hyscan_param_list_contains (list, name))
+      if (!hyscan_param_list_contains (copy, name))
         g_error ("parameter %s not found in list", name);
 
       if (!strv_contains (names, name))
         g_error ("parameter %s not found in names", name);
 
-      if (hyscan_param_list_get_boolean (list, name) != bvalue)
+      if (hyscan_param_list_get_boolean (copy, name) != bvalue)
         g_error ("parameter %s error", name);
 
-      vvalue = hyscan_param_list_get (list, name);
+      vvalue = hyscan_param_list_get (copy, name);
       if (g_variant_classify (vvalue) != G_VARIANT_CLASS_BOOLEAN)
         g_error ("parameter %s type error", name);
 
@@ -245,16 +249,16 @@ main (int    argc,
       name = g_strdup_printf ("/integer/name.%d", i);
       ivalue = i - N_PARAMS / 2;
 
-      if (!hyscan_param_list_contains (list, name))
+      if (!hyscan_param_list_contains (copy, name))
         g_error ("parameter %s not found in list", name);
 
       if (!strv_contains (names, name))
         g_error ("parameter %s not found in names", name);
 
-      if (hyscan_param_list_get_integer (list, name) != ivalue)
+      if (hyscan_param_list_get_integer (copy, name) != ivalue)
         g_error ("parameter %s error", name);
 
-      vvalue = hyscan_param_list_get (list, name);
+      vvalue = hyscan_param_list_get (copy, name);
       if (g_variant_classify (vvalue) != G_VARIANT_CLASS_INT64)
         g_error ("parameter %s type error", name);
 
@@ -268,18 +272,18 @@ main (int    argc,
       name = g_strdup_printf ("/double/name.%d", i);
       dvalue = 1.0 / (gdouble)(i + 1);
 
-      if (!hyscan_param_list_contains (list, name))
+      if (!hyscan_param_list_contains (copy, name))
         g_error ("parameter %s not found in list", name);
 
       if (!strv_contains (names, name))
         g_error ("parameter %s not found in names", name);
 
-      dvalue -= hyscan_param_list_get_double (list, name);
+      dvalue -= hyscan_param_list_get_double (copy, name);
       if (ABS (dvalue) > 1e-10)
         g_error ("parameter %s error", name);
 
       dvalue = 1.0 / (gdouble)(i + 1);
-      vvalue = hyscan_param_list_get (list, name);
+      vvalue = hyscan_param_list_get (copy, name);
       if (g_variant_classify (vvalue) != G_VARIANT_CLASS_DOUBLE)
         g_error ("parameter %s type error", name);
 
@@ -294,16 +298,16 @@ main (int    argc,
       name = g_strdup_printf ("/string/name.%d", i);
       svalue = g_strdup_printf ("string %d", i);
 
-      if (!hyscan_param_list_contains (list, name))
+      if (!hyscan_param_list_contains (copy, name))
         g_error ("parameter %s not found in list", name);
 
       if (!strv_contains (names, name))
         g_error ("parameter %s not found in names", name);
 
-      if (g_strcmp0 (hyscan_param_list_get_string (list, name), svalue) != 0)
+      if (g_strcmp0 (hyscan_param_list_get_string (copy, name), svalue) != 0)
         g_error ("parameter %s error", name);
 
-      vvalue = hyscan_param_list_get (list, name);
+      vvalue = hyscan_param_list_get (copy, name);
       if (g_variant_classify (vvalue) != G_VARIANT_CLASS_STRING)
         g_error ("parameter %s type error", name);
 
@@ -318,16 +322,16 @@ main (int    argc,
       name = g_strdup_printf ("/enum/name.%d", i);
       evalue = i + N_PARAMS / 2;
 
-      if (!hyscan_param_list_contains (list, name))
+      if (!hyscan_param_list_contains (copy, name))
         g_error ("parameter %s not found in list", name);
 
       if (!strv_contains (names, name))
         g_error ("parameter %s not found in names", name);
 
-      if (hyscan_param_list_get_enum (list, name) != evalue)
+      if (hyscan_param_list_get_enum (copy, name) != evalue)
         g_error ("parameter %s error", name);
 
-      vvalue = hyscan_param_list_get (list, name);
+      vvalue = hyscan_param_list_get (copy, name);
       if (g_variant_classify (vvalue) != G_VARIANT_CLASS_INT64)
         g_error ("parameter %s type error", name);
 
@@ -339,6 +343,7 @@ main (int    argc,
     }
 
   g_object_unref (list);
+  g_object_unref (copy);
 
   g_message ("All done");
 
