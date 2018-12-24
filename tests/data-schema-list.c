@@ -33,7 +33,6 @@
  */
 
 #include <hyscan-data-schema.h>
-#include <libxml/parser.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -265,8 +264,6 @@ main (int argc, char **argv)
   print_node (schema, nodes, 0);
 
   g_object_unref (schema);
-
-  xmlCleanupParser ();
 
   return 0;
 }

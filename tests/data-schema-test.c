@@ -34,7 +34,6 @@
 
 #include <gio/gio.h>
 #include <hyscan-data-schema-builder.h>
-#include <libxml/parser.h>
 
 #define SCHEMA_NAME        "Test schema"
 #define SCHEMA_DESCRIPTION "Test schema description"
@@ -606,8 +605,6 @@ main (int    argc,
     }
 
   g_object_unref (schema);
-
-  xmlCleanupParser ();
 
   g_message ("All done");
 

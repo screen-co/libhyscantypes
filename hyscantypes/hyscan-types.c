@@ -98,6 +98,8 @@
 
 #include "hyscan-types.h"
 
+#include <libxml/parser.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define DATA_CHANNEL_PREFIX    ""
@@ -271,40 +273,58 @@ static HyScanTrackTypeInfo hyscan_track_types_info[] =
   { 0, NULL,                   HYSCAN_TRACK_UNSPECIFIED }
 };
 
+#if  __GNUC__ > 2
+
+#define HYSCAM_CONSTRUCTOR(_func) static void __attribute__((constructor)) _func (void);
+
+#elif _MSC_VER >= 1500
+
+#ifdef _WIN64
+#define G_MSVC_SYMBOL_PREFIX ""
+#else
+#define G_MSVC_SYMBOL_PREFIX "_"
+#endif
+
+#define HYSCAM_CONSTRUCTOR(_func) G_MSVC_CTOR (_func, G_MSVC_SYMBOL_PREFIX)
+
+#define G_MSVC_CTOR(_func,_sym_prefix) \
+  static void _func(void); \
+  extern int (* _array ## _func)(void);              \
+  int _func ## _wrapper(void) { _func(); g_slist_find (NULL,  _array ## _func); return 0; } \
+  __pragma(comment(linker,"/include:" _sym_prefix # _func "_wrapper")) \
+  __pragma(section(".CRT$XCU",read)) \
+  __declspec(allocate(".CRT$XCU")) int (* _array ## _func)(void) = _func ## _wrapper;
+
+#else
+
+#error "constructors not supported for this compiler"
+
+#endif
+
+HYSCAM_CONSTRUCTOR(hyscan_types_initialize)
+
 /* Функция инициализации статических данных. */
 static void
 hyscan_types_initialize (void)
 {
-  static gboolean hyscan_types_initialized = FALSE;
-  static GMutex hyscan_types_mutex;
   guint i;
 
-  if (g_atomic_int_get (&hyscan_types_initialized))
-    return;
+  for (i = 0; hyscan_data_types_info[i].name != NULL; i++)
+    hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].name);
 
-  g_mutex_lock (&hyscan_types_mutex);
+  for (i = 0; hyscan_discretization_types_info[i].name != NULL; i++)
+    hyscan_discretization_types_info[i].quark = g_quark_from_static_string (hyscan_discretization_types_info[i].name);
 
-  if (!g_atomic_int_get (&hyscan_types_initialized))
-    {
-      for (i = 0; hyscan_data_types_info[i].name != NULL; i++)
-        hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].name);
+  for (i = 0; hyscan_log_levels_info[i].name != NULL; i++)
+    hyscan_log_levels_info[i].quark = g_quark_from_static_string (hyscan_log_levels_info[i].name);
 
-      for (i = 0; hyscan_discretization_types_info[i].name != NULL; i++)
-        hyscan_discretization_types_info[i].quark = g_quark_from_static_string (hyscan_discretization_types_info[i].name);
+  for (i = 0; hyscan_track_types_info[i].name != NULL; i++)
+    hyscan_track_types_info[i].quark = g_quark_from_static_string (hyscan_track_types_info[i].name);
 
-      for (i = 0; hyscan_log_levels_info[i].name != NULL; i++)
-        hyscan_log_levels_info[i].quark = g_quark_from_static_string (hyscan_log_levels_info[i].name);
+  for (i = 0; hyscan_source_types_info[i].name != NULL; i++)
+    hyscan_source_types_info[i].quark = g_quark_from_static_string (hyscan_source_types_info[i].name);
 
-      for (i = 0; hyscan_track_types_info[i].name != NULL; i++)
-        hyscan_track_types_info[i].quark = g_quark_from_static_string (hyscan_track_types_info[i].name);
-
-      for (i = 0; hyscan_source_types_info[i].name != NULL; i++)
-        hyscan_source_types_info[i].quark = g_quark_from_static_string (hyscan_source_types_info[i].name);
-
-      g_atomic_int_set (&hyscan_types_initialized, TRUE);
-    }
-
-  g_mutex_unlock (&hyscan_types_mutex);
+  atexit (xmlCleanupParser);
 }
 
 /**
@@ -419,9 +439,6 @@ hyscan_data_get_name_by_type (HyScanDataType type)
 {
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем строку с указанным типом данных. */
   for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     {
@@ -445,9 +462,6 @@ hyscan_data_get_type_by_name (const gchar *name)
 {
   GQuark quark;
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем тип данных с указанным именем. */
   quark = g_quark_try_string (name);
@@ -473,9 +487,6 @@ hyscan_data_get_point_size (HyScanDataType type)
 {
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем строку с указанным типом данных. */
   for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     {
@@ -499,9 +510,6 @@ const gchar *
 hyscan_discretization_get_name_by_type (HyScanDiscretizationType type)
 {
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем строку с указанным типом дискретизации. */
   for (i = 0; hyscan_discretization_types_info[i].quark != 0; i++)
@@ -528,9 +536,6 @@ hyscan_discretization_get_type_by_name (const gchar *name)
   GQuark quark;
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем тип дискретизации с указанным именем. */
   quark = g_quark_try_string (name);
   for (i = 0; hyscan_discretization_types_info[i].quark != 0; i++)
@@ -555,9 +560,6 @@ hyscan_discretization_get_type_by_data (HyScanDataType type)
 {
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем строку с указанным типом данных. */
   for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     {
@@ -580,9 +582,6 @@ const gchar *
 hyscan_source_get_name_by_type (HyScanSourceType source)
 {
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем название канала для указанных характеристик. */
   for (i = 0; hyscan_source_types_info[i].quark != 0; i++)
@@ -607,9 +606,6 @@ hyscan_source_get_type_by_name (const gchar *name)
 {
   GQuark quark;
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем канал с указанным именем. */
   quark = g_quark_try_string (name);
@@ -701,9 +697,6 @@ hyscan_log_level_get_name_by_type (HyScanLogLevel level)
 {
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем название типа. */
   for (i = 0; hyscan_log_levels_info[i].quark != 0; i++)
     {
@@ -727,9 +720,6 @@ hyscan_log_level_get_type_by_name (const gchar *name)
 {
   GQuark quark;
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем тип по названию. */
   quark = g_quark_try_string (name);
@@ -755,9 +745,6 @@ hyscan_track_get_name_by_type (HyScanTrackType type)
 {
   guint i;
 
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
-
   /* Ищем название типа. */
   for (i = 0; hyscan_track_types_info[i].quark != 0; i++)
     {
@@ -781,9 +768,6 @@ hyscan_track_get_type_by_name (const gchar *name)
 {
   GQuark quark;
   guint i;
-
-  /* Инициализация статических данных. */
-  hyscan_types_initialize ();
 
   /* Ищем тип по названию. */
   quark = g_quark_try_string (name);
