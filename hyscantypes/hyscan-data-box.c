@@ -65,9 +65,7 @@
 enum
 {
   PROP_O,
-  PROP_SCHEMA,
-  PROP_SCHEMA_DATA,
-  PROP_SCHEMA_ID
+  PROP_SCHEMA
 };
 
 enum
@@ -90,8 +88,6 @@ typedef struct
 
 struct _HyScanDataBoxPrivate
 {
-  gchar                       *schema_data;            /* Описание схемы в XML. */
-  gchar                       *schema_id;              /* Идентификатор схемы. */
   HyScanDataSchema            *schema;                 /* Схема параметров. */
 
   const gchar * const         *keys_list;              /* Список параметров. */
@@ -135,14 +131,6 @@ static void hyscan_data_box_class_init( HyScanDataBoxClass *klass )
 
   g_object_class_install_property (object_class, PROP_SCHEMA,
     g_param_spec_object ("schema", "Schema", "HyScanDataSchema object", HYSCAN_TYPE_DATA_SCHEMA,
-                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-  g_object_class_install_property (object_class, PROP_SCHEMA_DATA,
-    g_param_spec_string ("schema-data", "SchemaData", "Schema data", NULL,
-                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-  g_object_class_install_property (object_class, PROP_SCHEMA_ID,
-    g_param_spec_string ("schema-id", "SchemaID", "Schema id", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 
   /**
@@ -199,14 +187,6 @@ hyscan_data_box_set_property (GObject      *object,
       priv->schema = g_value_dup_object (value);
       break;
 
-    case PROP_SCHEMA_DATA:
-      priv->schema_data = g_value_dup_string (value);
-      break;
-
-    case PROP_SCHEMA_ID:
-      priv->schema_id = g_value_dup_string (value);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -225,9 +205,9 @@ hyscan_data_box_object_constructed (GObject *object)
 
   g_mutex_init (&priv->lock);
 
-  /* Схема параметров. */
+  /* Схема параметров должна быть определена. */
   if (priv->schema == NULL)
-    priv->schema = hyscan_data_schema_new_from_string (priv->schema_data, priv->schema_id);
+    return;
 
   /* Таблица со значениями параметров. */
   priv->params = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, hyscan_data_box_param_free);
@@ -283,11 +263,8 @@ hyscan_data_box_object_finalize (GObject *object)
   HyScanDataBoxPrivate *priv = data_box->priv;
 
   g_mutex_clear (&priv->lock);
-  g_hash_table_unref (priv->params);
-
-  g_object_unref (priv->schema);
-  g_free (priv->schema_data);
-  g_free (priv->schema_id);
+  g_clear_pointer (&priv->params, g_hash_table_unref);
+  g_clear_object (&priv->schema);
 
   G_OBJECT_CLASS (hyscan_data_box_parent_class)->finalize (object);
 }
@@ -322,6 +299,22 @@ hyscan_data_box_signal_accumulator (GSignalInvocationHint *ihint,
 }
 
 /**
+ * hyscan_data_box_new:
+ * @schema: схема данныx
+ *
+ * Функция создаёт новый объект #HyScanDataBox.
+ *
+ * Returns: #HyScanDataBox. Для удаления #g_object_unref.
+ */
+HyScanDataBox *
+hyscan_data_box_new (HyScanDataSchema *schema)
+{
+  return g_object_new (HYSCAN_TYPE_DATA_BOX,
+                       "schema", schema,
+                       NULL);
+}
+
+/**
  * hyscan_data_box_new_from_string:
  * @schema_data: строка с описанием схемы в формате XML
  * @schema_id: идентификатор загружаемой схемы
@@ -335,10 +328,14 @@ HyScanDataBox *
 hyscan_data_box_new_from_string (const gchar  *schema_data,
                                  const gchar  *schema_id)
 {
-  return g_object_new (HYSCAN_TYPE_DATA_BOX,
-                       "schema-data", schema_data,
-                       "schema-id", schema_id,
-                       NULL);
+  HyScanDataBox *data_box;
+  HyScanDataSchema *schema;
+
+  schema = hyscan_data_schema_new_from_string (schema_data, schema_id);
+  data_box = hyscan_data_box_new (schema);
+  g_object_unref (schema);
+
+  return data_box;
 }
 
 /**
@@ -354,17 +351,12 @@ HyScanDataBox *
 hyscan_data_box_new_from_file (const gchar *schema_path,
                                const gchar *schema_id)
 {
-  gchar *schema_data;
-  gpointer data_box;
+  HyScanDataBox *data_box;
+  HyScanDataSchema *schema;
 
-  if (!g_file_get_contents (schema_path, &schema_data, NULL, NULL))
-    return NULL;
-
-  data_box = g_object_new (HYSCAN_TYPE_DATA_BOX,
-                           "schema-data", schema_data,
-                           "schema-id", schema_id,
-                           NULL);
-  g_free (schema_data);
+  schema = hyscan_data_schema_new_from_file (schema_path, schema_id);
+  data_box = hyscan_data_box_new (schema);
+  g_object_unref (schema);
 
   return data_box;
 }
@@ -383,38 +375,14 @@ HyScanDataBox *
 hyscan_data_box_new_from_resource (const gchar *schema_resource,
                                    const gchar *schema_id)
 {
-  const gchar *schema_data;
-  GBytes *resource;
-  gpointer data_box;
+  HyScanDataBox *data_box;
+  HyScanDataSchema *schema;
 
-  resource = g_resources_lookup_data (schema_resource, 0, NULL);
-  if (resource == NULL)
-    return NULL;
-
-  schema_data = g_bytes_get_data (resource, NULL);
-  data_box = g_object_new (HYSCAN_TYPE_DATA_BOX,
-                           "schema-data", schema_data,
-                           "schema-id", schema_id,
-                           NULL);
-  g_bytes_unref (resource);
+  schema = hyscan_data_schema_new_from_resource (schema_resource, schema_id);
+  data_box = hyscan_data_box_new (schema);
+  g_object_unref (schema);
 
   return data_box;
-}
-
-/**
- * hyscan_data_box_new_from_schema:
- * @schema: схема данныx
- *
- * Функция создаёт новый объект #HyScanDataBox из схемы #HyScanDataSchema.
- *
- * Returns: #HyScanDataBox. Для удаления #g_object_unref.
- */
-HyScanDataBox *
-hyscan_data_box_new_from_schema (HyScanDataSchema *schema)
-{
-  return g_object_new (HYSCAN_TYPE_DATA_BOX,
-                       "schema", schema,
-                       NULL);
 }
 
 /**

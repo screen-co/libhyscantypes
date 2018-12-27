@@ -1537,7 +1537,17 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
   if (ikey == NULL)
     return FALSE;
 
-  if (value != NULL && g_variant_classify (value) != ikey->value_type)
+  if (value == NULL)
+    {
+      if (ikey->default_value != NULL)
+        value = ikey->default_value;
+      else if (ikey->type == HYSCAN_DATA_SCHEMA_KEY_STRING)
+        return TRUE;
+      else
+        return FALSE;
+    }
+
+  if (g_variant_classify (value) != ikey->value_type)
     return FALSE;
 
   switch (ikey->type)

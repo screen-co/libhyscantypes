@@ -29,6 +29,7 @@ add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-data-schema-internal.c
              hyscan-param-list.c
              hyscan-param.c
+             hyscan-param-controller.c
              hyscan-data-box.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c")
 
@@ -61,6 +62,7 @@ install (FILES hyscan-api.h
                hyscan-data-schema-builder.h
                hyscan-param-list.h
                hyscan-param.h
+               hyscan-param-controller.h
                hyscan-data-box.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscantypes"

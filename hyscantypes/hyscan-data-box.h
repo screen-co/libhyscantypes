@@ -66,6 +66,9 @@ HYSCAN_API
 GType                  hyscan_data_box_get_type                (void);
 
 HYSCAN_API
+HyScanDataBox         *hyscan_data_box_new                     (HyScanDataSchema      *schema);
+
+HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_string         (const gchar           *schema_data,
                                                                 const gchar           *schema_id);
 
@@ -76,9 +79,6 @@ HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar     
 HYSCAN_API
 HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
                                                                 const gchar           *schema_id);
-
-HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new_from_schema         (HyScanDataSchema      *schema);
 
 HYSCAN_API
 guint32                hyscan_data_box_get_mod_count           (HyScanDataBox         *data_box,

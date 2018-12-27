@@ -1,4 +1,4 @@
-/* data-box-test.c
+/* param-test.c
  *
  * Copyright 2017-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
@@ -34,6 +34,7 @@
 
 #include <gio/gio.h>
 #include <hyscan-data-box.h>
+#include <hyscan-param-controller.h>
 
 gchar *test_schema_create (const gchar *schema_id);
 
@@ -94,20 +95,20 @@ changed_cb (HyScanDataBox *data,
   mod_counter += 1;
 }
 
-/* Функция проверки параметра типа BOOLEAN. */
-void
-check_boolean (HyScanDataBox    *data,
-               HyScanDataSchema *schema,
-               const gchar      *name)
+/* Функция проверяет readonly/writeonly параметры. */
+gboolean
+check_read_write_only (HyScanParam      *param,
+                       HyScanDataSchema *schema,
+                       const gchar      *name)
 {
-  HyScanParam *param;
   HyScanDataSchemaKeyAccess access;
-  guint32 local_mod_counter;
   GVariant *default_value;
 
-  cur_name = name;
-  param = HYSCAN_PARAM (data);
-  local_mod_counter = mod_counter;
+  gboolean status = FALSE;
+
+  default_value = hyscan_data_schema_key_get_default (schema, name);
+  if (!g_pattern_match_simple ("*null*", name) && default_value == NULL)
+    g_error ("%s: can't get default value", name);
 
   hyscan_param_list_clear (list);
   hyscan_param_list_add (list, name);
@@ -120,15 +121,46 @@ check_boolean (HyScanDataBox    *data,
       if (hyscan_param_set (param, list))
         g_error ("%s: can set readonly value", name);
 
-      return;
+      if (!hyscan_param_get (param, list))
+        g_error ("%s: can't get readonly value", name);
+
+      cur_value = hyscan_param_list_get (list, name);
+      if (default_value != NULL && cur_value != NULL)
+        {
+          if (g_variant_compare (cur_value, default_value) != 0)
+            g_error ("%s: default readonly value mismatch", name);
+        }
+
+      g_clear_pointer (&cur_value, g_variant_unref);
+
+      status = TRUE;
     }
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+  else if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
     {
       if (hyscan_param_get (param, list))
         g_error ("%s: can get writeonly value", name);
 
-      return;
+      status = TRUE;
     }
+
+  g_clear_pointer (&default_value, g_variant_unref);
+
+  return status;
+}
+
+/* Функция проверки параметра типа BOOLEAN. */
+void
+check_boolean (HyScanParam      *param,
+               HyScanDataSchema *schema,
+               const gchar      *name)
+{
+  guint32 local_mod_counter;
+  GVariant *default_value;
+
+  cur_name = name;
+  local_mod_counter = mod_counter;
+
+  hyscan_param_list_clear (list);
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (default_value == NULL)
@@ -174,9 +206,12 @@ check_boolean (HyScanDataBox    *data,
   if (hyscan_param_list_get_boolean (list, name) != g_variant_get_boolean (default_value))
     g_error ("%s: default value mismatch", name);
 
-  local_mod_counter = mod_counter - local_mod_counter;
-  if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
-    g_error ("%s: modification counter error", name);
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      local_mod_counter = mod_counter - local_mod_counter;
+      if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
+        g_error ("%s: modification counter error", name);
+    }
 
   g_variant_unref (default_value);
 
@@ -191,12 +226,10 @@ check_boolean (HyScanDataBox    *data,
 
 /* Функция проверки параметра типа INTEGER. */
 void
-check_integer (HyScanDataBox    *data,
+check_integer (HyScanParam      *param,
                HyScanDataSchema *schema,
                const gchar      *name)
 {
-  HyScanParam *param;
-  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   GVariant *minimum_value;
@@ -207,29 +240,9 @@ check_integer (HyScanDataBox    *data,
   gint64 i;
 
   cur_name = name;
-  param = HYSCAN_PARAM (data);
   local_mod_counter = mod_counter;
 
   hyscan_param_list_clear (list);
-  hyscan_param_list_add (list, name);
-
-  access = hyscan_data_schema_key_get_access (schema, name);
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-    {
-      cur_value = NULL;
-
-      if (hyscan_param_set (param, list))
-        g_error ("%s: can set read only value", name);
-
-      return;
-    }
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-    {
-      if (hyscan_param_get (param, list))
-        g_error ("%s: can get writeonly value", name);
-
-      return;
-    }
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (default_value == NULL)
@@ -279,11 +292,14 @@ check_integer (HyScanDataBox    *data,
 
   value = hyscan_param_list_get_integer (list, name);
   if (value != g_variant_get_int64 (default_value))
-    g_error ("%s: value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, g_variant_get_int64 (default_value));
+    g_error ("%s: default value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, g_variant_get_int64 (default_value));
 
-  local_mod_counter = mod_counter - local_mod_counter;
-  if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
-    g_error ("%s: modification counter error", name);
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      local_mod_counter = mod_counter - local_mod_counter;
+      if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
+        g_error ("%s: modification counter error", name);
+    }
 
   g_variant_unref (default_value);
   g_variant_unref (minimum_value);
@@ -301,12 +317,10 @@ check_integer (HyScanDataBox    *data,
 
 /* Функция проверки параметра типа DOUBLE. */
 void
-check_double (HyScanDataBox    *data,
+check_double (HyScanParam      *param,
               HyScanDataSchema *schema,
               const gchar      *name)
 {
-  HyScanParam *param;
-  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   GVariant *minimum_value;
@@ -317,29 +331,9 @@ check_double (HyScanDataBox    *data,
   gdouble i;
 
   cur_name = name;
-  param = HYSCAN_PARAM (data);
   local_mod_counter = mod_counter;
 
   hyscan_param_list_clear (list);
-  hyscan_param_list_add (list, name);
-
-  access = hyscan_data_schema_key_get_access (schema, name);
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-    {
-      cur_value = NULL;
-
-      if (hyscan_param_set (param, list))
-        g_error ("%s: can set read only value", name);
-
-      return;
-    }
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-    {
-      if (hyscan_param_get (param, list))
-        g_error ("%s: can get writeonly value", name);
-
-      return;
-    }
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (default_value == NULL)
@@ -389,11 +383,14 @@ check_double (HyScanDataBox    *data,
 
   value = hyscan_param_list_get_double (list, name);
   if (value != g_variant_get_double (default_value))
-    g_error ("%s: value mismatch (%.3lf != %.3lf)", name, value, g_variant_get_double (default_value));
+    g_error ("%s: default value mismatch (%.3lf != %.3lf)", name, value, g_variant_get_double (default_value));
 
-  local_mod_counter = mod_counter - local_mod_counter;
-  if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
-    g_error ("%s: modification counter error", name);
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      local_mod_counter = mod_counter - local_mod_counter;
+      if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
+        g_error ("%s: modification counter error", name);
+    }
 
   g_variant_unref (default_value);
   g_variant_unref (minimum_value);
@@ -411,12 +408,10 @@ check_double (HyScanDataBox    *data,
 
 /* Функция проверки параметра типа STRING. */
 void
-check_string (HyScanDataBox    *data,
+check_string (HyScanParam      *param,
               HyScanDataSchema *schema,
               const gchar      *name)
 {
-  HyScanParam *param;
-  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   GVariant *default_value;
   gchar *value1;
@@ -424,29 +419,9 @@ check_string (HyScanDataBox    *data,
   gint32 i;
 
   cur_name = name;
-  param = HYSCAN_PARAM (data);
   local_mod_counter = mod_counter;
 
   hyscan_param_list_clear (list);
-  hyscan_param_list_add (list, name);
-
-  access = hyscan_data_schema_key_get_access (schema, name);
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-    {
-      cur_value = NULL;
-
-      if (hyscan_param_set (param, list))
-        g_error ("%s: can set read only value", name);
-
-      return;
-    }
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-    {
-      if (hyscan_param_get (param, list))
-        g_error ("%s: can get writeonly value", name);
-
-      return;
-    }
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (g_pattern_match_simple ("*null*", name))
@@ -486,17 +461,25 @@ check_string (HyScanDataBox    *data,
   if (!hyscan_param_set (param, list))
     g_error ("%s: can't clear value", name);
 
-  if (!g_pattern_match_simple ("*null*", name))
+  hyscan_param_get (param, list);
+  value2 = hyscan_param_list_get_string (list, name);
+  if (g_pattern_match_simple ("*null*", name))
     {
-      hyscan_param_get (param, list);
-      value2 = hyscan_param_list_get_string (list, name);
+      if (value2 != NULL)
+        g_error ("%s: default value mismatch (NULL != '%s')", name, value2);
+    }
+  else
+    {
       if (g_strcmp0 (g_variant_get_string (default_value, NULL), value2) != 0)
-        g_error ("%s: value mismatch ('%s' != '%s')", name, value1, value2);
+        g_error ("%s: default value mismatch ('%s' != '%s')", name, value1, value2);
     }
 
-  local_mod_counter = mod_counter - local_mod_counter;
-  if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
-    g_error ("%s: modification counter error", name);
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      local_mod_counter = mod_counter - local_mod_counter;
+      if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
+        g_error ("%s: modification counter error", name);
+    }
 
   g_clear_pointer (&default_value, g_variant_unref);
 
@@ -513,12 +496,10 @@ check_string (HyScanDataBox    *data,
 
 /* Функция проверки параметра типа ENUM. */
 void
-check_enum (HyScanDataBox    *data,
+check_enum (HyScanParam      *param,
             HyScanDataSchema *schema,
             const gchar      *name)
 {
-  HyScanParam *param;
-  HyScanDataSchemaKeyAccess access;
   guint32 local_mod_counter;
   const gchar *enum_id;
   GList *values, *values_list;
@@ -526,29 +507,9 @@ check_enum (HyScanDataBox    *data,
   gint64 value;
 
   cur_name = name;
-  param = HYSCAN_PARAM (data);
   local_mod_counter = mod_counter;
 
   hyscan_param_list_clear (list);
-  hyscan_param_list_add (list, name);
-
-  access = hyscan_data_schema_key_get_access (schema, name);
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-    {
-      cur_value = NULL;
-
-      if (hyscan_param_set (param, list))
-        g_error ("%s: can set read only value", name);
-
-      return;
-    }
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-    {
-      if (hyscan_param_get (param, list))
-        g_error ("%s: can get writeonly value", name);
-
-      return;
-    }
 
   default_value = hyscan_data_schema_key_get_default (schema, name);
   if (default_value == NULL)
@@ -594,11 +555,14 @@ check_enum (HyScanDataBox    *data,
 
   value = hyscan_param_list_get_enum (list, name);
   if (value != g_variant_get_int64 (default_value))
-    g_error ("%s: value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, g_variant_get_int64 (default_value));
+    g_error ("%s: default value mismatch (%"G_GINT64_FORMAT" != %"G_GINT64_FORMAT")", name, value, g_variant_get_int64 (default_value));
 
-  local_mod_counter = mod_counter - local_mod_counter;
-  if (local_mod_counter != hyscan_data_box_get_mod_count (data, name))
-    g_error ("%s: modification counter error", name);
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      local_mod_counter = mod_counter - local_mod_counter;
+      if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
+        g_error ("%s: modification counter error", name);
+    }
 
   g_variant_unref (default_value);
 
@@ -609,8 +573,8 @@ check_enum (HyScanDataBox    *data,
 
 /* Функция сравнивает значения параметров двух объектов HyScanDataBox. */
 void
-compare_values (HyScanDataBox *data,
-                HyScanDataBox *data2)
+compare_values (HyScanParam *param1,
+                HyScanParam *param2)
 {
   HyScanDataSchema *schema;
   HyScanParamList *list1;
@@ -618,7 +582,7 @@ compare_values (HyScanDataBox *data,
   const gchar * const *keys_list;
   gsize i;
 
-  schema = hyscan_param_schema (HYSCAN_PARAM (data));
+  schema = hyscan_param_schema (param1);
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
     g_error ("compare: empty schema");
@@ -642,10 +606,10 @@ compare_values (HyScanDataBox *data,
       hyscan_param_list_add (list1, keys_list[i]);
       hyscan_param_list_add (list2, keys_list[i]);
 
-      if (!hyscan_param_get (HYSCAN_PARAM (data), list1))
+      if (!hyscan_param_get (param1, list1))
         g_error ("compare: can't get values");
 
-      if (!hyscan_param_get (HYSCAN_PARAM (data2), list2))
+      if (!hyscan_param_get (param2, list2))
         g_error ("compare: can't get values2");
 
       value1 = hyscan_param_list_get (list1, keys_list[i]);
@@ -666,19 +630,31 @@ compare_values (HyScanDataBox *data,
   g_object_unref (list2);
 }
 
+void
+g_string_destroy (gpointer data)
+{
+  g_string_free (data, TRUE);
+}
+
 int
 main (int    argc,
       char **argv)
 {
+  gchar *param_type = NULL;
   gchar *schema_file = NULL;
   gboolean silent = FALSE;
 
-  HyScanDataBox *data;
-  HyScanDataBox *data2;
+  HyScanParamController *controller = NULL;
+  HyScanDataBox *data = NULL;
   HyScanDataSchema *schema;
+  HyScanParam *param;
+  GMutex lock;
+
+  GList *objects1 = NULL;
+  GList *objects2 = NULL;
+
   gchar *schema_data;
   const gchar * const *keys_list;
-  gchar *sparams;
   gsize i;
 
   /* Разбор командной строки. */
@@ -689,6 +665,7 @@ main (int    argc,
     GOptionEntry entries[] =
       {
         { "dump-schema", 'd', 0, G_OPTION_ARG_STRING, &schema_file, "Dump test schema to file", NULL },
+        { "param-type", 'p', 0, G_OPTION_ARG_STRING, &param_type, "HyScanParam type (data-box, controller)", NULL },
         { "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Don't show messages", NULL },
         { NULL }
       };
@@ -713,6 +690,7 @@ main (int    argc,
     g_strfreev (args);
   }
 
+  g_mutex_init (&lock);
   list = hyscan_param_list_new ();
   schema_data = test_schema_create ("test");
 
@@ -720,14 +698,85 @@ main (int    argc,
     g_file_set_contents (schema_file, schema_data, -1, NULL);
 
   schema = hyscan_data_schema_new_from_string (schema_data, "test");
-  data = hyscan_data_box_new_from_schema (schema);
 
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
     g_error ("empty schema");
 
-  g_signal_connect (data, "set", G_CALLBACK (set_cb), NULL);
-  g_signal_connect (data, "changed", G_CALLBACK (changed_cb), NULL);
+  if (param_type == NULL)
+    param_type = g_strdup ("data-box");
+
+  if (g_strcmp0 (param_type, "data-box") == 0)
+    {
+      data = hyscan_data_box_new_from_string (schema_data, "test");
+      g_signal_connect (data, "set", G_CALLBACK (set_cb), NULL);
+      g_signal_connect (data, "changed", G_CALLBACK (changed_cb), NULL);
+
+      param = HYSCAN_PARAM (data);
+    }
+  else if (g_strcmp0 (param_type, "controller") == 0)
+    {
+      controller = hyscan_param_controller_new (&lock);
+
+      for (i = 0; keys_list[i] != NULL; i++)
+        {
+          HyScanDataSchemaKeyType type;
+          HyScanDataSchemaKeyAccess access;
+          gpointer data;
+
+          access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
+          if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+            {
+              hyscan_param_controller_add_user (controller, keys_list[i], NULL, NULL, NULL);
+              continue;
+            }
+
+          type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
+          switch (type)
+            {
+            case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+              data = g_new (gboolean, 1);
+              hyscan_param_controller_add_boolean (controller, keys_list[i], data);
+              objects1 = g_list_prepend (objects1, data);
+              break;
+
+            case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+              data = g_new (gint64, 1);
+              hyscan_param_controller_add_integer (controller, keys_list[i], data);
+              objects1 = g_list_prepend (objects1, data);
+              break;
+
+            case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+              data = g_new (gdouble, 1);
+              hyscan_param_controller_add_double (controller, keys_list[i], data);
+              objects1 = g_list_prepend (objects1, data);
+              break;
+
+            case HYSCAN_DATA_SCHEMA_KEY_STRING:
+              data = g_string_new (NULL);
+              hyscan_param_controller_add_string (controller, keys_list[i], data);
+              objects2 = g_list_prepend (objects2, data);
+              break;
+
+            case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+              data = g_new (gint64, 1);
+              hyscan_param_controller_add_enum (controller, keys_list[i], data);
+              objects1 = g_list_prepend (objects1, data);
+              break;
+
+            default:
+              break;
+            }
+        }
+
+      hyscan_param_controller_set_schema (controller, schema);
+
+      param = HYSCAN_PARAM (controller);
+    }
+  else
+    {
+      g_error ("unsupported param type %s", param_type);
+    }
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
@@ -736,26 +785,29 @@ main (int    argc,
       if (!silent)
         g_message ("check key: %s", keys_list[i]);
 
+      if (check_read_write_only (param, schema, keys_list[i]))
+        continue;
+
       switch (type)
         {
         case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
-          check_boolean (data, schema, keys_list[i]);
+          check_boolean (param, schema, keys_list[i]);
           break;
 
         case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
-          check_integer (data, schema, keys_list[i]);
+          check_integer (param, schema, keys_list[i]);
           break;
 
         case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
-          check_double (data, schema, keys_list[i]);
+          check_double (param, schema, keys_list[i]);
           break;
 
         case HYSCAN_DATA_SCHEMA_KEY_STRING:
-          check_string (data, schema, keys_list[i]);
+          check_string (param, schema, keys_list[i]);
           break;
 
         case HYSCAN_DATA_SCHEMA_KEY_ENUM:
-          check_enum (data, schema, keys_list[i]);
+          check_enum (param, schema, keys_list[i]);
           break;
 
         default:
@@ -763,25 +815,43 @@ main (int    argc,
         }
     }
 
-  if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
-    g_error ("modification counter error");
+  if (HYSCAN_IS_DATA_BOX (param))
+    {
+      HyScanDataBox *data2;
+      gchar *sparams;
 
-  sparams = hyscan_data_box_serialize (data);
-  if (sparams == NULL)
-    g_error ("can't serialize values");
+      data2 = hyscan_data_box_new_from_string (schema_data, "test");
+      sparams = hyscan_data_box_serialize (data);
 
-  data2 = hyscan_data_box_new_from_string (schema_data, "test");
-  if (!hyscan_data_box_deserialize (data2, sparams))
-    g_error ("can't deserialize values");
+      if (sparams == NULL)
+        g_error ("can't serialize values");
 
-  compare_values (data, data2);
+      if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
+        g_error ("modification counter error");
 
+      if (!hyscan_data_box_deserialize (data2, sparams))
+        g_error ("can't deserialize values");
+
+      compare_values (param, HYSCAN_PARAM (data2));
+
+      g_object_unref (data2);
+      g_free (sparams);
+    }
+  else if (HYSCAN_IS_PARAM_CONTROLLER (param))
+    {
+      g_list_free_full (objects1, g_free);
+      g_list_free_full (objects2, g_string_destroy);
+    }
+
+  g_clear_object (&controller);
+  g_clear_object (&data);
   g_object_unref (schema);
-  g_object_unref (data);
-  g_object_unref (data2);
   g_object_unref (list);
+
   g_free (schema_data);
-  g_free (sparams);
+  g_free (param_type);
+
+  g_mutex_clear (&lock);
 
   g_message ("All done");
 
