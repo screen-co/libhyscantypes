@@ -143,6 +143,7 @@ hyscan_data_schema_internal_key_new (const gchar *id,
   new_key->id = g_strdup (id);
   new_key->name = g_strdup (name);
   new_key->description = g_strdup (description);
+  new_key->access = HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT;
 
   return new_key;
 }

@@ -401,10 +401,19 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"schema\"");
 
   /* Атрибуты доступа к параметру. */
-  if (ikey->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-    g_output_stream_printf (ostream, NULL, NULL, NULL, " access=\"readonly\"");
-  else if (ikey->access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-    g_output_stream_printf (ostream, NULL, NULL, NULL, " access=\"writeonly\"");
+  if (ikey->access != HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT)
+    {
+      g_output_stream_printf (ostream, NULL, NULL, NULL, " access=\"");
+
+      if (ikey->access & HYSCAN_DATA_SCHEMA_ACCESS_READ)
+        g_output_stream_printf (ostream, NULL, NULL, NULL, "r");
+      if (ikey->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE)
+        g_output_stream_printf (ostream, NULL, NULL, NULL, "w");
+      if (ikey->access & HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN)
+        g_output_stream_printf (ostream, NULL, NULL, NULL, "h");
+
+      g_output_stream_printf (ostream, NULL, NULL, NULL, "\"");
+    }
 
   /* Описание параметра. */
   if (ikey->description != NULL)

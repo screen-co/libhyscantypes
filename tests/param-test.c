@@ -114,7 +114,7 @@ check_read_write_only (HyScanParam      *param,
   hyscan_param_list_add (list, name);
 
   access = hyscan_data_schema_key_get_access (schema, name);
-  if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+  if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
     {
       cur_value = NULL;
 
@@ -135,7 +135,7 @@ check_read_write_only (HyScanParam      *param,
 
       status = TRUE;
     }
-  else if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+  else if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_READ))
     {
       if (hyscan_param_get (param, list))
         g_error ("%s: can get writeonly value", name);
@@ -597,7 +597,7 @@ compare_values (HyScanParam *param1,
       GVariant *value2;
 
       access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
-      if (access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+      if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_READ))
         continue;
 
       hyscan_param_list_clear (list1);
@@ -725,7 +725,7 @@ main (int    argc,
           gpointer data;
 
           access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
-          if (access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+          if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
             {
               hyscan_param_controller_add_user (controller, keys_list[i], NULL, NULL, NULL);
               continue;

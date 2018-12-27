@@ -452,7 +452,7 @@ hyscan_data_box_serialize (HyScanDataBox *data_box)
       GVariant *value;
 
       param = g_hash_table_lookup (priv->params, priv->keys_list[i]);
-      if ((param == NULL) || (param->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+      if ((param == NULL) || !(param->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
         continue;
 
       value = param->value;
@@ -581,7 +581,7 @@ hyscan_data_box_set (HyScanParam     *param,
         goto exit;
 
       /* Параметр только для чтения. */
-      if (param->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+      if (!(param->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
         goto exit;
 
       /* Новое значение параметра. */
@@ -677,7 +677,7 @@ hyscan_data_box_get (HyScanParam     *param,
         return FALSE;
 
       /* Параметр только для записи. */
-      if (param->access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+      if (!(param->access & HYSCAN_DATA_SCHEMA_ACCESS_READ))
         return FALSE;
     }
 

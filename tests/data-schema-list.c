@@ -72,12 +72,6 @@ void print_node (HyScanDataSchema           *schema,
   for (list = nodes->keys; list != NULL; list = list->next)
     {
       HyScanDataSchemaKey *key = list->data;
-      const gchar *access = "";
-
-      if (key->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
-        access = "(READONLY)";
-      else if (key->access == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
-        access = "(WRITEONLY)";
 
       for (i = 0; i < level; i++)
         printf (" ");
@@ -91,7 +85,22 @@ void print_node (HyScanDataSchema           *schema,
         printf (" %s:", key->name);
       if (key->description != NULL)
         printf (" (%s):", key->description);
-      printf ("  %s\n", access);
+
+      if (key->access != HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT)
+        {
+          printf (" (");
+          if (key->access & HYSCAN_DATA_SCHEMA_ACCESS_READ)
+            printf ("r");
+          if (key->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE)
+            printf ("w");
+          if (key->access & HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN)
+            printf ("h");
+          printf ("):\n");
+        }
+      else
+        {
+          printf ("\n");
+        }
 
       switch (key->type)
         {
@@ -125,7 +134,7 @@ void print_node (HyScanDataSchema           *schema,
               printf (" ");
             printf ("     Default value: %" G_GINT64_FORMAT, g_variant_get_int64 (default_value));
 
-            if (key->access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+            if (key->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE)
               {
                 if (g_variant_get_int64 (minimum_value) != G_MININT64)
                   printf (", minimum value %" G_GINT64_FORMAT, g_variant_get_int64 (minimum_value));
@@ -162,7 +171,7 @@ void print_node (HyScanDataSchema           *schema,
               printf (" ");
             printf ("     Default value: %.03lf", g_variant_get_double (default_value));
 
-            if (key->access != HYSCAN_DATA_SCHEMA_ACCESS_READONLY)
+            if (key->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE)
               {
                 if (g_variant_get_double (minimum_value) != -G_MAXDOUBLE)
                   printf (", minimum value %.03lf", g_variant_get_double (minimum_value));
@@ -214,9 +223,11 @@ void print_node (HyScanDataSchema           *schema,
               {
                 HyScanDataSchemaEnumValue *enum_value = enum_list->data;
 
-                if ((key->access == HYSCAN_DATA_SCHEMA_ACCESS_READONLY) &&
+                if (!(key->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE) &&
                     (enum_value->value != g_variant_get_int64 (default_value)))
-                  continue;
+                  {
+                    continue;
+                  }
 
                 for (i = 0; i < level; i++)
                   printf (" ");

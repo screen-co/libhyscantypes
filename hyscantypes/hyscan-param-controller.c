@@ -486,7 +486,7 @@ hyscan_param_controller_param_set (HyScanParam     *param,
       GVariant *value = hyscan_param_list_get (list, names[i]);
 
       if (!hyscan_data_schema_key_check (schema, names[i], value) ||
-          (hyscan_data_schema_key_get_access (schema, names[i]) == HYSCAN_DATA_SCHEMA_ACCESS_READONLY))
+          !(hyscan_data_schema_key_get_access (schema, names[i]) & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
         {
           status = FALSE;
         }
@@ -555,7 +555,7 @@ hyscan_param_controller_param_get (HyScanParam     *param,
   /* Проверяем доступ всех параметров. */
   for (i = 0; names[i] != NULL; i++)
     {
-      if (hyscan_data_schema_key_get_access (schema, names[i]) == HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY)
+      if (!(hyscan_data_schema_key_get_access (schema, names[i]) & HYSCAN_DATA_SCHEMA_ACCESS_READ))
         goto fail;
     }
 
@@ -569,7 +569,8 @@ hyscan_param_controller_param_get (HyScanParam     *param,
       if (exec == NULL || exec->get_fn == NULL)
         {
           value = hyscan_data_schema_key_get_default (schema, names[i]);
-          g_clear_pointer (&value, g_variant_unref);
+          if (value != NULL)
+            g_variant_unref (value);
         }
       else
         {

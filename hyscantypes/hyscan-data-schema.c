@@ -82,7 +82,7 @@
  *       <description>Gender identity</description>
  *       <default>0</default>
  *     </key>
- *     <key id="birthday" name="Birth day" type="integer" view="date" access="readonly"/>
+ *     <key id="birthday" name="Birth day" type="integer" view="date" access="r"/>
  *     <key id="weight" name="Weight" type="double">
  *       <description>Weight in kilogramms</description>
  *       <range min="0" max="1000" step="0.1"/>
@@ -155,8 +155,13 @@
  *
  * Возможны следующие атрибуты доступа к параметру (#HyScanDataSchemaKeyAccess):
  *
- * - "readonly" - #HYSCAN_DATA_SCHEMA_ACCESS_READONLY;
- * - "writeonly" - #HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY.
+ * - "r" - #HYSCAN_DATA_SCHEMA_ACCESS_READ;
+ * - "w" - #HYSCAN_DATA_SCHEMA_ACCESS_WRITE;
+ * - "h" - #HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN.
+ *
+ * Например для скрытого параметра доступного только для чтения, строка
+ * атрибутов имеет следующий вид - "rh". Если атрибуты доступа не указаны
+ * предполагается доступ на чтение и запись.
  *
  * Тэг &lt;key&gt; может содержать вложенные тэги:
  *
@@ -544,7 +549,7 @@ hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
 
   HyScanDataSchemaKeyType key_type = HYSCAN_DATA_SCHEMA_KEY_INVALID;
   HyScanDataSchemaViewType key_view = HYSCAN_DATA_SCHEMA_VIEW_DEFAULT;
-  HyScanDataSchemaKeyAccess key_access = HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT;
+  HyScanDataSchemaKeyAccess key_access;
   GList *enum_values = NULL;
 
   xmlNodePtr curnode;
@@ -611,12 +616,20 @@ hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
   accessx = xmlGetProp (node, (xmlChar *)"access");
   if (accessx != NULL)
     {
-      if (g_ascii_strcasecmp ((const gchar *)accessx, "readonly") == 0)
-        key_access = HYSCAN_DATA_SCHEMA_ACCESS_READONLY;
-      else if (g_ascii_strcasecmp ((const gchar *)accessx, "writeonly") == 0)
-        key_access = HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY;
+      key_access = 0;
+
+      if (g_strrstr ((const gchar *)accessx, "r") != NULL)
+        key_access |= HYSCAN_DATA_SCHEMA_ACCESS_READ;
+      if (g_strrstr ((const gchar *)accessx, "w") != NULL)
+        key_access |= HYSCAN_DATA_SCHEMA_ACCESS_WRITE;
+      if (g_strrstr ((const gchar *)accessx, "h") != NULL)
+        key_access |= HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN;
 
       xmlFree (accessx);
+    }
+  else
+    {
+      key_access = HYSCAN_DATA_SCHEMA_ACCESS_READ | HYSCAN_DATA_SCHEMA_ACCESS_WRITE;
     }
 
   /* Проверка типа данных. */
@@ -1384,11 +1397,11 @@ hyscan_data_schema_key_get_access (HyScanDataSchema *schema,
 {
   HyScanDataSchemaInternalKey *ikey;
 
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), 0);
 
   ikey = g_hash_table_lookup (schema->priv->keys, key_id);
   if (ikey == NULL)
-    return HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT;
+    return 0;
 
   return ikey->access;
 }
