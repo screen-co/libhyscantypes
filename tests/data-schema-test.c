@@ -180,7 +180,8 @@ check_boolean (HyScanDataSchema *schema,
   gchar *check_name;
   gchar *check_description;
 
-  GVariant *default_value;
+  GVariant *default_value1;
+  gboolean default_value2;
 
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
@@ -196,12 +197,18 @@ check_boolean (HyScanDataSchema *schema,
   if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_BIN)
     g_error ("%s: view error", key_id);
 
-  default_value = hyscan_data_schema_key_get_default (schema, key_id);
-  if (default_value == NULL)
+  default_value1 = hyscan_data_schema_key_get_default (schema, key_id);
+  if (default_value1 == NULL)
+    g_error ("%s: default value1 error", key_id);
+
+  if (!hyscan_data_schema_key_get_boolean (schema, key_id, &default_value2))
+    g_error ("%s: value2 error", key_id);
+
+  if (g_variant_get_boolean (default_value1) != default_value2)
     g_error ("%s: default value error", key_id);
 
-  check_name = g_strdup_printf ("%s", g_variant_get_boolean (default_value) ? "True" : "False");
-  check_description = g_strdup_printf ("%s value", g_variant_get_boolean (default_value) ? "True" : "False");
+  check_name = g_strdup_printf ("%s", g_variant_get_boolean (default_value1) ? "True" : "False");
+  check_description = g_strdup_printf ("%s value", g_variant_get_boolean (default_value1) ? "True" : "False");
 
   if (g_strcmp0 (name, check_name) != 0)
     g_error ("%s: name mismatch ('%s' != '%s')", key_id, name, check_name);
@@ -211,7 +218,7 @@ check_boolean (HyScanDataSchema *schema,
   g_free (check_name);
   g_free (check_description);
 
-  g_variant_unref (default_value);
+  g_variant_unref (default_value1);
 }
 
 /* Функция проверки параметра типа INTEGER. */
@@ -225,10 +232,15 @@ check_integer (HyScanDataSchema *schema,
   gchar *check_name;
   gchar *check_description;
 
-  GVariant *default_value;
-  GVariant *minimum_value;
-  GVariant *maximum_value;
-  GVariant *value_step;
+  GVariant *default_value1;
+  GVariant *minimum_value1;
+  GVariant *maximum_value1;
+  GVariant *value_step1;
+
+  gint64 default_value2;
+  gint64 minimum_value2;
+  gint64 maximum_value2;
+  gint64 value_step2;
 
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
@@ -244,24 +256,31 @@ check_integer (HyScanDataSchema *schema,
   if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_HEX)
     g_error ("%s: view error", key_id);
 
-  default_value = hyscan_data_schema_key_get_default (schema, key_id);
-  if (default_value == NULL)
-    g_error ("%s: default value error", key_id);
+  default_value1 = hyscan_data_schema_key_get_default (schema, key_id);
+  if (default_value1 == NULL)
+    g_error ("%s: default value1 error", key_id);
 
-  minimum_value = hyscan_data_schema_key_get_minimum (schema, key_id);
-  if (minimum_value == NULL)
-    g_error ("%s: minimum value error", key_id);
+  minimum_value1 = hyscan_data_schema_key_get_minimum (schema, key_id);
+  if (minimum_value1 == NULL)
+    g_error ("%s: minimum value1 error", key_id);
 
-  maximum_value = hyscan_data_schema_key_get_maximum (schema, key_id);
-  if (maximum_value == NULL)
-    g_error ("%s: maximum value error", key_id);
+  maximum_value1 = hyscan_data_schema_key_get_maximum (schema, key_id);
+  if (maximum_value1 == NULL)
+    g_error ("%s: maximum value1 error", key_id);
 
-  value_step = hyscan_data_schema_key_get_step (schema, key_id);
-  if (value_step == NULL)
-    g_error ("%s: value step error", key_id);
+  value_step1 = hyscan_data_schema_key_get_step (schema, key_id);
+  if (value_step1 == NULL)
+    g_error ("%s: value step1 error", key_id);
 
-  check_name = g_strdup_printf ("Integer %" G_GINT64_FORMAT, g_variant_get_int64 (default_value));
-  check_description = g_strdup_printf ("Integer %" G_GINT64_FORMAT " value", g_variant_get_int64 (default_value));
+  if (!hyscan_data_schema_key_get_integer (schema, key_id,
+                                           &minimum_value2, &maximum_value2,
+                                           &default_value2, &value_step2))
+    {
+      g_error ("%s: value2 error", key_id);
+    }
+
+  check_name = g_strdup_printf ("Integer %" G_GINT64_FORMAT, g_variant_get_int64 (default_value1));
+  check_description = g_strdup_printf ("Integer %" G_GINT64_FORMAT " value", g_variant_get_int64 (default_value1));
 
   if (g_strcmp0 (name, check_name) != 0)
     g_error ("%s: name mismatch ('%s' != '%s')", key_id, name, check_name);
@@ -271,19 +290,31 @@ check_integer (HyScanDataSchema *schema,
   g_free (check_name);
   g_free (check_description);
 
-  if (g_variant_get_int64 (default_value) != g_variant_get_int64 (minimum_value))
-    g_error ("%s: minimum value error", key_id);
+  if (g_variant_get_int64 (default_value1) != default_value2)
+    g_error ("%s: default value error", key_id);
 
-  if (g_variant_get_int64 (default_value) != g_variant_get_int64 (maximum_value) / 1000)
-    g_error ("%s: maximum value error", key_id);
+  if ((g_variant_get_int64 (default_value1) != g_variant_get_int64 (minimum_value1)) ||
+      (g_variant_get_int64 (minimum_value1) != minimum_value2))
+    {
+      g_error ("%s: minimum value error", key_id);
+    }
 
-  if (g_variant_get_int64 (default_value) != g_variant_get_int64 (value_step))
-    g_error ("%s: value step error", key_id);
+  if ((g_variant_get_int64 (default_value1) != g_variant_get_int64 (maximum_value1) / 1000) ||
+      (g_variant_get_int64 (maximum_value1) != maximum_value2))
+    {
+      g_error ("%s: maximum value error", key_id);
+    }
 
-  g_variant_unref (default_value);
-  g_variant_unref (minimum_value);
-  g_variant_unref (maximum_value);
-  g_variant_unref (value_step);
+  if ((g_variant_get_int64 (default_value1) != g_variant_get_int64 (value_step1)) ||
+      (g_variant_get_int64 (value_step1) != value_step2))
+    {
+      g_error ("%s: value step error", key_id);
+    }
+
+  g_variant_unref (default_value1);
+  g_variant_unref (minimum_value1);
+  g_variant_unref (maximum_value1);
+  g_variant_unref (value_step1);
 }
 
 /* Функция проверки параметра типа DOUBLE. */
@@ -297,10 +328,15 @@ check_double (HyScanDataSchema *schema,
   gchar *check_name;
   gchar *check_description;
 
-  GVariant *default_value;
-  GVariant *minimum_value;
-  GVariant *maximum_value;
-  GVariant *value_step;
+  GVariant *default_value1;
+  GVariant *minimum_value1;
+  GVariant *maximum_value1;
+  GVariant *value_step1;
+
+  gdouble default_value2;
+  gdouble minimum_value2;
+  gdouble maximum_value2;
+  gdouble value_step2;
 
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
@@ -316,24 +352,32 @@ check_double (HyScanDataSchema *schema,
   if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_DEC)
     g_error ("%s: view error", key_id);
 
-  default_value = hyscan_data_schema_key_get_default (schema, key_id);
-  if (default_value == NULL)
-    g_error ("%s: default value error", key_id);
+  default_value1 = hyscan_data_schema_key_get_default (schema, key_id);
+  if (default_value1 == NULL)
+    g_error ("%s: default value1 error", key_id);
 
-  minimum_value = hyscan_data_schema_key_get_minimum (schema, key_id);
-  if (minimum_value == NULL)
-    g_error ("%s: minimum value error", key_id);
+  minimum_value1 = hyscan_data_schema_key_get_minimum (schema, key_id);
+  if (minimum_value1 == NULL)
+    g_error ("%s: minimum value1 error", key_id);
 
-  maximum_value = hyscan_data_schema_key_get_maximum (schema, key_id);
-  if (maximum_value == NULL)
-    g_error ("%s: maximum value error", key_id);
+  maximum_value1 = hyscan_data_schema_key_get_maximum (schema, key_id);
+  if (maximum_value1 == NULL)
+    g_error ("%s: maximum value1 error", key_id);
 
-  value_step = hyscan_data_schema_key_get_step (schema, key_id);
-  if (value_step == NULL)
-    g_error ("%s: value step error", key_id);
+  value_step1 = hyscan_data_schema_key_get_step (schema, key_id);
+  if (value_step1 == NULL)
+    g_error ("%s: value step1 error", key_id);
 
-  check_name = g_strdup_printf ("Double %" G_GINT64_FORMAT, (gint64)g_variant_get_double (default_value));
-  check_description = g_strdup_printf ("Double %" G_GINT64_FORMAT " value", (gint64)g_variant_get_double (default_value));
+
+  if (!hyscan_data_schema_key_get_double (schema, key_id,
+                                           &minimum_value2, &maximum_value2,
+                                           &default_value2, &value_step2))
+    {
+      g_error ("%s: value2 error", key_id);
+    }
+
+  check_name = g_strdup_printf ("Double %" G_GINT64_FORMAT, (gint64)g_variant_get_double (default_value1));
+  check_description = g_strdup_printf ("Double %" G_GINT64_FORMAT " value", (gint64)g_variant_get_double (default_value1));
 
   if (g_strcmp0 (name, check_name) != 0)
     g_error ("%s: name mismatch ('%s' != '%s')", key_id, name, check_name);
@@ -343,19 +387,31 @@ check_double (HyScanDataSchema *schema,
   g_free (check_name);
   g_free (check_description);
 
-  if (g_variant_get_double (default_value) != g_variant_get_double (minimum_value))
-    g_error ("%s: minimum value error", key_id);
+  if (g_variant_get_double (default_value1) != default_value2)
+    g_error ("%s: default value error", key_id);
 
-  if (g_variant_get_double (default_value) != g_variant_get_double (maximum_value) / 1000)
-    g_error ("%s: maximum value error", key_id);
+  if ((g_variant_get_double (default_value1) != g_variant_get_double (minimum_value1)) ||
+      (g_variant_get_double (minimum_value1) != minimum_value2))
+    {
+      g_error ("%s: minimum value error", key_id);
+    }
 
-  if (g_variant_get_double (default_value) != g_variant_get_double (value_step))
-    g_error ("%s: value step error", key_id);
+  if ((g_variant_get_double (default_value1) != g_variant_get_double (maximum_value1) / 1000) ||
+      (g_variant_get_double (maximum_value1) != maximum_value2))
+    {
+      g_error ("%s: maximum value error", key_id);
+    }
 
-  g_variant_unref (default_value);
-  g_variant_unref (minimum_value);
-  g_variant_unref (maximum_value);
-  g_variant_unref (value_step);
+  if ((g_variant_get_double (default_value1) != g_variant_get_double (value_step1)) ||
+      (g_variant_get_double (value_step1) != value_step2))
+    {
+      g_error ("%s: value step error", key_id);
+    }
+
+  g_variant_unref (default_value1);
+  g_variant_unref (minimum_value1);
+  g_variant_unref (maximum_value1);
+  g_variant_unref (value_step1);
 }
 
 /* Функция проверки параметра типа STRING. */
@@ -369,7 +425,8 @@ check_string (HyScanDataSchema *schema,
   gchar *check_name;
   gchar *check_description;
 
-  GVariant *default_value;
+  GVariant *default_value1;
+  const gchar *default_value2;
 
   if (!g_str_has_prefix (key_id, "/test/"))
     g_error ("%s: name error", key_id);
@@ -385,20 +442,24 @@ check_string (HyScanDataSchema *schema,
   if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_SCHEMA)
     g_error ("%s: view error", key_id);
 
-  default_value = hyscan_data_schema_key_get_default (schema, key_id);
+  default_value1 = hyscan_data_schema_key_get_default (schema, key_id);
+  default_value2 = hyscan_data_schema_key_get_string (schema, key_id);
+
   if (g_pattern_match_simple ("*null*", key_id))
     {
-      if (default_value != NULL)
+      if ((default_value1 != NULL) || (default_value2 != NULL))
         g_error ("%s: default value error", key_id);
     }
   else
     {
-      if (default_value == NULL)
+      if ((default_value1 == NULL) || (default_value2 == NULL))
         g_error ("%s: default value error", key_id);
 
-      check_name = g_strdup_printf ("%s", g_variant_get_string (default_value, NULL));
-      check_description = g_strdup_printf ("%s value", g_variant_get_string (default_value, NULL));
+      check_name = g_strdup_printf ("%s", g_variant_get_string (default_value1, NULL));
+      check_description = g_strdup_printf ("%s value", g_variant_get_string (default_value1, NULL));
 
+      if (g_strcmp0 (g_variant_get_string (default_value1, NULL), default_value2) != 0)
+        g_error ("%s: default value mismatch", key_id);
       if (g_strcmp0 (name, check_name) != 0)
         g_error ("%s: name mismatch ('%s' != '%s')", key_id, name, check_name);
       if (g_strcmp0 (description, check_description) != 0)
@@ -407,7 +468,7 @@ check_string (HyScanDataSchema *schema,
       g_free (check_name);
       g_free (check_description);
 
-      g_variant_unref (default_value);
+      g_variant_unref (default_value1);
     }
 }
 
@@ -422,7 +483,8 @@ check_enum (HyScanDataSchema *schema,
   gchar *check_name;
   gchar *check_description;
 
-  GVariant *default_value;
+  GVariant *default_value1;
+  gint64 default_value2;
   gint64 i;
 
   if (!g_str_has_prefix (key_id, "/test/"))
@@ -439,12 +501,18 @@ check_enum (HyScanDataSchema *schema,
   if (hyscan_data_schema_key_get_view (schema, key_id) != HYSCAN_DATA_SCHEMA_VIEW_DATE)
     g_error ("%s: view error", key_id);
 
-  default_value = hyscan_data_schema_key_get_default (schema, key_id);
-  if (default_value == NULL)
+  default_value1 = hyscan_data_schema_key_get_default (schema, key_id);
+  if (default_value1 == NULL)
+    g_error ("%s: default value1 error", key_id);
+
+  if (!hyscan_data_schema_key_get_enum (schema, key_id, &default_value2))
+    g_error ("%s: value2 error", key_id);
+
+  if (g_variant_get_int64 (default_value1) != default_value2)
     g_error ("%s: default value error", key_id);
 
-  check_name = g_strdup_printf ("Enum %" G_GINT64_FORMAT, g_variant_get_int64 (default_value));
-  check_description = g_strdup_printf ("Enum %" G_GINT64_FORMAT " value", g_variant_get_int64 (default_value));
+  check_name = g_strdup_printf ("Enum %" G_GINT64_FORMAT, g_variant_get_int64 (default_value1));
+  check_description = g_strdup_printf ("Enum %" G_GINT64_FORMAT " value", g_variant_get_int64 (default_value1));
 
   if (g_strcmp0 (name, check_name) != 0)
     g_error ("%s: name mismatch ('%s' != '%s')", key_id, name, check_name);
@@ -454,7 +522,7 @@ check_enum (HyScanDataSchema *schema,
   g_free (check_name);
   g_free (check_description);
 
-  for (i = g_variant_get_int64 (default_value); i > 0; i--)
+  for (i = g_variant_get_int64 (default_value1); i > 0; i--)
     {
       GVariant *value = g_variant_new_int64 (i);
       if (!hyscan_data_schema_key_check (schema, key_id, value))
@@ -462,7 +530,7 @@ check_enum (HyScanDataSchema *schema,
       g_variant_unref (value);
     }
 
-  g_variant_unref (default_value);
+  g_variant_unref (default_value1);
 }
 
 int

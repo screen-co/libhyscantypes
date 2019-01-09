@@ -58,7 +58,6 @@ typedef struct _HyScanDataSchemaEnumValue HyScanDataSchemaEnumValue;
 typedef struct _HyScanDataSchemaNode HyScanDataSchemaNode;
 typedef struct _HyScanDataSchemaKey HyScanDataSchemaKey;
 
-
 struct _HyScanDataSchema
 {
   GObject parent_instance;
@@ -119,13 +118,17 @@ typedef enum
 
 /**
  * HyScanDataSchemaKeyAccess:
- * @HYSCAN_DATA_SCHEMA_ACCESS_READONLY: только чтение
- * @HYSCAN_DATA_SCHEMA_ACCESS_WRITEONLY: только запись
+ * @HYSCAN_DATA_SCHEMA_ACCESS_NONE: нет доступа
+ * @HYSCAN_DATA_SCHEMA_ACCESS_READ: доступ на чтение
+ * @HYSCAN_DATA_SCHEMA_ACCESS_WRITE: доступ на запись
+ * @HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN: невидимый параметр
+ * @HYSCAN_DATA_SCHEMA_ACCESS_DEFAULT: доступ по умолчанию - чтение и запись
  *
  * Атрибуты доступа к параметру.
  */
 typedef enum
 {
+  HYSCAN_DATA_SCHEMA_ACCESS_NONE   = 0,
   HYSCAN_DATA_SCHEMA_ACCESS_READ   = 1,
   HYSCAN_DATA_SCHEMA_ACCESS_WRITE  = 1 << 1,
   HYSCAN_DATA_SCHEMA_ACCESS_HIDDEN = 1 << 2,
@@ -274,6 +277,36 @@ GVariant *                     hyscan_data_schema_key_get_maximum      (HyScanDa
 HYSCAN_API
 GVariant *                     hyscan_data_schema_key_get_step         (HyScanDataSchema          *schema,
                                                                         const gchar               *key_id);
+
+HYSCAN_API
+gboolean                       hyscan_data_schema_key_get_boolean      (HyScanDataSchema          *schema,
+                                                                        const gchar               *key_id,
+                                                                        gboolean                  *default_value);
+
+HYSCAN_API
+gboolean                       hyscan_data_schema_key_get_integer      (HyScanDataSchema          *schema,
+                                                                        const gchar               *key_id,
+                                                                        gint64                    *minimum_value,
+                                                                        gint64                    *maximum_value,
+                                                                        gint64                    *default_value,
+                                                                        gint64                    *value_step);
+
+HYSCAN_API
+gboolean                       hyscan_data_schema_key_get_double       (HyScanDataSchema          *schema,
+                                                                        const gchar               *key_id,
+                                                                        gdouble                   *minimum_value,
+                                                                        gdouble                   *maximum_value,
+                                                                        gdouble                   *default_value,
+                                                                        gdouble                   *value_step);
+
+HYSCAN_API
+const gchar *                  hyscan_data_schema_key_get_string       (HyScanDataSchema          *schema,
+                                                                        const gchar               *key_id);
+
+HYSCAN_API
+gboolean                       hyscan_data_schema_key_get_enum         (HyScanDataSchema          *schema,
+                                                                        const gchar               *key_id,
+                                                                        gint64                    *default_value);
 
 HYSCAN_API
 gboolean                       hyscan_data_schema_key_check            (HyScanDataSchema          *schema,

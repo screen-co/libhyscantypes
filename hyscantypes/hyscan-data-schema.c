@@ -226,7 +226,12 @@
  * - #hyscan_data_schema_key_get_default - возвращает значение параметра по умолчанию;
  * - #hyscan_data_schema_key_get_minimum - Функция возвращает минимальное значение параметра;
  * - #hyscan_data_schema_key_get_maximum - Функция возвращает максимальное значение параметра;
- * - #hyscan_data_schema_key_get_step - возвращает рекомендуемый шаг изменения значения параметра.
+ * - #hyscan_data_schema_key_get_step - возвращает рекомендуемый шаг изменения значения параметра;
+ * - #hyscan_data_schema_key_get_boolean - возвращает значение по умолчанию для типа BOOLEAN;
+ * - #hyscan_data_schema_key_get_integer - возвращает диапазон значений для типа INTEGER;
+ * - #hyscan_data_schema_key_get_double - возвращает диапазон значений для типа DOUBLE;
+ * - #hyscan_data_schema_key_get_string - возвращает значение по умолчанию для типа STRING;
+ * - #hyscan_data_schema_key_get_enum - возвращает значение по умолчанию для типа ENUM.
  *
  * Проверить значение параметра на предмет нахождения в допустимом диапазоне
  * можно функцией #hyscan_data_schema_key_check.
@@ -802,9 +807,7 @@ hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
         if (!hyscan_data_schema_internal_enum_check (enum_values, default_value))
           {
             g_warning ("HyScanDataSchema: default value out of range in key '%s'", ikey->id);
-            hyscan_data_schema_internal_key_free (ikey);
-            ikey = NULL;
-            goto exit;
+            default_value = ((HyScanDataSchemaEnumValue*)enum_values->data)->value;
           }
 
         ikey->enum_id = g_strdup ((const gchar*)enumx);
@@ -1445,7 +1448,7 @@ hyscan_data_schema_key_get_default (HyScanDataSchema *schema,
 {
   HyScanDataSchemaInternalKey *ikey;
 
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   ikey = g_hash_table_lookup (schema->priv->keys, key_id);
   if (ikey == NULL || ikey->default_value == NULL)
@@ -1469,7 +1472,7 @@ hyscan_data_schema_key_get_minimum (HyScanDataSchema *schema,
 {
   HyScanDataSchemaInternalKey *ikey;
 
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   ikey = g_hash_table_lookup (schema->priv->keys, key_id);
   if (ikey == NULL || ikey->minimum_value == NULL)
@@ -1517,13 +1520,170 @@ hyscan_data_schema_key_get_step (HyScanDataSchema *schema,
 {
   HyScanDataSchemaInternalKey *ikey;
 
-  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   ikey = g_hash_table_lookup (schema->priv->keys, key_id);
   if (ikey == NULL || ikey->value_step == NULL)
     return NULL;
 
   return g_variant_ref (ikey->value_step);
+}
+
+/**
+ * hyscan_data_schema_key_get_boolean:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @default_value: (out) (nullable): значение параметра
+ *
+ * Функция получает значение параметра типа BOOLEAN.
+ *
+ * Return: %TRUE если значение параметра получено, иначе %FALSE.
+ */
+gboolean
+hyscan_data_schema_key_get_boolean (HyScanDataSchema *schema,
+                                    const gchar      *key_id,
+                                    gboolean         *default_value)
+{
+  HyScanDataSchemaInternalKey *ikey;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_BOOLEAN)
+    return FALSE;
+
+  (default_value != NULL) ? *default_value = g_variant_get_boolean (ikey->default_value) : 0;
+
+  return TRUE;
+}
+
+/**
+ * hyscan_data_schema_key_get_integer:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @minimum_value: (out) (nullable): минимальное значение параметра
+ * @maximum_value: (out) (nullable): максимальное значение параметра
+ * @default_value: (out) (nullable): значение параметра по умолчанию
+ * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
+ *
+ * Функция получает значение параметра типа INTEGER.
+ *
+ * Return: %TRUE если значение параметра получено, иначе %FALSE.
+ */
+gboolean
+hyscan_data_schema_key_get_integer (HyScanDataSchema *schema,
+                                    const gchar      *key_id,
+                                    gint64           *minimum_value,
+                                    gint64           *maximum_value,
+                                    gint64           *default_value,
+                                    gint64           *value_step)
+{
+  HyScanDataSchemaInternalKey *ikey;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_INTEGER)
+    return FALSE;
+
+  (minimum_value != NULL) ? *minimum_value = g_variant_get_int64 (ikey->minimum_value) : 0;
+  (maximum_value != NULL) ? *maximum_value = g_variant_get_int64 (ikey->maximum_value) : 0;
+  (default_value != NULL) ? *default_value = g_variant_get_int64 (ikey->default_value) : 0;
+  (value_step != NULL) ? *value_step = g_variant_get_int64 (ikey->value_step) : 0;
+
+  return TRUE;
+}
+
+/**
+ * hyscan_data_schema_key_get_double:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @minimum_value: (out) (nullable): минимальное значение параметра
+ * @maximum_value: (out) (nullable): максимальное значение параметра
+ * @default_value: (out) (nullable): значение параметра по умолчанию
+ * @value_step: (out) (nullable): рекомендуемый шаг изменения значения параметра
+ *
+ * Функция получает значение параметра типа DOUBLE.
+ *
+ * Return: %TRUE если значение параметра получено, иначе %FALSE.
+ */
+gboolean
+hyscan_data_schema_key_get_double (HyScanDataSchema *schema,
+                                   const gchar      *key_id,
+                                   gdouble          *minimum_value,
+                                   gdouble          *maximum_value,
+                                   gdouble          *default_value,
+                                   gdouble          *value_step)
+{
+  HyScanDataSchemaInternalKey *ikey;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_DOUBLE)
+    return FALSE;
+
+  (minimum_value != NULL) ? *minimum_value = g_variant_get_double (ikey->minimum_value) : 0;
+  (maximum_value != NULL) ? *maximum_value = g_variant_get_double (ikey->maximum_value) : 0;
+  (default_value != NULL) ? *default_value = g_variant_get_double (ikey->default_value) : 0;
+  (value_step != NULL) ? *value_step = g_variant_get_double (ikey->value_step) : 0;
+
+  return TRUE;
+}
+
+/**
+ * hyscan_data_schema_key_get_string:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ *
+ * Функция получает значение параметра типа STRING.
+ *
+ * Return: Значение параметры или NULL.
+ */
+const gchar *
+hyscan_data_schema_key_get_string (HyScanDataSchema *schema,
+                                   const gchar      *key_id)
+{
+  HyScanDataSchemaInternalKey *ikey;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_STRING)
+    return NULL;
+
+  if (ikey->default_value != NULL)
+    return g_variant_get_string (ikey->default_value, NULL);
+
+  return NULL;
+}
+
+/**
+ * hyscan_data_schema_key_get_enum:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @default_value: (out) (nullable): значение параметра
+ *
+ * Функция получает значение параметра типа ENUM.
+ *
+ * Return: %TRUE если значение параметра получено, иначе %FALSE.
+ */
+gboolean
+hyscan_data_schema_key_get_enum (HyScanDataSchema *schema,
+                                 const gchar      *key_id,
+                                 gint64           *default_value)
+{
+  HyScanDataSchemaInternalKey *ikey;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), FALSE);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL || ikey->type != HYSCAN_DATA_SCHEMA_KEY_ENUM)
+    return FALSE;
+
+  (default_value != NULL) ? *default_value = g_variant_get_int64 (ikey->default_value) : 0;
+
+  return TRUE;
 }
 
 /**
