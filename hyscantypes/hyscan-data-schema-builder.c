@@ -72,9 +72,9 @@
  * Функция #hyscan_data_schema_builder_schema_join может использоваться для добавления
  * параметров их другой схемы в создаваемую.
  *
- * Для получения XML описания схемы и её идентификатора, после определения
- * параметров, необходимо использовать функции #hyscan_data_schema_builder_get_data и
- * #hyscan_data_schema_builder_get_id.
+ * Для получения XML описания схемы и её характеристик, после определения
+ * параметров, можно использовать функции #hyscan_data_schema_builder_get_data,
+ * #hyscan_data_schema_builder_get_id и #hyscan_data_schema_builder_get_text_domain.
  *
  * Для создания схемы данных предназначена функция
  * #hyscan_data_schema_builder_get_schema.
@@ -774,14 +774,30 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
  *
  * Функция возвращает идентификатор схемы данных.
  *
- * Returns: Идентификатор схемы данных. Для удаления #g_free.
+ * Returns: Идентификатор схемы данных.
  */
-gchar *
+const gchar *
 hyscan_data_schema_builder_get_id (HyScanDataSchemaBuilder *builder)
 {
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
 
-  return g_strdup (builder->priv->schema_id);
+  return builder->priv->schema_id;
+}
+
+/**
+ * hyscan_data_schema_builder_get_text_domain:
+ * @builder: указатель на #HyScanDataSchemaBuilder
+ *
+ * Функция возвращает название домена перевода gettext.
+ *
+ * Returns: Название домена перевода gettext.
+ */
+const gchar *
+hyscan_data_schema_builder_get_text_domain (HyScanDataSchemaBuilder *builder)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
+
+  return builder->priv->gettext_domain;
 }
 
 /**
