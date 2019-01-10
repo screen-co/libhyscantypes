@@ -1,6 +1,6 @@
 /* data-schema-test.c
  *
- * Copyright 2017-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2017-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *

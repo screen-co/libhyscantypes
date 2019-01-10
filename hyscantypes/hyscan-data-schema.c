@@ -1,6 +1,6 @@
 /* hyscan-data-schema.c
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *

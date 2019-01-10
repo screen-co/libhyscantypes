@@ -1,6 +1,6 @@
 /* hyscan-data-schema-builder.c
  *
- * Copyright 2016-2018 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
+ * Copyright 2016-2019 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *
@@ -1353,10 +1353,10 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
                                         HyScanDataSchema        *schema,
                                         const gchar             *src_root)
 {
+  HyScanDataSchemaBuilderPrivate *priv;
   gchar *builder_dst_root;
   gchar *schema_src_root;
   GHashTable *nodes;
-  GHashTable *enums;
   guint src_offset;
   const gchar * const *keys;
 
@@ -1364,6 +1364,8 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
   guint i;
 
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), FALSE);
+
+  priv = builder->priv;
 
   /* Номализация путей. */
   if (dst_root[strlen (dst_root) - 1] == '/')
@@ -1381,9 +1383,6 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
 
   /* Обработанные описания узлов. */
   nodes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-
-  /* Идентификаторы списков ENUM значений. */
-  enums = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   /* Список всех параметров схемы. */
   keys = hyscan_data_schema_list_keys (schema);
@@ -1469,7 +1468,7 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
             /* Создаём список вариантов возможных значений для ENUM параметра,
              * если он еще не был создан. */
             enum_id = hyscan_data_schema_key_get_enum_id (schema, keys[i]);
-            if (!g_hash_table_contains (enums, enum_id))
+            if (!g_hash_table_contains (priv->enums, enum_id))
               {
                 GList *values, *cur_value;
 
@@ -1487,8 +1486,10 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
                       break;
                   }
                 g_list_free (values);
-
-                g_hash_table_insert (enums, g_strdup (enum_id), NULL);
+              }
+            else
+              {
+                status = TRUE;
               }
 
             if (status)
@@ -1541,7 +1542,6 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
 
 exit:
   g_hash_table_unref (nodes);
-  g_hash_table_unref (enums);
   g_free (builder_dst_root);
   g_free (schema_src_root);
 
