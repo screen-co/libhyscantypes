@@ -928,3 +928,34 @@ hyscan_channel_get_types_by_name (const gchar       *name,
 
   return FALSE;
 }
+
+/**
+ * hyscan_param_name_constructor:
+ * @buffer: буфер для имени
+ * @size: размер буфера
+ * @...: NULL терминированный список компонентов имени
+ *
+ * Функция объединяет несколько компонентов имени в единый путь,
+ * используя в качестве разделителя символ '/'.
+ */
+void
+hyscan_param_name_constructor (gchar *buffer,
+                               guint  size,
+                               ...)
+{
+  gchar *buf_ptr = buffer;
+  const gchar *name;
+  va_list names;
+  gint n;
+
+  va_start (names, size);
+
+  while ((name = va_arg (names, const gchar*)) != NULL)
+    {
+      n = g_snprintf (buf_ptr, size, "/%s", name);
+      buf_ptr += n;
+      size -= n;
+    }
+
+  va_end (names);
+}

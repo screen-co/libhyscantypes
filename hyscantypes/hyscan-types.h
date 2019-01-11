@@ -430,6 +430,11 @@ gboolean                  hyscan_channel_get_types_by_name        (const gchar  
                                                                    HyScanChannelType            *type,
                                                                    guint                        *channel);
 
+HYSCAN_API
+void                      hyscan_param_name_constructor           (gchar                        *buffer,
+                                                                   guint                         size,
+                                                                   ...);
+
 G_END_DECLS
 
 #endif /* __HYSCAN_TYPES_H__ */
