@@ -231,12 +231,13 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "bathy-port",           HYSCAN_SOURCE_BATHYMETRY_PORT },
 
   { 0, "profiler",             HYSCAN_SOURCE_PROFILER },
-  { 0, "echoprofiler",         HYSCAN_SOURCE_ECHOPROFILER },
+  { 0, "profiler-echo",        HYSCAN_SOURCE_PROFILER_ECHO },
 
   { 0, "around-starboard",     HYSCAN_SOURCE_LOOK_AROUND_STARBOARD },
   { 0, "around-port",          HYSCAN_SOURCE_LOOK_AROUND_PORT },
 
   { 0, "forward-look",         HYSCAN_SOURCE_FORWARD_LOOK },
+  { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO },
 
   { 0, "sas",                  HYSCAN_SOURCE_SAS },
 
@@ -671,10 +672,11 @@ hyscan_source_is_sonar (HyScanSourceType source)
     case HYSCAN_SOURCE_BATHYMETRY_STARBOARD:
     case HYSCAN_SOURCE_BATHYMETRY_PORT:
     case HYSCAN_SOURCE_PROFILER:
-    case HYSCAN_SOURCE_ECHOPROFILER:
+    case HYSCAN_SOURCE_PROFILER_ECHO:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
     case HYSCAN_SOURCE_FORWARD_LOOK:
+    case HYSCAN_SOURCE_FORWARD_ECHO:
       return TRUE;
 
     default:
