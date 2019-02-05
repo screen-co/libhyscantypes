@@ -48,9 +48,18 @@ main (int    argc,
 
       for (type_in = HYSCAN_CHANNEL_DATA; type_in < HYSCAN_CHANNEL_LAST; type_in++)
         {
+          if ((hyscan_source_is_sensor (source_in) || (source_in == HYSCAN_SOURCE_LOG)) &&
+              (type_in > HYSCAN_CHANNEL_DATA))
+            {
+              break;
+            }
+
           for (index_in = 1; index_in <= 16; index_in++)
             {
               const gchar *name;
+
+              if ((source_in == HYSCAN_SOURCE_LOG) && (index_in > 1))
+                break;
 
               name = hyscan_channel_get_name_by_types (source_in, type_in, index_in);
               if (name == NULL)
@@ -58,17 +67,6 @@ main (int    argc,
 
               if (!hyscan_channel_get_types_by_name (name, &source_out, &type_out, &index_out))
                 g_error ("can't parse channel name %s", name);
-
-              if (source_in == HYSCAN_SOURCE_LOG)
-                {
-                  type_out = type_in;
-                  index_out = index_in;
-                }
-
-              if (hyscan_source_is_sensor (source_in))
-                {
-                  type_out = type_in;
-                }
 
               if ((source_out != source_in) ||
                   (type_out != type_in) ||

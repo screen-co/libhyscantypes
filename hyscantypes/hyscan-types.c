@@ -240,12 +240,7 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO },
 
   { 0, "sas",                  HYSCAN_SOURCE_SAS },
-
-  { 0, "nmea",                 HYSCAN_SOURCE_NMEA_ANY },
-  { 0, "nmea-gga",             HYSCAN_SOURCE_NMEA_GGA },
-  { 0, "nmea-rmc",             HYSCAN_SOURCE_NMEA_RMC },
-  { 0, "nmea-dpt",             HYSCAN_SOURCE_NMEA_DPT },
-
+  { 0, "nmea",                 HYSCAN_SOURCE_NMEA },
   { 0, "1pps",                 HYSCAN_SOURCE_1PPS },
 
   { 0, NULL,                   HYSCAN_SOURCE_INVALID }
@@ -634,10 +629,7 @@ hyscan_source_is_sensor (HyScanSourceType source)
   switch (source)
     {
     case HYSCAN_SOURCE_SAS:
-    case HYSCAN_SOURCE_NMEA_ANY:
-    case HYSCAN_SOURCE_NMEA_GGA:
-    case HYSCAN_SOURCE_NMEA_RMC:
-    case HYSCAN_SOURCE_NMEA_DPT:
+    case HYSCAN_SOURCE_NMEA:
     case HYSCAN_SOURCE_1PPS:
       return TRUE;
 
@@ -880,12 +872,12 @@ hyscan_channel_get_types_by_name (const gchar       *name,
       if (g_str_has_prefix (cur, hyscan_source_types_info[i].name))
         {
           *source = hyscan_source_types_info[i].type;
+          *type = HYSCAN_CHANNEL_DATA;
 
           /* Проверяем что название источника данных не имеет продолжения. */
           cur += strlen (hyscan_source_types_info[i].name);
           if (*cur == 0)
             {
-              *type = HYSCAN_CHANNEL_DATA;
               *channel = 1;
               return TRUE;
             }
@@ -922,8 +914,9 @@ hyscan_channel_get_types_by_name (const gchar       *name,
               cur += 1;
             }
 
+
           *channel = g_ascii_strtoull (cur, &end, 10);
-          if ((*channel > 0) || (*end == 0))
+          if ((*channel > 0) && (*end == 0))
             return TRUE;
         }
     }
