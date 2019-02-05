@@ -234,14 +234,14 @@ hyscan_data_schema_builder_dump_enum (GOutputStream *ostream,
       if (value->description == NULL)
         {
           g_output_stream_printf (ostream, NULL, NULL, NULL,
-                                  "    <value name=\"%s\" value=\"%" G_GINT64_FORMAT "\"/>\n",
-                                  value->name, value->value);
+                                  "    <value id=\"%s\" name=\"%s\" value=\"%" G_GINT64_FORMAT "\"/>\n",
+                                  value->id, value->name, value->value);
         }
       else
         {
           g_output_stream_printf (ostream, NULL, NULL, NULL,
-                                  "    <value name=\"%s\" value=\"%" G_GINT64_FORMAT "\">\n",
-                                  value->name, value->value);
+                                  "    <value id=\"%s\" name=\"%s\" value=\"%" G_GINT64_FORMAT "\">\n",
+                                  value->id, value->name, value->value);
 
           g_output_stream_printf (ostream, NULL, NULL, NULL,
                                   "      <description>%s</description>\n",
@@ -859,6 +859,7 @@ hyscan_data_schema_builder_enum_create (HyScanDataSchemaBuilder *builder,
  * @builder: указатель на #HyScanDataSchemaBuilder
  * @enum_id: идентификатор списка
  * @value: численное значение параметра
+ * @value_id: идентификатор значения параметра
  * @name: название значения параметра
  * @description: (nullable): описание значения параметра
  *
@@ -870,6 +871,7 @@ gboolean
 hyscan_data_schema_builder_enum_value_create (HyScanDataSchemaBuilder *builder,
                                               const gchar             *enum_id,
                                               gint64                   value,
+                                              const gchar             *value_id,
                                               const gchar             *name,
                                               const gchar             *description)
 {
@@ -891,12 +893,12 @@ hyscan_data_schema_builder_enum_value_create (HyScanDataSchemaBuilder *builder,
     {
       replace_values = FALSE;
       enum_value = cur_values->data;
-      if (enum_value->value == value)
+      if (g_strcmp0 (enum_value->id, value_id) == 0)
         return FALSE;
     }
 
   /* Добавляем новое значение. */
-  enum_value = hyscan_data_schema_enum_value_new (value, name, description);
+  enum_value = hyscan_data_schema_enum_value_new (value, value_id, name, description);
   values = g_list_append (values, enum_value);
 
   /* Если до этого список значений был пустой, запоминаем новый. */
@@ -1473,12 +1475,13 @@ hyscan_data_schema_builder_schema_join (HyScanDataSchemaBuilder *builder,
                 GList *values, *cur_value;
 
                 hyscan_data_schema_builder_enum_create (builder, enum_id);
-                values = hyscan_data_schema_get_enum_values (schema, enum_id);
+                values = hyscan_data_schema_enum_get_values (schema, enum_id);
                 for (cur_value = values; cur_value != NULL; cur_value = cur_value->next)
                   {
                     HyScanDataSchemaEnumValue *value = cur_value->data;
                     status = hyscan_data_schema_builder_enum_value_create (builder, enum_id,
                                                                            value->value,
+                                                                           value->id,
                                                                            value->name,
                                                                            value->description);
 

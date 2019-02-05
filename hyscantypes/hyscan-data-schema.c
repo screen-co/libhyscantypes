@@ -56,13 +56,13 @@
  * <schemalist gettext-domain="domain">
  *
  *   <enum id="sex">
- *     <value name="unknown" value="0">
+ *     <value id="unknown" name="Unknown" value="0">
  *       <description>Unknown</description>
  *     </value>
- *     <value name="male" value="1">
+ *     <value id="male" name="Male" value="1">
  *       <description>Male</description>
  *     </value>
- *     <value name="female" value="2">
+ *     <value id="female" name="Female" value="2">
  *       <description>Female</description>
  *     </value>
  *   </enum>
@@ -189,6 +189,7 @@
  * Значения в группе определяются тэгом &lt;value&gt;. Обязательными атрибутами
  * этого тега являются:
  *
+ * - id - идентификатор значения;
  * - name - название значения (может содержать перевод);
  * - value - численный идентификатор значения.
  *
@@ -237,9 +238,13 @@
  * можно функцией #hyscan_data_schema_key_check.
  *
  * Варианты допустимых значений для параметров с типом ENUM можно получить с
- * помощью функции #hyscan_data_schema_key_get_enum_values. Предварительно
+ * помощью функции #hyscan_data_schema_key_enum_get_values. Предварительно
  * необходимо получить идентификатор списка значений для ENUM параметра с
  * помощью функции #hyscan_data_schema_key_get_enum_id.
+ *
+ * Найти вариант значения параметра для ENUM типа по его идентификатору можно с
+ * помощью функции #hyscan_data_schema_key_enum_find_by_id, а по значению
+ * параметра #hyscan_data_schema_key_enum_find_by_value.
  *
  * Значения параметров определяются с помощью GVariant. Используются следующие
  * типы GVariant:
@@ -500,15 +505,18 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
                                       const gchar *gettext_domain)
 {
   GList *values = NULL;
+  GList *link;
 
   /* Разбор всех вариантов значений. */
   for (node = node->children; node != NULL; node = node->next)
     {
+      HyScanDataSchemaEnumValue *enum_value;
       xmlNodePtr sub_node;
+      xmlChar *value_id = NULL;
       xmlChar *name = NULL;
       xmlChar *value = NULL;
       xmlChar *description = NULL;
-      HyScanDataSchemaEnumValue *enum_value;
+      gboolean dup = FALSE;
 
       /* Проверяем что XML элемент содержит описание значения. */
       if (node->type != XML_ELEMENT_NODE)
@@ -517,9 +525,10 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
         continue;
 
       /* Атрибуты name и value. */
+      value_id = xmlGetProp (node, (xmlChar *)"id");
       name = xmlGetProp (node, (xmlChar *)"name");
       value = xmlGetProp (node, (xmlChar *)"value");
-      if (name == NULL || value == NULL)
+      if (value_id == NULL || name == NULL || value == NULL)
         continue;
 
       /* Поле description, может отсутствовать. */
@@ -530,12 +539,30 @@ hyscan_data_schema_parse_enum_values (xmlNodePtr   node,
               description = xmlNodeGetContent (sub_node);
               break;
             }
-      enum_value = hyscan_data_schema_enum_value_new (g_ascii_strtoll ((const gchar *)value, NULL, 10),
-                     g_dgettext (gettext_domain, (const gchar*)name),
-                     g_dgettext (gettext_domain, (const gchar *)description));
 
-      values = g_list_prepend (values, enum_value);
+      /* Проверяем на дубликат. */
+      link = values;
+      while (link != NULL)
+        {
+          enum_value = link->data;
 
+          if (g_strcmp0 (enum_value->id, (const gchar*)value_id) == 0)
+            dup = TRUE;
+
+          link = g_list_next (link);
+        }
+
+      if (!dup)
+        {
+          enum_value = hyscan_data_schema_enum_value_new (g_ascii_strtoll ((const gchar *)value, NULL, 10),
+                         (const gchar*)value_id,
+                         g_dgettext (gettext_domain, (const gchar*)name),
+                         g_dgettext (gettext_domain, (const gchar *)description));
+
+          values = g_list_prepend (values, enum_value);
+        }
+
+      xmlFree (value_id);
       xmlFree (name);
       xmlFree (value);
       xmlFree (description);
@@ -1751,7 +1778,7 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
 }
 
 /**
- * hyscan_data_schema_get_enum_values:
+ * hyscan_data_schema_enum_get_values:
  * @schema: указатель на #HyScanDataSchema
  * @enum_id: идентификатор списка значений для ENUM параметра
  *
@@ -1762,7 +1789,7 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
  *          Список допустимых значений параметра или NULL.
  */
 GList *
-hyscan_data_schema_get_enum_values (HyScanDataSchema *schema,
+hyscan_data_schema_enum_get_values (HyScanDataSchema *schema,
                                     const gchar      *enum_id)
 {
   GList *enum_values;
@@ -1785,8 +1812,82 @@ hyscan_data_schema_get_enum_values (HyScanDataSchema *schema,
 }
 
 /**
+ * hyscan_data_schema_enum_find_by_id:
+ * @schema: указатель на #HyScanDataSchema
+ * @enum_id: идентификатор списка значений для ENUM параметра
+ * @value_id: идентификатор значения параметра
+ *
+ * Функция ищет значение для перечисляемого типа enum_id, по идентификатору
+ * значения параметра value_id.
+ *
+ * Returns: (transfer none): Значение параметра для ENUM типа или NULL.
+ */
+const HyScanDataSchemaEnumValue *
+hyscan_data_schema_enum_find_by_id (HyScanDataSchema *schema,
+                                    const gchar      *enum_id,
+                                    const gchar      *value_id)
+{
+  const HyScanDataSchemaEnumValue *value;
+  GList *values;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  values = g_hash_table_lookup (schema->priv->enums, enum_id);
+  if (values == NULL)
+    return NULL;
+
+  while (values != NULL)
+    {
+      value = values->data;
+      if (g_strcmp0 (value->id, value_id) == 0)
+        return value;
+      values = g_list_next (values);
+    }
+
+  return NULL;
+}
+
+/**
+ * hyscan_data_schema_enum_find_by_value:
+ * @schema: указатель на #HyScanDataSchema
+ * @enum_id: идентификатор списка значений для ENUM параметра
+ * @value_id: идентификатор значения параметра
+ *
+ * Функция ищет значение для перечисляемого типа enum_id, по идентификатору
+ * значения параметра value_id.
+ *
+ * Returns: (transfer none): Значение параметра для ENUM типа или NULL.
+ */
+
+const HyScanDataSchemaEnumValue *
+hyscan_data_schema_enum_find_by_value (HyScanDataSchema *schema,
+                                       const gchar      *enum_id,
+                                       gint64            enum_value)
+{
+  const HyScanDataSchemaEnumValue *value;
+  GList *values;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  values = g_hash_table_lookup (schema->priv->enums, enum_id);
+  if (values == NULL)
+    return NULL;
+
+  while (values != NULL)
+    {
+      value = values->data;
+      if (value->value == enum_value)
+        return value;
+      values = g_list_next (values);
+    }
+
+  return NULL;
+}
+
+/**
  * hyscan_data_schema_enum_value_new:
  * @value: численное значение параметра
+ * @id: идентификатор значения параметра
  * @name: название значения параметра
  * @description: описание значения параметра
  *
@@ -1797,12 +1898,14 @@ hyscan_data_schema_get_enum_values (HyScanDataSchema *schema,
  */
 HyScanDataSchemaEnumValue *
 hyscan_data_schema_enum_value_new (gint64       value,
+                                   const gchar *id,
                                    const gchar *name,
                                    const gchar *description)
 {
   HyScanDataSchemaEnumValue new_value;
 
   new_value.value = value;
+  new_value.id = id;
   new_value.name = name;
   new_value.description = description;
 
@@ -1825,6 +1928,7 @@ hyscan_data_schema_enum_value_copy (HyScanDataSchemaEnumValue *value)
 
   new_value = g_slice_new (HyScanDataSchemaEnumValue);
   new_value->value = value->value;
+  new_value->id = g_strdup (value->id);
   new_value->name = g_strdup (value->name);
   new_value->description = g_strdup (value->description);
 
@@ -1843,6 +1947,7 @@ hyscan_data_schema_enum_value_free (HyScanDataSchemaEnumValue *value)
   if (value == NULL)
     return;
 
+  g_free ((gchar*)value->id);
   g_free ((gchar*)value->name);
   g_free ((gchar*)value->description);
 

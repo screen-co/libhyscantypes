@@ -65,29 +65,29 @@ static void
 test_schema_create_enums_values (HyScanDataSchemaBuilder *builder)
 {
   hyscan_data_schema_builder_enum_create (builder, "enum1");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum1", 1, "Value1", "Value 1");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum1", 1, "value-1", "Value1", "Value 1");
 
   hyscan_data_schema_builder_enum_create (builder, "enum2");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum2", 1, "Value1", "Value 1");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum2", 2, "Value2", "Value 2");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum2", 1, "value-1", "Value1", "Value 1");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum2", 2, "value-2", "Value2", "Value 2");
 
   hyscan_data_schema_builder_enum_create (builder, "enum3");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 1, "Value1", "Value 1");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 2, "Value2", "Value 2");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 3, "Value3", "Value 3");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 1, "value-1", "Value1", "Value 1");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 2, "value-2", "Value2", "Value 2");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum3", 3, "value-3", "Value3", "Value 3");
 
   hyscan_data_schema_builder_enum_create (builder, "enum4");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 1, "Value1", "Value 1");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 2, "Value2", "Value 2");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 3, "Value3", "Value 3");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 4, "Value4", "Value 4");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 1, "value-1", "Value1", "Value 1");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 2, "value-2", "Value2", "Value 2");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 3, "value-3", "Value3", "Value 3");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum4", 4, "value-4", "Value4", "Value 4");
 
   hyscan_data_schema_builder_enum_create (builder, "enum5");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 1, "Value1", "Value 1");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 2, "Value2", "Value 2");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 3, "Value3", "Value 3");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 4, "Value4", "Value 4");
-  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 5, "Value5", "Value 5");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 1, "value-1", "Value1", "Value 1");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 2, "value-2", "Value2", "Value 2");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 3, "value-3", "Value3", "Value 3");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 4, "value-4", "Value4", "Value 4");
+  hyscan_data_schema_builder_enum_value_create (builder, "enum5", 5, "value-5", "Value5", "Value 5");
 }
 
 static void

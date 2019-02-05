@@ -97,6 +97,7 @@ HYSCAN_API
 gboolean                  hyscan_data_schema_builder_enum_value_create   (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *enum_id,
                                                                           gint64                    value,
+                                                                          const gchar              *value_id,
                                                                           const gchar              *name,
                                                                           const gchar              *description);
 

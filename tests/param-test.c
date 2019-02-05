@@ -516,7 +516,7 @@ check_enum (HyScanParam      *param,
     g_error ("%s: can't get default value", name);
 
   enum_id = hyscan_data_schema_key_get_enum_id (schema, name);
-  values_list = values = hyscan_data_schema_get_enum_values (schema, enum_id);
+  values_list = values = hyscan_data_schema_enum_get_values (schema, enum_id);
   if (values == NULL)
     g_error ("%s: can't get enum values", name);
 

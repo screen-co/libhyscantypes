@@ -479,6 +479,8 @@ check_enum (HyScanDataSchema *schema,
 {
   const gchar *name;
   const gchar *description;
+  const gchar *enum_id;
+  GList *enum_values;
 
   gchar *check_name;
   gchar *check_description;
@@ -511,6 +513,16 @@ check_enum (HyScanDataSchema *schema,
   if (g_variant_get_int64 (default_value1) != default_value2)
     g_error ("%s: default value error", key_id);
 
+  enum_id = hyscan_data_schema_key_get_enum_id (schema, key_id);
+  if (enum_id == NULL)
+    g_error ("%s: couldn't get enum id", key_id);
+
+  enum_values = hyscan_data_schema_enum_get_values (schema, enum_id);
+  if (enum_values == NULL)
+    g_error ("%s: couldn't get enum values", key_id);
+
+  g_clear_pointer (&enum_values, g_list_free);
+
   check_name = g_strdup_printf ("Enum %" G_GINT64_FORMAT, g_variant_get_int64 (default_value1));
   check_description = g_strdup_printf ("Enum %" G_GINT64_FORMAT " value", g_variant_get_int64 (default_value1));
 
@@ -524,7 +536,20 @@ check_enum (HyScanDataSchema *schema,
 
   for (i = g_variant_get_int64 (default_value1); i > 0; i--)
     {
-      GVariant *value = g_variant_new_int64 (i);
+      gchar *value_id = g_strdup_printf ("value-%d", (gint)i);
+      const HyScanDataSchemaEnumValue *enum_value;
+      GVariant *value;
+
+      enum_value = hyscan_data_schema_enum_find_by_id (schema, enum_id, value_id);
+      if (enum_value == NULL || enum_value->value != i)
+        g_error ("%s: enum by id value error", key_id);
+      g_free (value_id);
+
+      enum_value = hyscan_data_schema_enum_find_by_value (schema, enum_id, i);
+      if (enum_value == NULL || enum_value->value != i)
+        g_error ("%s: enum by value error", key_id);
+
+      value = g_variant_new_int64 (i);
       if (!hyscan_data_schema_key_check (schema, key_id, value))
         g_error ("%s: range error", key_id);
       g_variant_unref (value);

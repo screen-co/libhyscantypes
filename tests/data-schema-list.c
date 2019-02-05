@@ -216,7 +216,7 @@ void print_node (HyScanDataSchema           *schema,
             GVariant *default_value;
 
             enum_id = hyscan_data_schema_key_get_enum_id (schema, key->id);
-            values = hyscan_data_schema_get_enum_values (schema, enum_id);
+            values = hyscan_data_schema_enum_get_values (schema, enum_id);
             default_value = hyscan_data_schema_key_get_default (schema, key->id);
 
             for (enum_list = values; enum_list != NULL; enum_list = enum_list->next)
@@ -238,9 +238,9 @@ void print_node (HyScanDataSchema           *schema,
                   printf ("     ");
 
                 if (enum_value->description != NULL)
-                  printf ("%s (%s)\n", enum_value->name, enum_value->description);
+                  printf ("%s: %s (%s)\n", enum_value->id, enum_value->name, enum_value->description);
                 else
-                  printf ("%s\n", enum_value->name);
+                  printf ("%s: %s\n", enum_value->id, enum_value->name);
               }
 
             g_variant_unref (default_value);
