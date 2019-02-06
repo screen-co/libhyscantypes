@@ -42,7 +42,7 @@ G_BEGIN_DECLS
 
 typedef struct _HyScanComplexFloat HyScanComplexFloat;
 typedef struct _HyScanSoundVelocity HyScanSoundVelocity;
-typedef struct _HyScanAntennaPosition HyScanAntennaPosition;
+typedef struct _HyScanAntennaOffset HyScanAntennaOffset;
 typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
 
 /**
@@ -278,7 +278,7 @@ struct _HyScanSoundVelocity
 };
 
 /**
- * HyScanAntennaPosition:
+ * HyScanAntennaOffset:
  * @x: смещение антенны по оси X, м
  * @y: смещение антенны по оси Y, м
  * @z: смещение антенны по оси Z, м
@@ -299,7 +299,7 @@ struct _HyScanSoundVelocity
  * Положительные значения указываются для углов отсчитываемых против часовой
  * стрелки.
  */
-struct _HyScanAntennaPosition
+struct _HyScanAntennaOffset
 {
   gdouble                 x;
   gdouble                 y;
@@ -318,8 +318,8 @@ struct _HyScanAntennaPosition
  * @signal_bandwidth: полоса излучаемого сигнала, Гц
  * @antenna_voffset: смещение антенны в "решётке" в вертикальной плоскости, м
  * @antenna_hoffset: смещение антенны в "решётке" в горизонтальной плоскости, м
- * @antenna_vpattern: диаграмма направленности в вертикальной плоскости, рад
- * @antenna_hpattern: диаграмма направленности в горизонтальной плоскости, рад
+ * @antenna_vaperture: апертура антенны в вертикальной плоскости, м
+ * @antenna_haperture: апертура антенны в горизонтальной плоскости, м
  * @antenna_frequency: центральная частота антенны, Гц
  * @antenna_bandwidth: полоса пропускания антенны, Гц
  * @adc_vref: опорное напряжение АЦП, В
@@ -337,8 +337,8 @@ struct _HyScanAcousticDataInfo
 
   gdouble                 antenna_voffset;
   gdouble                 antenna_hoffset;
-  gdouble                 antenna_vpattern;
-  gdouble                 antenna_hpattern;
+  gdouble                 antenna_vaperture;
+  gdouble                 antenna_haperture;
   gdouble                 antenna_frequency;
   gdouble                 antenna_bandwidth;
 
@@ -350,7 +350,7 @@ HYSCAN_API
 GType                     hyscan_sound_velocity_get_type          (void);
 
 HYSCAN_API
-GType                     hyscan_antenna_position_get_type        (void);
+GType                     hyscan_antenna_offset_get_type          (void);
 
 HYSCAN_API
 GType                     hyscan_acoustic_data_info_get_type      (void);
@@ -362,10 +362,10 @@ HYSCAN_API
 void                      hyscan_sound_velocity_free              (HyScanSoundVelocity          *svp);
 
 HYSCAN_API
-HyScanAntennaPosition *   hyscan_antenna_position_copy            (const HyScanAntennaPosition  *position);
+HyScanAntennaOffset *     hyscan_antenna_offset_copy              (const HyScanAntennaOffset    *offset);
 
 HYSCAN_API
-void                      hyscan_antenna_position_free            (HyScanAntennaPosition        *position);
+void                      hyscan_antenna_offset_free              (HyScanAntennaOffset          *offset);
 
 HYSCAN_API
 HyScanAcousticDataInfo *  hyscan_acoustic_data_info_copy          (const HyScanAcousticDataInfo *info);

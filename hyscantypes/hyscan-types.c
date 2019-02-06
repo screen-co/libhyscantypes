@@ -88,7 +88,7 @@
  * Совокупность источника данных и его типа образует логический канал данных в
  * системе хранения. Данные, записанные в каналы системы хранения, имеют
  * дополнительную метаинформацию. Для её представления используются структуры:
- * #HyScanSoundVelocity, #HyScanAntennaPosition, #HyScanRawDataInfo и
+ * #HyScanSoundVelocity, #HyScanAntennaOffset, #HyScanRawDataInfo и
  * #HyScanAcousticDataInfo.
  *
  * Для формирования названия канала данных можно использовать функцию
@@ -355,34 +355,34 @@ hyscan_sound_velocity_free (HyScanSoundVelocity *svp)
 }
 
 /**
- * hyscan_antenna_position_copy:
- * @position: структура #HyScanAntennaPosition для копирования
+ * hyscan_antenna_offset_copy:
+ * @offset: структура #HyScanAntennaOffset для копирования
  *
- * Функция создаёт копию структуры #HyScanAntennaPosition.
+ * Функция создаёт копию структуры #HyScanAntennaOffset.
  *
- * Returns: (transfer full): Новая структура #HyScanAntennaPosition.
- * Для удаления #hyscan_antenna_position_free.
+ * Returns: (transfer full): Новая структура #HyScanAntennaOffset.
+ * Для удаления #hyscan_antenna_offset_free.
  */
-HyScanAntennaPosition *
-hyscan_antenna_position_copy (const HyScanAntennaPosition *position)
+HyScanAntennaOffset *
+hyscan_antenna_offset_copy (const HyScanAntennaOffset *offset)
 {
-  if (position != NULL)
-    return g_slice_dup (HyScanAntennaPosition, position);
+  if (offset != NULL)
+    return g_slice_dup (HyScanAntennaOffset, offset);
 
   return NULL;
 }
 
 /**
- * hyscan_antenna_position_free:
- * @position: структура #HyScanAntennaPosition для удаления
+ * hyscan_antenna_offset_free:
+ * @offset: структура #HyScanAntennaOffset для удаления
  *
- * Функция удаляет структуру #HyScanAntennaPosition.
+ * Функция удаляет структуру #HyScanAntennaOffset.
  */
 void
-hyscan_antenna_position_free (HyScanAntennaPosition *position)
+hyscan_antenna_offset_free (HyScanAntennaOffset *offset)
 {
-  if (position != NULL)
-    g_slice_free (HyScanAntennaPosition, position);
+  if (offset != NULL)
+    g_slice_free (HyScanAntennaOffset, offset);
 }
 
 /**
@@ -418,7 +418,7 @@ hyscan_acoustic_data_info_free (HyScanAcousticDataInfo *info)
 
 G_DEFINE_BOXED_TYPE (HyScanSoundVelocity, hyscan_sound_velocity, hyscan_sound_velocity_copy, hyscan_sound_velocity_free)
 
-G_DEFINE_BOXED_TYPE (HyScanAntennaPosition, hyscan_antenna_position, hyscan_antenna_position_copy, hyscan_antenna_position_free)
+G_DEFINE_BOXED_TYPE (HyScanAntennaOffset, hyscan_antenna_offset, hyscan_antenna_offset_copy, hyscan_antenna_offset_free)
 
 G_DEFINE_BOXED_TYPE (HyScanAcousticDataInfo, hyscan_acoustic_data_info, hyscan_acoustic_data_info_copy, hyscan_acoustic_data_info_free)
 
