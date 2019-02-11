@@ -665,7 +665,7 @@ hyscan_data_schema_builder_new_with_gettext (const gchar *schema_id,
  *
  * Функция создаёт схему данных.
  *
- * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
+ * Returns: (transfer full): #HyScanDataSchema. Для удаления #g_object_unref.
  */
 HyScanDataSchema *
 hyscan_data_schema_builder_get_schema (HyScanDataSchemaBuilder *builder)

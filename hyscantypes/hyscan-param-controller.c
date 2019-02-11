@@ -247,7 +247,6 @@ hyscan_param_controller_free_exec (gpointer data)
 
 /**
  * hyscan_param_controller_new:
- * @schema: схема параметров
  * @lock: блокировка доступа к параметрам
  *
  * Функция создаёт новый объект #HyScanParamController.
@@ -255,7 +254,7 @@ hyscan_param_controller_free_exec (gpointer data)
  * Returns: #HyScanParamController. Для удаления #g_object_unref.
  */
 HyScanParamController *
-hyscan_param_controller_new (GMutex           *lock)
+hyscan_param_controller_new (GMutex *lock)
 {
   return g_object_new (HYSCAN_TYPE_PARAM_CONTROLLER,
                        "lock", lock,

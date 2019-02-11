@@ -325,7 +325,7 @@ const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_id      (HySca
 
 const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_value   (HyScanDataSchema          *schema,
                                                                            const gchar               *enum_id,
-                                                                           gint64                     value);
+                                                                           gint64                     enum_value);
 
 HYSCAN_API
 HyScanDataSchemaEnumValue *       hyscan_data_schema_enum_value_new       (gint64                     value,

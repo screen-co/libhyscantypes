@@ -518,7 +518,7 @@ hyscan_discretization_get_name_by_type (HyScanDiscretizationType type)
 }
 
 /**
- * hyscan_data_get_type_by_name:
+ * hyscan_discretization_get_type_by_name:
  * @name: название типа дискретизации
  *
  * Функция преобразовывает строку с названием типа дискретизации в

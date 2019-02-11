@@ -1851,7 +1851,7 @@ hyscan_data_schema_enum_find_by_id (HyScanDataSchema *schema,
  * hyscan_data_schema_enum_find_by_value:
  * @schema: указатель на #HyScanDataSchema
  * @enum_id: идентификатор списка значений для ENUM параметра
- * @value_id: идентификатор значения параметра
+ * @enum_value: идентификатор значения параметра
  *
  * Функция ищет значение для перечисляемого типа enum_id, по идентификатору
  * значения параметра value_id.

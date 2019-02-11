@@ -162,7 +162,7 @@ hyscan_param_list_new (void)
 /**
  * hyscan_param_list_update:
  * @list: указатель на #HyScanParamList приемник
- * @list: указатель на #HyScanParamList источник
+ * @orig: указатель на #HyScanParamList источник
  *
  * Функция копирует параметры из одного #HyScanParamList в другой. Если
  * какие-то параметры присутствуют в обеих списках, они будут перезаписаны.
