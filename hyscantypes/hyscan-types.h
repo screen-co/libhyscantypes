@@ -142,10 +142,13 @@ typedef enum
  * @HYSCAN_SOURCE_INVALID: недопустимый тип, ошибка
  * @HYSCAN_SOURCE_LOG: информационные сообщения
  * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD: боковой обзор, правый борт
- * @HYSCAN_SOURCE_SIDE_SCAN_PORT: боковой обзор, левый борт
+ * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW: боковой обзор, правый борт, низкое разрешение
  * @HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI: боковой обзор, правый борт, высокое разрешение
+ * @HYSCAN_SOURCE_SIDE_SCAN_PORT: боковой обзор, левый борт
+ * @HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW: боковой обзор, левый борт, низкое разрешение
  * @HYSCAN_SOURCE_SIDE_SCAN_PORT_HI: боковой обзор, левый борт, высокое разрешение
  * @HYSCAN_SOURCE_ECHOSOUNDER: эхолот
+ * @HYSCAN_SOURCE_ECHOSOUNDER_LOW: эхолот, низкое разрешение
  * @HYSCAN_SOURCE_ECHOSOUNDER_HI: эхолот, высокое разрешение
  * @HYSCAN_SOURCE_BATHYMETRY_STARBOARD: батиметрия, правый борт
  * @HYSCAN_SOURCE_BATHYMETRY_PORT: батиметрия, левый борт
@@ -169,10 +172,13 @@ typedef enum
   HYSCAN_SOURCE_LOG,
 
   HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,
-  HYSCAN_SOURCE_SIDE_SCAN_PORT,
+  HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW,
   HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI,
+  HYSCAN_SOURCE_SIDE_SCAN_PORT,
+  HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW,
   HYSCAN_SOURCE_SIDE_SCAN_PORT_HI,
   HYSCAN_SOURCE_ECHOSOUNDER,
+  HYSCAN_SOURCE_ECHOSOUNDER_LOW,
   HYSCAN_SOURCE_ECHOSOUNDER_HI,
   HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
   HYSCAN_SOURCE_BATHYMETRY_PORT,

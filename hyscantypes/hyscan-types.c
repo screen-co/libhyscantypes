@@ -219,12 +219,15 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "log",                  HYSCAN_SOURCE_LOG },
 
   { 0, "ss-starboard",         HYSCAN_SOURCE_SIDE_SCAN_STARBOARD },
+  { 0, "ss-starboard-low",     HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW },
   { 0, "ss-starboard-hi",      HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI },
 
   { 0, "ss-port",              HYSCAN_SOURCE_SIDE_SCAN_PORT },
+  { 0, "ss-port-low",          HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW },
   { 0, "ss-port-hi",           HYSCAN_SOURCE_SIDE_SCAN_PORT_HI },
 
   { 0, "echosounder",          HYSCAN_SOURCE_ECHOSOUNDER },
+  { 0, "echosounder-low",      HYSCAN_SOURCE_ECHOSOUNDER_LOW },
   { 0, "echosounder-hi",       HYSCAN_SOURCE_ECHOSOUNDER_HI },
 
   { 0, "bathy-starboard",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD },
@@ -656,10 +659,13 @@ hyscan_source_is_sonar (HyScanSourceType source)
   switch (source)
     {
     case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD:
-    case HYSCAN_SOURCE_SIDE_SCAN_PORT:
+    case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW:
     case HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI:
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT:
+    case HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW:
     case HYSCAN_SOURCE_SIDE_SCAN_PORT_HI:
     case HYSCAN_SOURCE_ECHOSOUNDER:
+    case HYSCAN_SOURCE_ECHOSOUNDER_LOW:
     case HYSCAN_SOURCE_ECHOSOUNDER_HI:
     case HYSCAN_SOURCE_BATHYMETRY_STARBOARD:
     case HYSCAN_SOURCE_BATHYMETRY_PORT:
