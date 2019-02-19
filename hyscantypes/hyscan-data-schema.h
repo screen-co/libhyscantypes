@@ -319,10 +319,12 @@ HYSCAN_API
 GList *                           hyscan_data_schema_enum_get_values      (HyScanDataSchema          *schema,
                                                                            const gchar               *enum_id);
 
+HYSCAN_API
 const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_id      (HyScanDataSchema          *schema,
                                                                            const gchar               *enum_id,
                                                                            const gchar               *value_id);
 
+HYSCAN_API
 const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_value   (HyScanDataSchema          *schema,
                                                                            const gchar               *enum_id,
                                                                            gint64                     enum_value);
