@@ -237,6 +237,9 @@
  * Проверить значение параметра на предмет нахождения в допустимом диапазоне
  * можно функцией #hyscan_data_schema_key_check.
  *
+ * Функция #hyscan_data_schema_key_print_value может использоваться для
+ * фомирования строки со значением параметра в соответствии со схемой.
+ *
  * Варианты допустимых значений для параметров с типом ENUM можно получить с
  * помощью функции #hyscan_data_schema_key_enum_get_values. Предварительно
  * необходимо получить идентификатор списка значений для ENUM параметра с
@@ -1122,7 +1125,8 @@ hyscan_data_schema_new_from_string (const gchar *schema_data,
  * @schema_path: путь к XML файлу с описанием схемы
  * @schema_id: идентификатор загружаемой схемы
  *
- * Функция создаёт новый объект #HyScanDataSchema из описания схемы в XML файле.
+ * Функция создаёт новый объект #HyScanDataSchema из описания схемы
+ * в XML файле.
  *
  * Returns: #HyScanDataSchema. Для удаления #g_object_unref.
  */
@@ -1181,7 +1185,8 @@ hyscan_data_schema_new_from_resource (const gchar *schema_resource,
  * hyscan_data_schema_get_data:
  * @schema: указатель на #HyScanDataSchema
  *
- * Функция возвращает описание загруженной схемы данных в виде строки с XML данными.
+ * Функция возвращает описание загруженной схемы данных в виде строки
+ * с XML данными.
  *
  * Returns: (transfer none): Описание загруженной схемы данных.
  */
@@ -1441,7 +1446,8 @@ hyscan_data_schema_key_get_access (HyScanDataSchema *schema,
  * @schema: указатель на #HyScanDataSchema
  * @key_id: идентификатор параметра
  *
- * Функция возвращает идентификатор списка допустимых значений для параметра с типом ENUM.
+ * Функция возвращает идентификатор списка допустимых значений для параметра
+ * с типом ENUM.
  *
  * Returns: Идентификатор списка значений или NULL.
  */
@@ -1775,6 +1781,138 @@ hyscan_data_schema_key_check (HyScanDataSchema *schema,
     }
 
   return TRUE;
+}
+
+/**
+ * hyscan_data_schema_key_print_value:
+ * @schema: указатель на #HyScanDataSchema
+ * @key_id: идентификатор параметра
+ * @value: значение параметра
+ *
+ * Функция формирует строку со значением параметра в формате определённом
+ * схемой.
+ *
+ * Returns: (transfer full) (nullable): Значение параметра в виде строки
+ * или NULL. Для удаления g_free.
+ */
+gchar *
+hyscan_data_schema_key_print_value (HyScanDataSchema *schema,
+                                    const gchar      *key_id,
+                                    GVariant         *value)
+{
+  HyScanDataSchemaInternalKey *ikey;
+  GString *str_value;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
+
+  ikey = g_hash_table_lookup (schema->priv->keys, key_id);
+  if (ikey == NULL)
+    return NULL;
+
+  if (value == NULL)
+    return NULL;
+
+  if (g_variant_classify (value) != ikey->value_type)
+    return NULL;
+
+  str_value = g_string_new (NULL);
+  switch (ikey->type)
+    {
+    case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+      {
+        gboolean bvalue = g_variant_get_boolean (value);
+
+        g_string_printf (str_value, "%s", bvalue ? "V" : "O");
+
+        break;
+      }
+
+    case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+      {
+        gint64 ivalue = g_variant_get_int64 (value);
+
+        if ((ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE) ||
+            (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_TIME) ||
+            (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME))
+          {
+            GDateTime *dt = g_date_time_new_from_unix_utc (ivalue);
+
+            if ((ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE) ||
+                (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME))
+              {
+                g_string_append_printf (str_value, "%u-%u-%u",
+                                        g_date_time_get_year (dt),
+                                        g_date_time_get_month (dt),
+                                        g_date_time_get_day_of_month (dt));
+              }
+
+            if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME)
+              g_string_append_printf (str_value, " ");
+
+            if ((ikey->view == HYSCAN_DATA_SCHEMA_VIEW_TIME) ||
+                (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME))
+              {
+                g_string_append_printf (str_value, "%u:%u:%u",
+                                        g_date_time_get_hour (dt),
+                                        g_date_time_get_minute (dt),
+                                        g_date_time_get_second (dt));
+              }
+
+            g_date_time_unref (dt);
+          }
+        else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_BIN)
+          {
+            guint i;
+            g_string_printf (str_value, "0b");
+            for (i = 0; i < 64; i++)
+              g_string_append_printf (str_value, "%u", (gint)((ivalue >> i) & 1));
+          }
+        else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_HEX)
+          {
+            g_string_printf (str_value, "0x%"G_GINT64_MODIFIER"X", ivalue);
+          }
+        else
+          {
+            g_string_printf (str_value, "%"G_GINT64_MODIFIER"i", ivalue);
+          }
+        break;
+      }
+
+    case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+      {
+        gdouble dvalue = g_variant_get_double (value);
+
+        g_string_printf (str_value, "%f", dvalue);
+
+        break;
+      }
+
+    case HYSCAN_DATA_SCHEMA_KEY_STRING:
+      {
+        const gchar *svalue = g_variant_get_string (value, NULL);
+
+        g_string_printf (str_value, "%s", svalue);
+
+        break;
+      }
+
+    case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+      {
+        const HyScanDataSchemaEnumValue *evalue;
+
+        evalue = hyscan_data_schema_enum_find_by_value (schema, ikey->enum_id,
+                                                        g_variant_get_int64 (value));
+        if (evalue != NULL)
+          g_string_printf (str_value, "%s", evalue->name);
+
+        break;
+      }
+
+    default:
+      break;
+    }
+
+  return g_string_free (str_value, FALSE);
 }
 
 /**

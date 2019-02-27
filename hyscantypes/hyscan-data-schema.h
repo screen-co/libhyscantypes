@@ -316,6 +316,11 @@ gboolean                          hyscan_data_schema_key_check            (HySca
                                                                            GVariant                  *value);
 
 HYSCAN_API
+gchar *                           hyscan_data_schema_key_print_value      (HyScanDataSchema          *schema,
+                                                                           const gchar               *key_id,
+                                                                           GVariant                  *value);
+
+HYSCAN_API
 GList *                           hyscan_data_schema_enum_get_values      (HyScanDataSchema          *schema,
                                                                            const gchar               *enum_id);
 
