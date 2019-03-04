@@ -70,6 +70,17 @@ gboolean                       hyscan_data_schema_internal_validate_name       (
 /* Функция проверяет идентификатор на предмет допустимости. */
 gboolean                       hyscan_data_schema_internal_validate_id         (const gchar                 *id);
 
+/* Функция нормализует путь к узлу или параметру. */
+gchar *                        hyscan_data_schema_internal_normalize_id        (const gchar                 *id);
+
+/* Функция определяет является ли путь dst_path частью пути src_path. */
+gboolean                       hyscan_data_schema_internal_is_path             (const gchar                 *src_path,
+                                                                                const gchar                 *dst_path);
+
+/* Функция объёдиняет два пути в один. */
+gchar *                        hyscan_data_schema_internal_make_path           (const gchar                 *path1,
+                                                                                const gchar                 *path2);
+
 /* Функция проверяет значение перечисляемого типа на допустимость. */
 gboolean                       hyscan_data_schema_internal_enum_check          (GList                       *values,
                                                                                 gint64                       value);

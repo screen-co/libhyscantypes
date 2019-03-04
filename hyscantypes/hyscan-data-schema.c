@@ -400,7 +400,7 @@ hyscan_data_schema_object_constructed (GObject *object)
                                        NULL,
                                        NULL);
 
-  priv->nodes_list = hyscan_data_schema_node_new ("", NULL, NULL, NULL, NULL);
+  priv->nodes_list = hyscan_data_schema_node_new ("/", NULL, NULL, NULL, NULL);
   g_hash_table_insert (priv->nodes, "/", priv->nodes_list);
 
   /* Таблица enum типов и их значений. */
@@ -470,7 +470,7 @@ hyscan_data_schema_object_constructed (GObject *object)
     }
 
   /* Обработка описания схемы. */
-  status = hyscan_data_schema_parse_schema (priv, doc, "/", priv->schema_id, "/", TRUE);
+  status = hyscan_data_schema_parse_schema (priv, doc, "", priv->schema_id, "", TRUE);
   if (!status)
     {
       g_hash_table_remove_all (priv->keys);
@@ -725,7 +725,7 @@ hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
         }
 
   /* Описание параметра. */
-  key_id= g_strdup_printf ("%s%s", path, (const gchar *)idx);
+  key_id= hyscan_data_schema_internal_make_path (path, (const gchar *)idx);
   ikey = hyscan_data_schema_internal_key_new (key_id,
            g_dgettext (priv->gettext_domain, (const gchar *)namex),
            g_dgettext (priv->gettext_domain, (const gchar *)descriptionx));
@@ -932,7 +932,6 @@ hyscan_data_schema_parse_node (HyScanDataSchemaPrivate *priv,
           xmlChar *name = NULL;
           xmlChar *description = NULL;
 
-          gchar *key_path;
           gchar *node_path;
 
           /* Идентификатор узла. */
@@ -956,7 +955,7 @@ hyscan_data_schema_parse_node (HyScanDataSchemaPrivate *priv,
             {
               gchar *key_path;
 
-              key_path = g_strdup_printf ("%s%s/", path, id);
+              key_path = hyscan_data_schema_internal_make_path (path, (const gchar*)id);
               status = hyscan_data_schema_parse_schema (priv, node->doc, schema_path,
                                                         (const gchar*)schema, key_path, FALSE);
               g_free (key_path);
@@ -974,8 +973,7 @@ hyscan_data_schema_parse_node (HyScanDataSchemaPrivate *priv,
                   break;
                 }
 
-          node_path = g_strdup_printf ("%s%s", path, id);
-          key_path = g_strdup_printf ("%s%s/", path, id);
+          node_path = hyscan_data_schema_internal_make_path (path, (const gchar*)id);
 
           if ((name != NULL) || (description != NULL))
             {
@@ -986,10 +984,9 @@ hyscan_data_schema_parse_node (HyScanDataSchemaPrivate *priv,
               g_hash_table_insert (priv->nodes, (gchar*)new_node->path, new_node);
             }
 
-          status = hyscan_data_schema_parse_node (priv, node->children, schema_path, key_path);
+          status = hyscan_data_schema_parse_node (priv, node->children, schema_path, node_path);
 
           g_free (node_path);
-          g_free (key_path);
 
           xmlFree (description);
           xmlFree (name);
@@ -1083,7 +1080,7 @@ hyscan_data_schema_parse_schema (HyScanDataSchemaPrivate *priv,
                 }
         }
 
-      cpath = g_strdup_printf ("%s%s/", schema_path, (gchar*)schema);
+      cpath = hyscan_data_schema_internal_make_path (schema_path, (gchar*)schema);
       status = hyscan_data_schema_parse_node (priv, node->children, cpath, path);
       if (!status)
         {
@@ -1243,7 +1240,7 @@ hyscan_data_schema_list_keys (HyScanDataSchema *schema)
  *
  * Функция возвращает иеархический список узлов и параметров определённых в
  * схеме. Этот список принадлежит классу #HyScanDataSchema и не должен
- * именяться пользователем.
+ * именяться пользователем. Корневой узел схемы имеет путь - '/'.
  *
  * Returns: (transfer none): Список параметров в схеме или NULL.
  */

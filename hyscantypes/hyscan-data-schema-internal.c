@@ -58,7 +58,7 @@ hyscan_data_schema_internal_validate_name (const gchar *name)
         return FALSE;
     }
 
-  return TRUE;
+  return (i > 0) ? TRUE : FALSE;
 }
 
 /* Функция проверяет идентификатор на предмет допустимости. */
@@ -67,6 +67,9 @@ hyscan_data_schema_internal_validate_id (const gchar *id)
 {
   gchar **pathv;
   guint i;
+
+  if (g_strcmp0 (id, "/") == 0)
+    return TRUE;
 
   pathv = g_strsplit (id, "/", -1);
   if (g_strv_length (pathv) < 2)
@@ -81,6 +84,69 @@ hyscan_data_schema_internal_validate_id (const gchar *id)
 
   g_strfreev (pathv);
   return TRUE;
+}
+
+/* Функция нормализует путь к узлу или параметру. */
+gchar *
+hyscan_data_schema_internal_normalize_id (const gchar *id)
+{
+  gchar *idn;
+  gsize len;
+
+  /* Путь должен начинаться с символа '/'. */
+  if (*id != '/')
+    return NULL;
+
+  /* Специальный случай корневого узла. */
+  if (g_strcmp0 (id, "/") == 0)
+    return g_strdup ("/");
+
+  /* Путь не может быть короче двух символов. */
+  len = strlen (id);
+  if (len < 2)
+    return NULL;
+
+  /* В конце не должно быть символа '/'. */
+  idn = g_strdup (id);
+  if (idn[len - 1] == '/')
+    idn[len - 1] = 0;
+
+  if (!hyscan_data_schema_internal_validate_id (idn))
+    g_clear_pointer (&idn, g_free);
+
+  return idn;
+}
+
+/* Функция объёдиняет два пути в один. */
+gchar *
+hyscan_data_schema_internal_make_path (const gchar *path1,
+                                       const gchar *path2)
+{
+  const gchar *separator = (*path2 == '/') ? "" : "/";
+
+  if (g_strcmp0 (path1, "/") == 0)
+    return g_strdup_printf ("%s%s", separator, path2);
+
+  return g_strdup_printf ("%s%s%s", path1, separator, path2);
+}
+
+/* Функция определяет является ли путь dst_path частью пути src_path. */
+gboolean
+hyscan_data_schema_internal_is_path (const gchar *src_path,
+                                     const gchar *dst_path)
+{
+  gsize len = strlen (dst_path);
+
+  if (g_strcmp0 (dst_path, "/") == 0)
+    return TRUE;
+
+  if (g_str_has_prefix (src_path, dst_path) &&
+      ((src_path[len] == '/') || (src_path[len] == 0)))
+    {
+      return TRUE;
+    }
+
+  return FALSE;
 }
 
 /* Функция проверяет значение перечисляемого типа на допустимость. */
@@ -170,61 +236,51 @@ HyScanDataSchemaNode *
 hyscan_data_schema_internal_insert_node (HyScanDataSchemaNode *node,
                                          const gchar          *path)
 {
-  guint path_len;
-  gchar **pathv;
-  guint n_pathv;
-  guint i;
+  HyScanDataSchemaNode *up_node = node;
+  GList *nodes = node->nodes;
+  gchar **pathv = g_strsplit (path, "/", -1);
+  guint n_pathv = 1;
 
-  /* Поиск узла для параметра. */
-  path_len = strlen (path);
-  pathv = g_strsplit (path, "/", -1);
-  n_pathv = g_strv_length (pathv);
-  for (i = 1; i < n_pathv; i++)
+  /* Цикл по всем узлам, до тех пор пока не найдём нужный. */
+  while (g_strcmp0 (path, node->path) != 0)
     {
-      GList *nodes = node->nodes;
-      gboolean has_node = FALSE;
-
-      /* Сверяем путь для текущего узла с идентификатором параметра. */
-      while (nodes != NULL)
+      /* Цикл по дочерним узлам текущего узла. */
+      if (nodes != NULL)
         {
-          HyScanDataSchemaNode *cur_node = nodes->data;
-          guint cur_path_len = strlen (cur_node->path);
+          node = nodes->data;
 
-          /* Точное совпадение пути. */
-          if (g_strcmp0 (path, cur_node->path) == 0)
+          /* Если мы на нужном пути, проваливаемся далее. */
+          if (hyscan_data_schema_internal_is_path (path, node->path))
             {
-              has_node = TRUE;
+              n_pathv += 1;
+              up_node = node;
+              nodes = node->nodes;
             }
 
-          /* Совпадает часть пути. */
-          else if (g_str_has_prefix (path, cur_node->path) &&
-                   (path_len > cur_path_len) &&
-                   (path[cur_path_len] == '/'))
+          /* Смотрим следующий узел на текущем уровне. */
+          else
             {
-              has_node = TRUE;
-            }
+              nodes = g_list_next (nodes);
 
-          if (has_node)
-            {
-              node = nodes->data;
-              break;
+              /* Если все узлы закончились, а нужный не найден - создаём его. */
+              if (nodes == NULL)
+                node = up_node;
             }
-
-          nodes = nodes->next;
         }
 
-      /* Если узел не найден, добавляем его. */
-      if (!has_node)
+      /* Просмотрели все узлы текущего уровня и не нашли нужный. */
+      else
         {
           HyScanDataSchemaNode *new_node;
-          gchar *cur_path;
+          gchar *new_path;
 
-          cur_path = g_strdup_printf ("%s/%s", node->path, pathv[i]);
-          new_node= hyscan_data_schema_node_new (cur_path, NULL, NULL, NULL, NULL);
-          g_free (cur_path);
+          new_path = hyscan_data_schema_internal_make_path (node->path, pathv[n_pathv]);
+          new_node= hyscan_data_schema_node_new (new_path, NULL, NULL, NULL, NULL);
+          g_free (new_path);
 
           node->nodes = g_list_append (node->nodes, new_node);
           node = new_node;
+          n_pathv += 1;
         }
     }
 
@@ -243,8 +299,10 @@ hyscan_data_schema_internal_node_insert_key (HyScanDataSchemaNode *node,
 
   /* Обрезаем последний компонент пути. */
   path = g_strdup (key->id);
-  for (i = strlen (path); (path[i] != '/') && (i > 0); i--);
-  path[i] = 0;
+  for (i = strlen (path); (path[i] != '/') && (i > 0); i--)
+    path[i] = 0;
+  if (i > 0)
+    path[i] = 0;
 
   /* Добавляем новый параметр. */
   node = hyscan_data_schema_internal_insert_node (node, path);

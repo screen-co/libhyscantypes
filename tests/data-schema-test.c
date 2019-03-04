@@ -77,41 +77,48 @@ check_node (HyScanDataSchema           *schema,
             const HyScanDataSchemaNode *nodes,
             gboolean                    silent)
 {
-  GList *cur_node;
-  gchar **pathv;
-  guint i;
+  gchar *description = NULL;
+  gchar *name = NULL;
 
   if (!silent)
     g_message ("check node: %s", nodes->path);
 
-  /* Проверка текущего узла. */
-  pathv = g_strsplit (nodes->path, "/", -1);
-  if (g_strv_length (pathv) > 1)
+  if (g_strcmp0 (nodes->path, "/") == 0)
     {
-      gchar *description;
-      gchar *name;
+      name = g_strdup (SCHEMA_NAME);
+      description = g_strdup (SCHEMA_DESCRIPTION);
+    }
+  else
+    {
+      gchar **pathv = g_strsplit (nodes->path, "/", -1);
 
-      for (i = 0; pathv[i + 1] != NULL; i++);
-      name = g_strdup (pathv[i]);
-      name[0] = g_ascii_toupper (name[0]);
-      description = g_strdup_printf ("%s description", name);
-
-      if ((g_strcmp0 (nodes->name, name) != 0) ||
-          (g_strcmp0 (nodes->description, description) != 0))
+      if (g_strv_length (pathv) > 1)
         {
-          g_message ("%s: %s (%s)", nodes->path, nodes->name, nodes->description);
-          g_error ("%s: node description error", nodes->path);
+          guint i;
+          for (i = 0; pathv[i + 1] != NULL; i++);
+          name = g_strdup (pathv[i]);
+          name[0] = g_ascii_toupper (name[0]);
+          description = g_strdup_printf ("%s description", name);
         }
 
-      g_free (description);
-      g_free (name);
+      g_strfreev (pathv);
     }
-  g_strfreev (pathv);
+
+  if ((g_strcmp0 (nodes->name, name) != 0) ||
+      (g_strcmp0 (nodes->description, description) != 0))
+    {
+      g_message ("%s: %s (%s)", nodes->path, nodes->name, nodes->description);
+      g_error ("%s: node description error", nodes->path);
+    }
+
+  g_free (description);
+  g_free (name);
+
 
   /* Проверка дочерних узлов. */
   if (nodes->nodes != NULL)
     {
-      cur_node = nodes->nodes;
+      GList *cur_node  = nodes->nodes;
       while (cur_node != NULL)
         {
           check_node (schema, cur_node->data, silent);
@@ -609,8 +616,17 @@ main (int    argc,
   schema = hyscan_data_schema_new_from_string (schema_data, "orig");
   g_free (schema_data);
 
+  builder = hyscan_data_schema_builder_new ("orig");
+  hyscan_data_schema_builder_schema_join (builder, "/orig", schema, "/orig");
+  hyscan_data_schema_builder_node_set_name (builder, "/orig", SCHEMA_NAME, SCHEMA_DESCRIPTION);
+  schema_data = hyscan_data_schema_builder_get_data (builder);
+  g_object_unref (builder);
+  g_object_unref (schema);
+
+  schema = hyscan_data_schema_new_from_string (schema_data, "orig");
+  g_free (schema_data);
+
   builder = hyscan_data_schema_builder_new ("test");
-  hyscan_data_schema_builder_schema_set_name (builder, SCHEMA_NAME, SCHEMA_DESCRIPTION);
   hyscan_data_schema_builder_schema_join (builder, "/", schema, "/orig");
   schema_data = hyscan_data_schema_builder_get_data (builder);
   g_object_unref (builder);
