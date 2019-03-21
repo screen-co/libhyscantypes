@@ -96,6 +96,7 @@
  * используется для получения типа источника данных по названию канала.
  */
 
+#include "hyscan-constructor.h"
 #include "hyscan-types.h"
 
 #include <libxml/parser.h>
@@ -272,35 +273,7 @@ static HyScanTrackTypeInfo hyscan_track_types_info[] =
   { 0, NULL,                   HYSCAN_TRACK_UNSPECIFIED }
 };
 
-#if  __GNUC__ > 2
-
-#define HYSCAM_CONSTRUCTOR(_func) static void __attribute__((constructor)) _func (void);
-
-#elif _MSC_VER >= 1500
-
-#ifdef _WIN64
-#define G_MSVC_SYMBOL_PREFIX ""
-#else
-#define G_MSVC_SYMBOL_PREFIX "_"
-#endif
-
-#define HYSCAM_CONSTRUCTOR(_func) G_MSVC_CTOR (_func, G_MSVC_SYMBOL_PREFIX)
-
-#define G_MSVC_CTOR(_func,_sym_prefix) \
-  static void _func(void); \
-  extern int (* _array ## _func)(void);              \
-  int _func ## _wrapper(void) { _func(); g_slist_find (NULL,  _array ## _func); return 0; } \
-  __pragma(comment(linker,"/include:" _sym_prefix # _func "_wrapper")) \
-  __pragma(section(".CRT$XCU",read)) \
-  __declspec(allocate(".CRT$XCU")) int (* _array ## _func)(void) = _func ## _wrapper;
-
-#else
-
-#error "constructors not supported for this compiler"
-
-#endif
-
-HYSCAM_CONSTRUCTOR(hyscan_types_initialize)
+HYSCAN_CONSTRUCTOR (hyscan_types_initialize)
 
 /* Функция инициализации статических данных. */
 static void
