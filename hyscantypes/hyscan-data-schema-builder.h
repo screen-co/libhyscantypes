@@ -85,11 +85,6 @@ HYSCAN_API
 const gchar *             hyscan_data_schema_builder_get_text_domain     (HyScanDataSchemaBuilder  *builder);
 
 HYSCAN_API
-void                      hyscan_data_schema_builder_schema_set_name     (HyScanDataSchemaBuilder  *builder,
-                                                                          const gchar              *name,
-                                                                          const gchar              *description);
-
-HYSCAN_API
 gboolean                  hyscan_data_schema_builder_enum_create         (HyScanDataSchemaBuilder  *builder,
                                                                           const gchar              *enum_id);
 
