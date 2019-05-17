@@ -41,6 +41,7 @@
 G_BEGIN_DECLS
 
 typedef struct _HyScanComplexFloat HyScanComplexFloat;
+typedef struct _HyScanDOA HyScanDOA;
 typedef struct _HyScanSoundVelocity HyScanSoundVelocity;
 typedef struct _HyScanAntennaOffset HyScanAntennaOffset;
 typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
@@ -51,7 +52,8 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * @HYSCAN_DATA_BLOB: неструктурированные двоичные данные
  * @HYSCAN_DATA_STRING: строка с нулём на конце
  * @HYSCAN_DATA_FLOAT: действительные float значения, нативный порядок байт
- * @HYSCAN_DATA_COMPLEX_FLOAT: комплексные float значения, нативный порядок байт
+ * @HYSCAN_DATA_COMPLEX_FLOAT: комплексные float значения (#HyScanComplexFloat), нативный порядок байт
+ * @HYSCAN_DATA_DOA: пространственное положение цели (#HyScanDOA), нативный порядок байт
  * @HYSCAN_DATA_ADC14LE: действительные отсчёты АЦП младшие 14 бит из 16
  * @HYSCAN_DATA_ADC16LE: действительные отсчёты АЦП 16 бит
  * @HYSCAN_DATA_ADC24LE: действительные отсчёты АЦП младшие 24 бит из 32
@@ -68,24 +70,26 @@ typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
  * @HYSCAN_DATA_AMPLITUDE_INT32LE: амплитудные значения, 32 бит
  * @HYSCAN_DATA_AMPLITUDE_FLOAT16LE: амплитудные значения с плавающей точкой, 16 бит
  * @HYSCAN_DATA_AMPLITUDE_FLOAT32LE: амплитудные значения с плавающей точкой, 32 бит
+ * @HYSCAN_DATA_DOA_FLOAT32LE: пространственное положение цели, значения с плавающей точкой, 32 бит
  *
  * Типы данных.
  *
  * Все типы с окончанием LE предполагают хранение данных в порядке байт
- * little endian. Типы @HYSCAN_DATA_FLOAT и @HYSCAN_DATA_COMPLEX_FLOAT
- * используются для обработки внутри программы и не предназначены для
- * долговременного хранения данных.
+ * little endian. Типы @HYSCAN_DATA_FLOAT, @HYSCAN_DATA_COMPLEX_FLOAT и
+ * @HYSCAN_DATA_DOA используются для обработки внутри программы и не
+ * предназначены для долговременного хранения данных.
  *
  * Типы данных HYSCAN_DATA_ADCX и HYSCAN_DATA_COMPLEX_ADCX - беззнаковые, имеют
- * диапазон значений от 0 до максимального возможного. Этим диапазоном кодируются
- * значения от -Vref/2 до +Vref/2, где Vref - величина опорного напряжения АЦП.
- * При преобразовании нормируются в диапазоне от -1 до 1.
+ * диапазон значений от 0 до максимального возможного. Этим диапазоном
+ * кодируются значения от -Vref/2 до +Vref/2, где Vref - величина опорного
+ * напряжения АЦП. При преобразовании нормируются в диапазоне от -1 до 1.
  *
  * Типы данных HYSCAN_DATA_AMPLITUDE_INTX имеют диапазон значений от 0 до
  * максимально возможного. При преобразовании нормируются в диапазоне от 0 до 1.
  *
- * Диапазон значений типов данных HYSCAN_DATA_FLOATX, HYSCAN_DATA_COMPLEX_FLOAT
- * и HYSCAN_DATA_AMPLITUDE_FLOATX зависит от методики использования.
+ * Диапазон значений типов данных HYSCAN_DATA_FLOATX, HYSCAN_DATA_COMPLEX_FLOATX,
+ * HYSCAN_DATA_AMPLITUDE_FLOATX и HYSCAN_DATA_DOA_FLOATX зависит от методики
+ * использования.
  */
 typedef enum
 {
@@ -95,6 +99,7 @@ typedef enum
   HYSCAN_DATA_STRING,
   HYSCAN_DATA_FLOAT,
   HYSCAN_DATA_COMPLEX_FLOAT,
+  HYSCAN_DATA_DOA,
 
   HYSCAN_DATA_ADC14LE,
   HYSCAN_DATA_ADC16LE,
@@ -116,15 +121,18 @@ typedef enum
   HYSCAN_DATA_AMPLITUDE_INT32LE,
 
   HYSCAN_DATA_AMPLITUDE_FLOAT16LE,
-  HYSCAN_DATA_AMPLITUDE_FLOAT32LE
+  HYSCAN_DATA_AMPLITUDE_FLOAT32LE,
+
+  HYSCAN_DATA_DOA_FLOAT32LE
 } HyScanDataType;
 
 /**
  * HyScanDiscretizationType:
  * @HYSCAN_DISCRETIZATION_INVALID: недопустимый тип, ошибка
- * @HYSCAN_DISCRETIZATION_REAL: действительная оцифровка
- * @HYSCAN_DISCRETIZATION_COMPLEX: комплексная оцифровка
- * @HYSCAN_DISCRETIZATION_AMPLITUDE: амплитудная оцифровка
+ * @HYSCAN_DISCRETIZATION_REAL: действительные отсчёты
+ * @HYSCAN_DISCRETIZATION_COMPLEX: комплексные отсчёты
+ * @HYSCAN_DISCRETIZATION_AMPLITUDE: амплитудные отсчёты
+ * @HYSCAN_DISCRETIZATION_DOA: пространственное положение цели
  *
  * Тип оцифровки данных.
  */
@@ -134,7 +142,8 @@ typedef enum
 
   HYSCAN_DISCRETIZATION_REAL,
   HYSCAN_DISCRETIZATION_COMPLEX,
-  HYSCAN_DISCRETIZATION_AMPLITUDE
+  HYSCAN_DISCRETIZATION_AMPLITUDE,
+  HYSCAN_DISCRETIZATION_DOA
 } HyScanDiscretizationType;
 
 /**
@@ -268,6 +277,21 @@ struct _HyScanComplexFloat
 {
   gfloat                  re;
   gfloat                  im;
+};
+
+/**
+ * HyScanDOA:
+ * @angle: азимут цели относительно перпендикуляра к антенне, рад
+ * @distance: дистанция до цели, метры
+ * @amplitude: амплитуда отражённого сигнала
+ *
+ * Пространственное положение цели (Direction Of Arrival)
+ */
+struct _HyScanDOA
+{
+  gfloat                  angle;
+  gfloat                  distance;
+  gfloat                  amplitude;
 };
 
 /**

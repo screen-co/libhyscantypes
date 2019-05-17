@@ -161,6 +161,8 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
     sizeof (gfloat),           HYSCAN_DISCRETIZATION_REAL },
   { 0, "complex-float",        HYSCAN_DATA_COMPLEX_FLOAT,
     sizeof (HyScanComplexFloat), HYSCAN_DISCRETIZATION_COMPLEX },
+  { 0, "doa",                  HYSCAN_DATA_DOA,
+    sizeof (HyScanDOA),        HYSCAN_DISCRETIZATION_DOA },
 
   { 0, "adc14le",              HYSCAN_DATA_ADC14LE,
     sizeof (guint16),          HYSCAN_DISCRETIZATION_REAL },
@@ -200,6 +202,9 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
   { 0, "amplitude-float32le",  HYSCAN_DATA_AMPLITUDE_FLOAT32LE,
     sizeof (guint32),          HYSCAN_DISCRETIZATION_AMPLITUDE },
 
+  { 0, "doa-float32le",        HYSCAN_DATA_DOA_FLOAT32LE,
+    sizeof (HyScanDOA),        HYSCAN_DISCRETIZATION_DOA },
+
   { 0, NULL,                   HYSCAN_DATA_INVALID,
     0,                         HYSCAN_DISCRETIZATION_INVALID }
 };
@@ -210,6 +215,7 @@ static HyScanDiscretizationTypeInfo hyscan_discretization_types_info[] =
   { 0, "real",                 HYSCAN_DISCRETIZATION_REAL },
   { 0, "complex",              HYSCAN_DISCRETIZATION_COMPLEX },
   { 0, "amplitude",            HYSCAN_DISCRETIZATION_AMPLITUDE },
+  { 0, "doa",                  HYSCAN_DISCRETIZATION_DOA },
 
   { 0, NULL,                   HYSCAN_DISCRETIZATION_INVALID }
 };

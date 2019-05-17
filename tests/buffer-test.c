@@ -73,6 +73,12 @@ test_info complex_float_test_info [] =
   { "HYSCAN_DATA_COMPLEX_FLOAT32LE",   HYSCAN_DATA_COMPLEX_FLOAT32LE,   -1.0, 1.0, 0.0 }
 };
 
+test_info doa_test_info [] =
+{
+  { "HYSCAN_DATA_DOA",                 HYSCAN_DATA_DOA,                 -1.0, 1.0, 0.0 },
+  { "HYSCAN_DATA_DOA_FLOAT32LE",       HYSCAN_DATA_DOA_FLOAT32LE,       -1.0, 1.0, 0.0 }
+};
+
 int
 main (int    argc,
       char **argv)
@@ -87,10 +93,12 @@ main (int    argc,
   gfloat *float_data_out;
   HyScanComplexFloat *complex_float_data_in;
   HyScanComplexFloat *complex_float_data_out;
+  HyScanDOA *doa_data_in;
+  HyScanDOA *doa_data_out;
 
-  gpointer wrapped_data;
-  gpointer raw_data;
-  guint32 raw_size;
+  HyScanDataType copy_type;
+  gpointer copy_data;
+  guint32 copy_size;
 
   guint32 n_points;
   guint32 i, j;
@@ -107,8 +115,7 @@ main (int    argc,
       g_message ("Testing %s data format.", float_test_info[i].name);
 
       /* Подготовка тестовых данных. */
-      hyscan_buffer_set_data_type (in, HYSCAN_DATA_FLOAT);
-      hyscan_buffer_set_size (in, N_POINTS * sizeof (gfloat));
+      hyscan_buffer_set_float (in, NULL, N_POINTS);
       float_data_in = hyscan_buffer_get_float (in, &n_points);
       if ((float_data_in == NULL) || (n_points != N_POINTS))
         g_error ("input size error");
@@ -121,24 +128,22 @@ main (int    argc,
         }
 
       /* Экспорт и импорт данных через выбранный формат. */
-      if (!hyscan_buffer_export_data (in, raw, float_test_info[i].type))
+      if (!hyscan_buffer_export (in, raw, float_test_info[i].type))
         g_error ("can't export data");
 
-      hyscan_buffer_copy_data (copy, raw);
-      raw_data = hyscan_buffer_get_data (copy, &raw_size);
-      wrapped_data = g_memdup (raw_data, raw_size);
-      hyscan_buffer_wrap_data (wrapper, float_test_info[i].type,
-                               wrapped_data, raw_size);
+      hyscan_buffer_copy (copy, raw);
+      copy_data = hyscan_buffer_get (copy, &copy_type, &copy_size);
+      if (copy_size != N_POINTS * hyscan_data_get_point_size (float_test_info[i].type))
+        g_error ("data size mismatch %d %d", copy_size, N_POINTS * hyscan_data_get_point_size (float_test_info[i].type));
 
-      if (!hyscan_buffer_import_data (out, wrapper))
+      hyscan_buffer_wrap (wrapper, copy_type, copy_data, copy_size);
+      if (!hyscan_buffer_import (out, wrapper))
         g_error ("can't import data");
-
-      g_free (wrapped_data);
 
       /* Импортированые данные. */
       float_data_out = hyscan_buffer_get_float (out, &n_points);
       if ((float_data_out == NULL) || (n_points != N_POINTS))
-        g_error ("output size error");
+        g_error ("output size error %d %d", n_points, N_POINTS);
 
       /* Проверка данных. */
       for (j = 0; j < N_POINTS; j++)
@@ -152,8 +157,7 @@ main (int    argc,
       g_message ("Testing %s data format.", complex_float_test_info[i].name);
 
       /* Подготовка тестовых данных. */
-      hyscan_buffer_set_data_type (in, HYSCAN_DATA_COMPLEX_FLOAT);
-      hyscan_buffer_set_size (in, N_POINTS * sizeof (HyScanComplexFloat));
+      hyscan_buffer_set_complex_float (in, NULL, N_POINTS);
       complex_float_data_in = hyscan_buffer_get_complex_float (in, &n_points);
       if ((complex_float_data_in == NULL) || (n_points != N_POINTS))
         g_error ("input size error");
@@ -167,19 +171,20 @@ main (int    argc,
           value = value + complex_float_test_info[i].min_value;
 
           complex_float_data_in[j].re = value;
-          complex_float_data_in[j].im = 0.0;
+          complex_float_data_in[j].im = value / 2.0;
         }
 
       /* Экспорт и импорт данных через выбранный формат. */
-      if (!hyscan_buffer_export_data (in, raw, complex_float_test_info[i].type))
+      if (!hyscan_buffer_export (in, raw, complex_float_test_info[i].type))
         g_error ("can't export data");
 
-      hyscan_buffer_copy_data (copy, raw);
-      raw_data = hyscan_buffer_get_data (copy, &raw_size);
-      hyscan_buffer_set_data (wrapper, complex_float_test_info[i].type,
-                              raw_data, raw_size);
+      hyscan_buffer_copy (copy, raw);
+      copy_data = hyscan_buffer_get (copy, &copy_type, &copy_size);
+      if (copy_size != N_POINTS * hyscan_data_get_point_size (complex_float_test_info[i].type))
+        g_error ("data size mismatch");
 
-      if (!hyscan_buffer_import_data (out, wrapper))
+      hyscan_buffer_wrap (wrapper, copy_type, copy_data, copy_size);
+      if (!hyscan_buffer_import (out, wrapper))
         g_error ("can't import data");
 
       /* Импортированые данные. */
@@ -195,6 +200,60 @@ main (int    argc,
             g_error ("data error at %d: (%.12f %.12f) (%.12f %.12f)", i,
                      complex_float_data_in[j].re, complex_float_data_in[j].im,
                      complex_float_data_out[j].re, complex_float_data_out[j].im);
+          }
+    }
+
+  /* Тест форматов пространственных данных. */
+  for (i = 0; i < sizeof (doa_test_info) / sizeof (test_info); i++)
+    {
+      g_message ("Testing %s data format.", doa_test_info[i].name);
+
+      /* Подготовка тестовых данных. */
+      hyscan_buffer_set_doa (in, NULL, N_POINTS);
+      doa_data_in = hyscan_buffer_get_doa (in, &n_points);
+      if ((doa_data_in == NULL) || (n_points != N_POINTS))
+        g_error ("input size error");
+
+      for (j = 0; j < N_POINTS; j++)
+        {
+          gdouble value;
+
+          value = doa_test_info[i].max_value - doa_test_info[i].min_value;
+          value = (value / (N_POINTS - 1)) * j;
+          value = value + doa_test_info[i].min_value;
+
+          doa_data_in[j].angle = value;
+          doa_data_in[j].distance = value / 2.0;
+          doa_data_in[j].amplitude = value / 3.0;
+        }
+
+      /* Экспорт и импорт данных через выбранный формат. */
+      if (!hyscan_buffer_export (in, raw, doa_test_info[i].type))
+        g_error ("can't export data");
+
+      hyscan_buffer_copy (copy, raw);
+      copy_data = hyscan_buffer_get (copy, &copy_type, &copy_size);
+      if (copy_size != N_POINTS * hyscan_data_get_point_size (doa_test_info[i].type))
+        g_error ("data size mismatch");
+
+      hyscan_buffer_wrap (wrapper, copy_type, copy_data, copy_size);
+      if (!hyscan_buffer_import (out, wrapper))
+        g_error ("can't import data");
+
+      /* Импортированые данные. */
+      doa_data_out = hyscan_buffer_get_doa (out, &n_points);
+      if ((doa_data_out == NULL) || (n_points != N_POINTS))
+        g_error ("output size error");
+
+      /* Проверка данных. */
+      for (j = 0; j < N_POINTS; j++)
+        if ((fabs (doa_data_in[j].angle - doa_data_out[j].angle) > doa_test_info[i].max_error) ||
+            (fabs (doa_data_in[j].distance - doa_data_out[j].distance) > doa_test_info[i].max_error) ||
+            (fabs (doa_data_in[j].amplitude - doa_data_out[j].amplitude) > doa_test_info[i].max_error))
+          {
+            g_error ("data error at %d: (%.12f %.12f %.12f) (%.12f %.12f %.12f)", i,
+                     doa_data_in[j].angle, doa_data_in[j].distance,doa_data_in[j].amplitude,
+                     doa_data_out[j].angle, doa_data_out[j].distance, doa_data_out[j].amplitude);
           }
     }
 

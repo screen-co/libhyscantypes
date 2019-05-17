@@ -40,35 +40,35 @@
  * Класс предназначен для хранения блоков данных и преобразования их между
  * различными форматами. Он поддерживает все типы #HyScanDataType, допускающие
  * хранение численных данных. Класс может импортировать действительные данные
- * типа gfloat и комплексные данные типа #HyScanComplexFloat. Кроме этого
- * класс обеспечивает экспорт текущих данных в любой из совместимых типов
- * #HyScanDataType.
+ * типа gfloat, комплексные данные типа #HyScanComplexFloat и пространственные
+ * данные положения цели типа #HyScanDOA. Кроме этого класс обеспечивает
+ * экспорт текущих данных в любой из совместимых типов #HyScanDataType.
  *
  * Создание объекта класс осуществляется функцией #hyscan_buffer_new.
  *
- * Для импорта данных используется функция #hyscan_buffer_import_data, для
- * экспорта #hyscan_buffer_export_date. Функция #hyscan_buffer_copy_data
- * копирует данные без преобразования.
+ * Для импорта данных используется функция #hyscan_buffer_import, для
+ * экспорта #hyscan_buffer_export. Функция #hyscan_buffer_copy копирует
+ * данные без преобразования.
  *
- * Изменить размер буфера можно с помощью функции #hyscan_buffer_set_size, а
- * тип хранимых в нём данных, с помощью функции #hyscan_buffer_set_data_type.
- * Получить текущий размер буфера можно с помощью функции #hyscan_buffer_get_size,
- * а тип хранимых в нём данных, с помощью функции #hyscan_buffer_get_data_type.
+ * Записать данные в буфер можно с помощью функции #hyscan_buffer_set. Кроме
+ * этого, #HyScanBuffer может являться обёрткой над любым другим блоком данных,
+ * для этого используется функция #hyscan_buffer_wrap. При этом данные не
+ * копируются в буфер, а используется уже выделенный блок памяти.
  *
- * Записать данные в буфер можно с помощью функции #hyscan_buffer_set_data.
- * Кроме этого, #HyScanBuffer может являться обёрткой над любым другим блоком
- * данных, для этого используется функция #hyscan_buffer_wrap_data. При этом
- * данные не копируются в буфер, а используется уже выделенный блок памяти.
- *
- * Получить доступ к данным можно с помощью функции #hyscan_buffer_get_data.
+ * Получить доступ к данным можно с помощью функции #hyscan_buffer_get.
  * Пользователь может изменять данные в буфере в пределах установленного размера.
  *
- * Для упрощения работы с данными типа gfloat и #HyScanComplexFloat предназначены
- * вспомогательные функции #hyscan_buffer_wrap_float,
- * #hyscan_buffer_wrap_complex_float, #hyscan_buffer_set_float,
- * #hyscan_buffer_set_complex_float, #hyscan_buffer_get_float
- * и #hyscan_buffer_get_complex_float. Они работают аналогично функциям
- * #hyscan_buffer_wrap_data, #hyscan_buffer_set_data и #hyscan_buffer_get_data,
+ * Для установки/получения типа данных и их размер можно использовать функции
+ * #hyscan_buffer_set_data_type, #hyscan_buffer_get_data_type,
+ * #hyscan_buffer_set_data_size и #hyscan_buffer_get_data_size.
+ *
+ * Для упрощения работы с данными типа gfloat, #HyScanComplexFloat и #HyScanDOA
+ * предназначены вспомогательные функции #hyscan_buffer_set_float,
+ * #hyscan_buffer_wrap_float, #hyscan_buffer_get_float,
+ * #hyscan_buffer_set_complex_float, #hyscan_buffer_wrap_complex_float,
+ * #hyscan_buffer_get_complex_float, #hyscan_buffer_set_doa,
+ * #hyscan_buffer_wrap_doa и #hyscan_buffer_get_doa. Они работают аналогично
+ * функциям #hyscan_buffer_wrap, #hyscan_buffer_set и #hyscan_buffer_get,
  * но обеспечивают приведение типов данных.
  */
 
@@ -85,9 +85,9 @@ struct _HyScanBufferPrivate
 {
   gboolean                     self_allocated; /* Признак выделения памяти. */
   guint32                      allocated_size; /* Размер буфера. */
-  HyScanDataType               data_type;      /* Тип данных. */
-  guint32                      data_size;      /* Размер данных. */
+  HyScanDataType               type;           /* Тип данных. */
   gpointer                     data;           /* Данные. */
+  guint32                      size;           /* Размер данных. */
 };
 
 static void                    hyscan_buffer_object_finalize   (GObject       *object);
@@ -432,8 +432,8 @@ hyscan_buffer_new (void)
  * память будет выделена динамически.
  */
 void
-hyscan_buffer_copy_data (HyScanBuffer *buffer,
-                         HyScanBuffer *orig)
+hyscan_buffer_copy (HyScanBuffer *buffer,
+                    HyScanBuffer *orig)
 {
   HyScanDataType type;
   gpointer data;
@@ -441,42 +441,42 @@ hyscan_buffer_copy_data (HyScanBuffer *buffer,
 
   g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
 
-  type = hyscan_buffer_get_data_type (orig);
-  data = hyscan_buffer_get_data (orig, &size);
-
-  hyscan_buffer_set_data (buffer, type, data, size);
+  data = hyscan_buffer_get (orig, &type, &size);
+  hyscan_buffer_set (buffer, type, data, size);
 }
 
 /**
- * hyscan_buffer_import_data:
+ * hyscan_buffer_import:
  * @buffer: указатель на #HyScanBuffer
  * @raw: указатель на #HyScanBuffer с данными для импорта
  *
  * Функция импортирует данные из внешнего буфера @raw и преобразовывает их в
- * массив gfloat или #HyScanComplexFloat в зависимости от их типа.
+ * массив gfloat, #HyScanComplexFloat или #HyScanDOA в зависимости от их типа.
  *
  * Returns: %TRUE если данные успешно импортированы, иначе %FALSE.
  */
 gboolean
-hyscan_buffer_import_data (HyScanBuffer *buffer,
-                           HyScanBuffer *raw)
+hyscan_buffer_import (HyScanBuffer *buffer,
+                      HyScanBuffer *raw)
 {
   HyScanComplexFloat *complex_float_buffer = NULL;
+  HyScanDOA *doa_buffer = NULL;
   gfloat *float_buffer = NULL;
-  HyScanDataType data_type;
-  guint32 data_size;
-  guint32 n_points;
+  HyScanDataType type;
   gpointer data;
+  guint32 n_points;
+  guint32 size;
   guint32 i;
 
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
 
   /* Размер и тип импортируемых данных. */
-  data = hyscan_buffer_get_data (raw, &data_size);
-  data_type = hyscan_buffer_get_data_type (raw);
+  data = hyscan_buffer_get (raw, &type, &size);
+  if (hyscan_data_get_point_size (type) == 0)
+    return FALSE;
 
-  /* Тип данных: действительные или комплексные. */
-  switch (data_type)
+  n_points = size / hyscan_data_get_point_size (type);
+  switch (type)
     {
     case HYSCAN_DATA_FLOAT:
     case HYSCAN_DATA_ADC14LE:
@@ -490,9 +490,7 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
     case HYSCAN_DATA_AMPLITUDE_INT32LE:
     case HYSCAN_DATA_AMPLITUDE_FLOAT16LE:
     case HYSCAN_DATA_AMPLITUDE_FLOAT32LE:
-      n_points = data_size / hyscan_data_get_point_size (data_type);
-      hyscan_buffer_set_size (buffer, n_points * sizeof (gfloat));
-      hyscan_buffer_set_data_type (buffer, HYSCAN_DATA_FLOAT);
+      hyscan_buffer_set_float (buffer, NULL, n_points);
       float_buffer = hyscan_buffer_get_float (buffer, &n_points);
       break;
 
@@ -502,10 +500,14 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
     case HYSCAN_DATA_COMPLEX_ADC24LE:
     case HYSCAN_DATA_COMPLEX_FLOAT16LE:
     case HYSCAN_DATA_COMPLEX_FLOAT32LE:
-      n_points = data_size / hyscan_data_get_point_size (data_type);
-      hyscan_buffer_set_size (buffer, n_points * sizeof (HyScanComplexFloat));
-      hyscan_buffer_set_data_type (buffer, HYSCAN_DATA_COMPLEX_FLOAT);
+      hyscan_buffer_set_complex_float (buffer, NULL, n_points);
       complex_float_buffer = hyscan_buffer_get_complex_float (buffer, &n_points);
+      break;
+
+    case HYSCAN_DATA_DOA:
+    case HYSCAN_DATA_DOA_FLOAT32LE:
+      hyscan_buffer_set_doa (buffer, NULL, n_points);
+      doa_buffer = hyscan_buffer_get_doa (buffer, &n_points);
       break;
 
     default:
@@ -513,11 +515,11 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
     }
 
   /* Импорт данных. */
-  switch (data_type)
+  switch (type)
     {
     case HYSCAN_DATA_FLOAT:
       {
-        memcpy (float_buffer, data, n_points * sizeof (gfloat));
+        memcpy (float_buffer, data, size);
       }
       break;
 
@@ -597,7 +599,7 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
 
     case HYSCAN_DATA_COMPLEX_FLOAT:
       {
-        memcpy (complex_float_buffer, data, n_points * sizeof (HyScanComplexFloat));
+        memcpy (complex_float_buffer, data, size);
       }
       break;
 
@@ -656,6 +658,24 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
       }
       break;
 
+    case HYSCAN_DATA_DOA:
+      {
+        memcpy (doa_buffer, data, size);
+      }
+      break;
+
+    case HYSCAN_DATA_DOA_FLOAT32LE:
+      {
+        guint32 *raw_data = data;
+        for (i = 0; i < n_points; i++)
+          {
+            doa_buffer[i].angle = hyscan_buffer_decode_float32le (*raw_data++);
+            doa_buffer[i].distance = hyscan_buffer_decode_float32le (*raw_data++);
+            doa_buffer[i].amplitude = hyscan_buffer_decode_float32le (*raw_data++);
+          }
+      }
+      break;
+
     default:
       return FALSE;
     }
@@ -664,26 +684,27 @@ hyscan_buffer_import_data (HyScanBuffer *buffer,
 }
 
 /**
- * hyscan_buffer_export_data:
+ * hyscan_buffer_export:
  * @buffer: указатель на #HyScanBuffer
  * @raw: указатель на #HyScanBuffer для экспортируемых данныx
  * @type: тип экспортируемых данныx
  *
- * Функция экспортирует данные gfloat или #HyScanComplexFloat во внешний буфер
- * @raw и преобразовывает их в указанный тип.
+ * Функция экспортирует данные gfloat, #HyScanComplexFloat или #HyScanDOA во
+ * внешний буфер @raw и преобразовывает их в указанный тип.
  *
  * Returns: %TRUE если данные успешно экспортированы, иначе %FALSE.
  */
 gboolean
-hyscan_buffer_export_data (HyScanBuffer   *buffer,
-                           HyScanBuffer   *raw,
-                           HyScanDataType  type)
+hyscan_buffer_export (HyScanBuffer   *buffer,
+                      HyScanBuffer   *raw,
+                      HyScanDataType  type)
 {
   HyScanComplexFloat *complex_float_buffer = NULL;
+  HyScanDOA *doa_buffer = NULL;
   gfloat *float_buffer = NULL;
   guint8 *raw_data = NULL;
-  guint32 data_size;
   guint32 n_points;
+  guint32 size;
   guint32 i;
 
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
@@ -719,22 +740,26 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
         return FALSE;
       break;
 
+    case HYSCAN_DATA_DOA:
+    case HYSCAN_DATA_DOA_FLOAT32LE:
+      doa_buffer = hyscan_buffer_get_doa (buffer, &n_points);
+      if (doa_buffer == NULL)
+        return FALSE;
+      break;
+
     default:
       return FALSE;
     }
 
   /* Размер экспортируемых данных. */
-  hyscan_buffer_set_data_type (raw, type);
-  hyscan_buffer_set_size (raw, n_points * hyscan_data_get_point_size (type));
-  raw_data = hyscan_buffer_get_data (raw, &data_size);
-  n_points = data_size / hyscan_data_get_point_size (type);
-
-  /* Экспорт данных. */
+  size = n_points * hyscan_data_get_point_size (type);
+  hyscan_buffer_set (raw, type, NULL, size);
+  raw_data = hyscan_buffer_get (raw, &type, &size);
   switch (type)
     {
     case HYSCAN_DATA_FLOAT:
       {
-        memcpy (raw_data, float_buffer, n_points * sizeof (gfloat));
+        memcpy (raw_data, float_buffer, size);
       }
       break;
 
@@ -813,7 +838,7 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
 
     case HYSCAN_DATA_COMPLEX_FLOAT:
       {
-        memcpy (raw_data, complex_float_buffer, n_points * sizeof (HyScanComplexFloat));
+        memcpy (raw_data, complex_float_buffer, size);
       }
       break;
 
@@ -872,6 +897,24 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
       }
       break;
 
+    case HYSCAN_DATA_DOA:
+      {
+        memcpy (raw_data, doa_buffer, size);
+      }
+      break;
+
+    case HYSCAN_DATA_DOA_FLOAT32LE:
+      {
+        guint32 *raw_data32 = (guint32*)raw_data;
+        for (i = 0; i < n_points; i++)
+          {
+            *raw_data32++ = hyscan_buffer_encode_float32le (doa_buffer[i].angle);
+            *raw_data32++ = hyscan_buffer_encode_float32le (doa_buffer[i].distance);
+            *raw_data32++ = hyscan_buffer_encode_float32le (doa_buffer[i].amplitude);
+          }
+      }
+      break;
+
     default:
       return FALSE;
     }
@@ -880,47 +923,121 @@ hyscan_buffer_export_data (HyScanBuffer   *buffer,
 }
 
 /**
- * hyscan_buffer_set_size:
+ * hyscan_buffer_set:
  * @buffer: указатель на #HyScanBuffer
- * @size: размер буфера
+ * @type: тип данныx
+ * @data: (nullable) (array length=size) (element-type guint8) (transfer none): данные или NULL
+ * @size: размер данныx
  *
- * Функция изменяет размер буфера данных не затрагивая его содержимое. Если
- * буфер находится в режиме обёртки над внешними данными, максимальный размер
- * данных будет ограничен их размером.
+ * Функция записывает данные в буфер. При этом буфер переводится в режим
+ * динамического выделения памяти, если до этого он был сконфигурирован в
+ * режиме обёртки над внешними данными.
+ *
+ * Если data = NULL, изменяются только тип данных и размер.
+ *
+ * Returns: %TRUE если данные успешно записаны, иначе %FALSE.
+ *
  */
-void
-hyscan_buffer_set_size  (HyScanBuffer *buffer,
-                         guint32       size)
+gboolean
+hyscan_buffer_set (HyScanBuffer   *buffer,
+                   HyScanDataType  type,
+                   gpointer        data,
+                   guint32         size)
 {
   HyScanBufferPrivate *priv;
 
-  g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
+  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
 
   priv = buffer->priv;
 
-  if (priv->self_allocated && (priv->allocated_size < size))
+  if (!priv->self_allocated)
+    {
+      priv->data = NULL;
+      priv->allocated_size = 0;
+      priv->self_allocated = TRUE;
+    }
+
+  if (priv->allocated_size < size)
     {
       priv->data = g_realloc (priv->data, size);
       priv->allocated_size = size;
     }
 
-  priv->data_size = (priv->allocated_size >= size) ? size : priv->allocated_size;
+  priv->type = type;
+  priv->size = size;
+  if (data != NULL)
+    memcpy (priv->data, data, size);
+
+  return TRUE;
 }
 
 /**
- * hyscan_buffer_get_size:
+ * hyscan_buffer_wrap:
  * @buffer: указатель на #HyScanBuffer
+ * @type: тип данныx
+ * @data: данные
+ * @size: размер данныx, в элементах определённого типа
  *
- * Функция возвращает размер данных в буфере.
+ * Функция конфигурирует буфер как обёртку над блоком данных.
  *
- * Returns: Размер данных в буфере.
+ * Данную функцию нельзя использовать через систему GIR, например в python-gi.
+ *
+ * Returns: %TRUE если буфер сконфигурирован, иначе %FALSE.
  */
-guint32
-hyscan_buffer_get_size (HyScanBuffer *buffer)
+gboolean
+hyscan_buffer_wrap (HyScanBuffer   *buffer,
+                    HyScanDataType  type,
+                    gpointer        data,
+                    guint32         size)
 {
-  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), 0);
+  HyScanBufferPrivate *priv;
 
-  return buffer->priv->data_size;
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
+  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
+
+  priv = buffer->priv;
+
+  if ((size > 0) && (data == NULL))
+    return FALSE;
+
+  if (priv->self_allocated)
+    g_free (priv->data);
+
+  priv->self_allocated = FALSE;
+  priv->allocated_size = priv->size = size;
+  priv->type = type;
+  priv->data = data;
+
+  return TRUE;
+}
+
+/**
+ * hyscan_buffer_get:
+ * @buffer: указатель на #HyScanBuffer
+ * @type: (out) (nullable): тип данныx или NULL
+ * @size: (out): размер данныx
+ *
+ * Функция возвращает указатель на данные в буфере. Пользователь может
+ * изменять эти данные в пределах их размера.
+ *
+ * Returns: (nullable) (array length=size) (element-type guint8) (transfer none): Данные или NULL.
+ */
+gpointer
+hyscan_buffer_get (HyScanBuffer   *buffer,
+                   HyScanDataType *type,
+                   guint32        *size)
+{
+  HyScanBufferPrivate *priv;
+
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), NULL);
+
+  priv = buffer->priv;
+
+  (type != NULL) ? *type = priv->type : 0;
+  *size = priv->size;
+
+  return priv->data;
 }
 
 /**
@@ -928,15 +1045,21 @@ hyscan_buffer_get_size (HyScanBuffer *buffer)
  * @buffer: указатель на #HyScanBuffer
  * @type: тип данныx
  *
- * Функция устанавливает тип данных, хранящихся в буфере.
+ * Функция задаёт тип данных в буфере.
+ *
+ * Returns: %TRUE если тип данных задан, иначе %FALSE.
+ *
  */
-void
+gboolean
 hyscan_buffer_set_data_type (HyScanBuffer   *buffer,
                              HyScanDataType  type)
 {
-  g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
+  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
 
-  buffer->priv->data_type = type;
+  buffer->priv->type = type;
+
+  return TRUE;
 }
 
 /**
@@ -945,192 +1068,112 @@ hyscan_buffer_set_data_type (HyScanBuffer   *buffer,
  *
  * Функция возвращает тип данных в буфере.
  *
- * Returns: Тип данных в буфере.
+ * Returns: Тип данных.
+ *
  */
 HyScanDataType
 hyscan_buffer_get_data_type (HyScanBuffer *buffer)
 {
-  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), HYSCAN_DATA_INVALID);
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
 
-  return buffer->priv->data_type;
+  return buffer->priv->type;
 }
 
 /**
- * hyscan_buffer_wrap_data:
+ * hyscan_buffer_set_data_size:
  * @buffer: указатель на #HyScanBuffer
- * @type: тип данныx
- * @data: данные
  * @size: размер данныx
  *
- * Функция конфигурирует буфер как обёртку над блоком данных.
+ * Функция изменяет размер буфера данных не затрагивая его содержимое. Если
+ * буфер находится в режиме обёртки над внешними данными и новый размер
+ * больше этих данных, функция завершается с ошибкой.
  *
- * Данную функцию нельзя использовать через систему GIR, например
- * в python-gi.
+ * Returns: %TRUE если размер данных задан, иначе %FALSE.
+ *
  */
-void
-hyscan_buffer_wrap_data (HyScanBuffer   *buffer,
-                         HyScanDataType  type,
-                         gpointer        data,
-                         guint32         size)
+gboolean
+hyscan_buffer_set_data_size (HyScanBuffer *buffer,
+                             guint32       size)
 {
   HyScanBufferPrivate *priv;
 
-  g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
 
   priv = buffer->priv;
-
-  if (priv->self_allocated)
-    g_free (priv->data);
-
-  priv->self_allocated = FALSE;
-  priv->allocated_size = priv->data_size = size;
-  priv->data_type = type;
-  priv->data = data;
-}
-
-/**
- * hyscan_buffer_set_data:
- * @buffer: указатель на #HyScanBuffer
- * @type: тип данныx
- * @data: (array length=size) (element-type guint8) (transfer none): данные
- * @size: размер данныx
- *
- * Функция записывает данные в буфер. При этом буфер переводится в режим
- * динамического выделения памяти, если до этого он был сконфигурирован
- * в режиме обёртки над внешними данными.
- */
-void
-hyscan_buffer_set_data (HyScanBuffer   *buffer,
-                        HyScanDataType  type,
-                        gpointer        data,
-                        guint32         size)
-{
-  HyScanBufferPrivate *priv;
-
-  g_return_if_fail (HYSCAN_IS_BUFFER (buffer));
-
-  priv = buffer->priv;
-
-  if (!priv->self_allocated)
-    {
-      priv->data = NULL;
-      priv->allocated_size = 0;
-    }
 
   if (priv->allocated_size < size)
     {
-      g_free (priv->data);
-      priv->data = g_malloc0 (size);
-      priv->allocated_size = size;
-      priv->self_allocated = TRUE;
+      if (priv->self_allocated)
+        {
+          priv->data = g_realloc (priv->data, size);
+          priv->allocated_size = size;
+        }
+      else
+        {
+          return FALSE;
+        }
     }
 
-  priv->data_size = size;
-  priv->data_type = type;
-  if (data != NULL)
-    memcpy (priv->data, data, priv->data_size);
-  else
-    memset (priv->data, 0, priv->data_size);
+  priv->size = size;
+
+  return TRUE;
 }
 
 /**
- * hyscan_buffer_get_data:
+ * hyscan_buffer_get_data_type:
  * @buffer: указатель на #HyScanBuffer
- * @size: (out): размер данныx
  *
- * Функция возвращает указатель на данные в буфере. Пользователь может
- * изменять эти данные в пределах их размера.
+ * Функция возвращает размер данных в буфере.
  *
- * При использовании этой функции через систему GIR, например в python-gi,
- * возвращается копия данных. Необходимо это учитывать и для изменения
- * данных в буфере использовать функцию #hyscan_buffer_set_data.
+ * Returns: Размер данных.
  *
- * Returns: (nullable) (array length=size) (element-type guint8) (transfer none):
- *          Данные или NULL.
  */
-gpointer
-hyscan_buffer_get_data (HyScanBuffer *buffer,
-                        guint32      *size)
+guint32
+hyscan_buffer_get_data_size (HyScanBuffer *buffer)
 {
-  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), NULL);
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
 
-  *size = buffer->priv->data_size;
-
-  return buffer->priv->data;
-}
-
-/**
- * hyscan_buffer_wrap_float:
- * @buffer: указатель на #HyScanBuffer
- * @data: (array length=n_points) (transfer none): массив gfloat
- * @n_points: число точек массива
- *
- * Функция конфигурирует буфер как обёртку над массивом gfloat.
- *
- * Данную функцию нельзя использовать через систему GIR, например
- * в python-gi.
- */
-void
-hyscan_buffer_wrap_float (HyScanBuffer *buffer,
-                          gfloat       *data,
-                          guint32       n_points)
-{
-  hyscan_buffer_wrap_data (buffer, HYSCAN_DATA_FLOAT,
-                           data, n_points * sizeof (gfloat));
+  return buffer->priv->size;
 }
 
 /**
  * hyscan_buffer_set_float:
  * @buffer: указатель на #HyScanBuffer
- * @data: (array length=n_points) (transfer none): массив gfloat
+ * @data: (nullable) (array length=n_points) (transfer none): данные или NULL
  * @n_points: число точек массива
  *
  * Функция записывает массив gfloat в буфер.
+ *
+ * Returns: %TRUE если данные успешно записаны, иначе %FALSE.
  */
-void
+gboolean
 hyscan_buffer_set_float (HyScanBuffer *buffer,
                          gfloat       *data,
                          guint32       n_points)
 {
-  hyscan_buffer_set_data (buffer, HYSCAN_DATA_FLOAT,
-                          data, n_points * sizeof (gfloat));
+  return hyscan_buffer_set (buffer, HYSCAN_DATA_FLOAT,
+                            data, n_points * sizeof (gfloat));
 }
 
 /**
-* hyscan_buffer_wrap_complex_float:
-* @buffer: указатель на #HyScanBuffer
-* @data: (array length=n_points) (transfer none): массив HyScanComplexFloat
-* @n_points: число точек массива
-*
-* Функция конфигурирует буфер как обёртку над массивом HyScanComplexFloat.
-*
-* Данную функцию нельзя использовать через систему GIR, например
-* в python-gi.
-*/
-void
-hyscan_buffer_wrap_complex_float (HyScanBuffer       *buffer,
-                                  HyScanComplexFloat *data,
-                                  guint32             n_points)
-{
-  hyscan_buffer_wrap_data (buffer, HYSCAN_DATA_COMPLEX_FLOAT,
-                           data, n_points * sizeof (HyScanComplexFloat));
-}
-
-/**
- * hyscan_buffer_set_complex_float:
+ * hyscan_buffer_wrap_float:
  * @buffer: указатель на #HyScanBuffer
- * @data: (array length=n_points) (transfer none): массив #HyScanComplexFloat
+ * @data: (array length=n_points) (transfer none): данные
  * @n_points: число точек массива
  *
- * Функция записывает массив #HyScanComplexFloat в буфер.
+ * Функция конфигурирует буфер как обёртку над массивом gfloat.
+ *
+ * Данную функцию нельзя использовать через систему GIR, например в python-gi.
+ *
+ * Returns: %TRUE если буфер сконфигурирован, иначе %FALSE.
  */
-void
-hyscan_buffer_set_complex_float (HyScanBuffer       *buffer,
-                                 HyScanComplexFloat *data,
-                                 guint32             n_points)
+gboolean
+hyscan_buffer_wrap_float (HyScanBuffer *buffer,
+                          gfloat       *data,
+                          guint32       n_points)
 {
-  hyscan_buffer_set_data (buffer, HYSCAN_DATA_COMPLEX_FLOAT,
-                          data, n_points * sizeof (HyScanComplexFloat));
+  return hyscan_buffer_wrap (buffer, HYSCAN_DATA_FLOAT,
+                             data, n_points * sizeof (gfloat));
 }
 
 /**
@@ -1152,14 +1195,58 @@ gfloat *
 hyscan_buffer_get_float (HyScanBuffer *buffer,
                          guint32      *n_points)
 {
+  HyScanDataType type;
+  gpointer data;
+
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), NULL);
 
-  if (buffer->priv->data_type != HYSCAN_DATA_FLOAT)
+  data = hyscan_buffer_get (buffer, &type, n_points);
+  if (type != HYSCAN_DATA_FLOAT)
     return NULL;
 
-  *n_points = buffer->priv->data_size / sizeof (gfloat);
+  *n_points /= sizeof (gfloat);
 
-  return buffer->priv->data;
+  return data;
+}
+
+/**
+ * hyscan_buffer_set_complex_float:
+ * @buffer: указатель на #HyScanBuffer
+ * @data: (nullable) (array length=n_points) (transfer none): данные или NULL
+ * @n_points: число точек массива
+ *
+ * Функция записывает массив #HyScanComplexFloat в буфер.
+ *
+ * Returns: %TRUE если данные успешно записаны, иначе %FALSE.
+ */
+gboolean
+hyscan_buffer_set_complex_float (HyScanBuffer       *buffer,
+                                 HyScanComplexFloat *data,
+                                 guint32             n_points)
+{
+  return hyscan_buffer_set (buffer, HYSCAN_DATA_COMPLEX_FLOAT,
+                            data, n_points * sizeof (HyScanComplexFloat));
+}
+
+/**
+* hyscan_buffer_wrap_complex_float:
+* @buffer: указатель на #HyScanBuffer
+* @data: (array length=n_points) (transfer none): данные
+* @n_points: число точек массива
+*
+* Функция конфигурирует буфер как обёртку над массивом HyScanComplexFloat.
+*
+* Данную функцию нельзя использовать через систему GIR, например в python-gi.
+*
+* Returns: %TRUE если буфер сконфигурирован, иначе %FALSE.
+*/
+gboolean
+hyscan_buffer_wrap_complex_float (HyScanBuffer       *buffer,
+                                  HyScanComplexFloat *data,
+                                  guint32             n_points)
+{
+  return hyscan_buffer_wrap (buffer, HYSCAN_DATA_COMPLEX_FLOAT,
+                             data, n_points * sizeof (HyScanComplexFloat));
 }
 
 /**
@@ -1181,12 +1268,89 @@ HyScanComplexFloat *
 hyscan_buffer_get_complex_float (HyScanBuffer *buffer,
                                  guint32      *n_points)
 {
+  HyScanDataType type;
+  gpointer data;
+
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), NULL);
 
-  if (buffer->priv->data_type != HYSCAN_DATA_COMPLEX_FLOAT)
+  data = hyscan_buffer_get (buffer, &type, n_points);
+  if (type != HYSCAN_DATA_COMPLEX_FLOAT)
     return NULL;
 
-  *n_points = buffer->priv->data_size / sizeof (HyScanComplexFloat);
+  *n_points /= sizeof (HyScanComplexFloat);
 
-  return buffer->priv->data;
+  return data;
+}
+
+/**
+ * hyscan_buffer_set_doa:
+ * @buffer: указатель на #HyScanBuffer
+ * @data: (nullable) (array length=n_points) (transfer none): данные или NULL
+ * @n_points: число точек массива
+ *
+ * Функция записывает массив #HyScanDOA в буфер.
+ *
+ * Returns: %TRUE если данные успешно записаны, иначе %FALSE.
+ */
+gboolean
+hyscan_buffer_set_doa (HyScanBuffer *buffer,
+                       HyScanDOA    *data,
+                       guint32       n_points)
+{
+  return hyscan_buffer_set (buffer, HYSCAN_DATA_DOA,
+                            data, n_points * sizeof (HyScanDOA));
+}
+
+/**
+* hyscan_buffer_wrap_doa:
+* @buffer: указатель на #HyScanBuffer
+* @data: (array length=n_points) (transfer none): данные
+* @n_points: число точек массива
+*
+* Функция конфигурирует буфер как обёртку над массивом HyScanDOA.
+*
+* Данную функцию нельзя использовать через систему GIR, например в python-gi.
+*
+* Returns: %TRUE если буфер сконфигурирован, иначе %FALSE.
+*/
+gboolean
+hyscan_buffer_wrap_doa (HyScanBuffer       *buffer,
+                        HyScanDOA          *data,
+                        guint32             n_points)
+{
+  return hyscan_buffer_wrap (buffer, HYSCAN_DATA_DOA,
+                             data, n_points * sizeof (HyScanDOA));
+}
+
+/**
+ * hyscan_buffer_get_doa:
+ * @buffer: указатель на #HyScanBuffer
+ * @n_points: (out): число точек массива
+ *
+ * Функция возвращает указатель на данные в буфере в виде массива #HyScanDOA.
+ * Пользователь может изменять эти данные в пределах их размера.
+ *
+ * При использовании этой функции через систему GIR, например в python-gi,
+ * возвращается копия данных. Необходимо это учитывать и для изменения
+ * данных в буфере использовать функцию #hyscan_buffer_set_doa.
+ *
+ * Returns: (nullable) (array length=n_points) (transfer none):
+ *          Массив #HyScanDOA или NULL.
+ */
+HyScanDOA *
+hyscan_buffer_get_doa (HyScanBuffer *buffer,
+                       guint32      *n_points)
+{
+  HyScanDataType type;
+  gpointer data;
+
+  g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), NULL);
+
+  data = hyscan_buffer_get (buffer, &type, n_points);
+  if (type != HYSCAN_DATA_DOA)
+    return NULL;
+
+  *n_points /= sizeof (HyScanDOA);
+
+  return data;
 }
