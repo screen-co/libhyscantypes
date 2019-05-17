@@ -19,6 +19,21 @@ target_link_libraries (param-list-test ${TEST_LIBRARIES})
 target_link_libraries (param-test ${TEST_LIBRARIES})
 target_link_libraries (data-schema-list ${TEST_LIBRARIES})
 
+add_test (NAME SlicePoolTest COMMAND slice-pool-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME ChannelNameTest COMMAND channel-name-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME BufferTest COMMAND buffer-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME DataSchemaTest COMMAND data-schema-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME ParamListTest COMMAND param-list-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME ParamTest:data-box COMMAND param-test -p data-box
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME ParamTest:controller COMMAND param-test -p controller
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
 install (TARGETS slice-pool-test
                  channel-name-test
                  buffer-test
