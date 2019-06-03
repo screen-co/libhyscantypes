@@ -947,7 +947,7 @@ hyscan_buffer_set (HyScanBuffer   *buffer,
   HyScanBufferPrivate *priv;
 
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
-  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
+  g_return_val_if_fail (hyscan_data_get_id_by_type (type), FALSE);
 
   priv = buffer->priv;
 
@@ -994,7 +994,7 @@ hyscan_buffer_wrap (HyScanBuffer   *buffer,
   HyScanBufferPrivate *priv;
 
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
-  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
+  g_return_val_if_fail (hyscan_data_get_id_by_type (type), FALSE);
 
   priv = buffer->priv;
 
@@ -1055,7 +1055,7 @@ hyscan_buffer_set_data_type (HyScanBuffer   *buffer,
                              HyScanDataType  type)
 {
   g_return_val_if_fail (HYSCAN_IS_BUFFER (buffer), FALSE);
-  g_return_val_if_fail (hyscan_data_get_name_by_type (type), FALSE);
+  g_return_val_if_fail (hyscan_data_get_id_by_type (type), FALSE);
 
   buffer->priv->type = type;
 

@@ -409,28 +409,28 @@ HYSCAN_API
 void                      hyscan_acoustic_data_info_free          (HyScanAcousticDataInfo       *info);
 
 HYSCAN_API
-const gchar *             hyscan_data_get_name_by_type            (HyScanDataType                type);
+const gchar *             hyscan_data_get_id_by_type              (HyScanDataType                type);
 
 HYSCAN_API
-HyScanDataType            hyscan_data_get_type_by_name            (const gchar                  *name);
+HyScanDataType            hyscan_data_get_type_by_id              (const gchar                  *id);
 
 HYSCAN_API
 guint32                   hyscan_data_get_point_size              (HyScanDataType                type);
 
 HYSCAN_API
-const gchar *             hyscan_discretization_get_name_by_type  (HyScanDiscretizationType      type);
+const gchar *             hyscan_discretization_get_id_by_type    (HyScanDiscretizationType      type);
 
 HYSCAN_API
-HyScanDiscretizationType  hyscan_discretization_get_type_by_name  (const gchar                  *name);
+HyScanDiscretizationType  hyscan_discretization_get_type_by_id    (const gchar                  *id);
 
 HYSCAN_API
 HyScanDiscretizationType  hyscan_discretization_get_type_by_data  (HyScanDataType                type);
 
 HYSCAN_API
-const gchar              *hyscan_source_get_name_by_type          (HyScanSourceType              source);
+const gchar              *hyscan_source_get_id_by_type            (HyScanSourceType              source);
 
 HYSCAN_API
-HyScanSourceType          hyscan_source_get_type_by_name          (const gchar                  *name);
+HyScanSourceType          hyscan_source_get_type_by_id            (const gchar                  *id);
 
 HYSCAN_API
 gboolean                  hyscan_source_is_sensor                 (HyScanSourceType              source);
@@ -439,24 +439,24 @@ HYSCAN_API
 gboolean                  hyscan_source_is_sonar                  (HyScanSourceType              source);
 
 HYSCAN_API
-const gchar *             hyscan_log_level_get_name_by_type       (HyScanLogLevel                level);
+const gchar *             hyscan_log_level_get_id_by_type         (HyScanLogLevel                level);
 
 HYSCAN_API
-HyScanLogLevel            hyscan_log_level_get_type_by_name       (const gchar                  *name);
+HyScanLogLevel            hyscan_log_level_get_type_by_id         (const gchar                  *id);
 
 HYSCAN_API
-const gchar *             hyscan_track_get_name_by_type           (HyScanTrackType               type);
+const gchar *             hyscan_track_get_id_by_type             (HyScanTrackType               type);
 
 HYSCAN_API
-HyScanTrackType           hyscan_track_get_type_by_name           (const gchar                  *name);
+HyScanTrackType           hyscan_track_get_type_by_id             (const gchar                  *id);
 
 HYSCAN_API
-const gchar *             hyscan_channel_get_name_by_types        (HyScanSourceType              source,
+const gchar *             hyscan_channel_get_id_by_types          (HyScanSourceType              source,
                                                                    HyScanChannelType             type,
                                                                    guint                         channel);
 
 HYSCAN_API
-gboolean                  hyscan_channel_get_types_by_name        (const gchar                  *name,
+gboolean                  hyscan_channel_get_types_by_id          (const gchar                  *id,
                                                                    HyScanSourceType             *source,
                                                                    HyScanChannelType            *type,
                                                                    guint                        *channel);

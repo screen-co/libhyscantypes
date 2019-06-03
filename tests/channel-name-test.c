@@ -44,7 +44,7 @@ main (int    argc,
 
   for (source_in = HYSCAN_SOURCE_LOG; source_in < HYSCAN_SOURCE_LAST; source_in++)
     {
-      g_message ("Checking source %s.", hyscan_source_get_name_by_type (source_in));
+      g_message ("Checking source %s.", hyscan_source_get_id_by_type (source_in));
 
       for (type_in = HYSCAN_CHANNEL_DATA; type_in < HYSCAN_CHANNEL_LAST; type_in++)
         {
@@ -61,11 +61,11 @@ main (int    argc,
               if ((source_in == HYSCAN_SOURCE_LOG) && (index_in > 1))
                 break;
 
-              name = hyscan_channel_get_name_by_types (source_in, type_in, index_in);
+              name = hyscan_channel_get_id_by_types (source_in, type_in, index_in);
               if (name == NULL)
-                g_error ("can't get channel name for source %s", hyscan_source_get_name_by_type (source_in));
+                g_error ("can't get channel name for source %s", hyscan_source_get_id_by_type (source_in));
 
-              if (!hyscan_channel_get_types_by_name (name, &source_out, &type_out, &index_out))
+              if (!hyscan_channel_get_types_by_id (name, &source_out, &type_out, &index_out))
                 g_error ("can't parse channel name %s", name);
 
               if ((source_out != source_in) ||

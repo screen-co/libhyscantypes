@@ -43,8 +43,8 @@
  * Все данные в HyScan имеют определённый тип #HyScanDataType. Для определения
  * типа данных и его характеристик используются следующие функции:
  *
- * - #hyscan_data_get_name_by_type - функция возвращает название данных для указанного типа;
- * - #hyscan_data_get_type_by_name - функция определяет тип данных по имени;
+ * - #hyscan_data_get_id_by_type - функция возвращает идентификатор типа данных;
+ * - #hyscan_data_get_type_by_id - функция возвращает тип данных;
  * - #hyscan_data_get_point_size - функция возвращает размер одного элемента данных в байтах.
  *
  * Эти типы используются только для данных записанных в системе хранения. В
@@ -59,8 +59,8 @@
  * определения типа дискретизации и её характеристик используются следующие
  * функции:
  *
- * - #hyscan_discretization_get_name_by_type - функция возвращает название дискретизации для указанного типа.
- * - #hyscan_discretization_get_type_by_name - функция определяет тип дискретизации по имени;
+ * - #hyscan_discretization_get_id_by_type - функция возвращает идентификатор типа дискретизации;
+ * - #hyscan_discretization_get_type_by_id - функция возвращает тип дискретизации;
  * - #hyscan_discretization_get_type_by_data - функция возвращает тип дискретизации данных по их типу.
  *
  * Также вводится понятие источник данных - #HyScanSourceType. Источники
@@ -68,22 +68,23 @@
  * сигнала дискретизированную во времени, и данные от датчиков, например
  * NMEA строки.
  *
- * Функции #hyscan_source_get_name_by_type и #hyscan_source_get_type_by_name
- * используются для получения названия источника данных по его типу и наоборот.
+ * Функции #hyscan_source_get_id_by_type и #hyscan_source_get_type_by_id
+ * используются для получения идентификатора источника данных по его типу и
+ * наоборот.
  *
  * Функции #hyscan_source_is_sensor и #hyscan_source_is_sonar используются
  * для проверки принадлежности источника данных к определённому классу данных:
  * гидролкационные данные или данные датчиков.
  *
  * Запись гидролокационных данных ведётся в так называемые галсы. Исторически,
- * галсом называется прямолинейный участок движения судна, на котором производится
- * гидроакустическая съёмка. Несколько галсов объединяются в проекты, которые
- * находятся в системе хранения - #HyScanDB.
+ * галсом называется прямолинейный участок движения судна, на котором
+ * производится гидроакустическая съёмка. Несколько галсов объединяются в
+ * проекты, которые находятся в системе хранения - #HyScanDB.
  *
  * При записи галса, пользователь должен выбрать один из типов #HyScanTrackType
- * в качестве вспомогательной информации. Функции #hyscan_track_get_name_by_type
- * и #hyscan_track_get_type_by_name используются для преобразования типа галсов
- * в строковое представление и наоборот.
+ * в качестве вспомогательной информации. Функции #hyscan_track_get_id_by_type
+ * и #hyscan_track_get_type_by_id используются для преобразования типа галсов
+ * в идентификатор и наоборот.
  *
  * Совокупность источника данных и его типа образует логический канал данных в
  * системе хранения. Данные, записанные в каналы системы хранения, имеют
@@ -91,9 +92,9 @@
  * #HyScanSoundVelocity, #HyScanAntennaOffset, #HyScanRawDataInfo и
  * #HyScanAcousticDataInfo.
  *
- * Для формирования названия канала данных можно использовать функцию
- * #hyscan_channel_get_name_by_types. Функция #hyscan_channel_get_types_by_name
- * используется для получения типа источника данных по названию канала.
+ * Для формирования идентификатора канала данных можно использовать функцию
+ * #hyscan_channel_get_id_by_types. Функция #hyscan_channel_get_types_by_id
+ * используется для получения типа источника данных по идентификатору канала.
  */
 
 #include "hyscan-constructor.h"
@@ -108,49 +109,49 @@
 #define SIGNAL_CHANNEL_PREFIX  "-signal"
 #define TVG_CHANNEL_PREFIX     "-tvg"
 
-/* Типы данных и их названия. */
+/* Типы данных и их идентификаторы. */
 typedef struct
 {
   GQuark                       quark;
-  const gchar                 *name;
+  const gchar                 *id;
   HyScanDataType               type;
   guint32                      size;
   HyScanDiscretizationType     discretization;
 } HyScanDataTypeInfo;
 
-/* Типы дискретизации и их названия. */
+/* Типы дискретизации и их идентификаторы. */
 typedef struct
 {
   GQuark                       quark;
-  const gchar                 *name;
+  const gchar                 *id;
   HyScanDiscretizationType     type;
 } HyScanDiscretizationTypeInfo;
 
-/* Типы источников данных и их названия. */
+/* Типы источников данных и их идентификаторы. */
 typedef struct
 {
   GQuark                       quark;
-  const gchar                 *name;
+  const gchar                 *id;
   HyScanSourceType             type;
 } HyScanSourceTypeInfo;
 
-/* Уровни сообщений и их названия. */
+/* Уровни сообщений и их идентификаторы. */
 typedef struct
 {
   GQuark                       quark;
-  const gchar                 *name;
+  const gchar                 *id;
   HyScanLogLevel               level;
 } HyScanLogLevelInfo;
 
-/* Типы галсов и их названия. */
+/* Типы галсов и их идентификаторы. */
 typedef struct
 {
   GQuark                       quark;
-  const gchar                 *name;
+  const gchar                 *id;
   HyScanTrackType              type;
 } HyScanTrackTypeInfo;
 
-/* Типы данных и их названия. */
+/* Типы данных и их идентификаторы. */
 static HyScanDataTypeInfo hyscan_data_types_info[] =
 {
   { 0, "blob",                 HYSCAN_DATA_BLOB,
@@ -209,7 +210,7 @@ static HyScanDataTypeInfo hyscan_data_types_info[] =
     0,                         HYSCAN_DISCRETIZATION_INVALID }
 };
 
-/* Типы дискретизации и их названия. */
+/* Типы дискретизации и их идентификаторы. */
 static HyScanDiscretizationTypeInfo hyscan_discretization_types_info[] =
 {
   { 0, "real",                 HYSCAN_DISCRETIZATION_REAL },
@@ -220,7 +221,7 @@ static HyScanDiscretizationTypeInfo hyscan_discretization_types_info[] =
   { 0, NULL,                   HYSCAN_DISCRETIZATION_INVALID }
 };
 
-/* Типы источников данных и их названия. */
+/* Типы источников данных и их идентификаторы. */
 static HyScanSourceTypeInfo hyscan_source_types_info[] =
 {
   { 0, "log",                  HYSCAN_SOURCE_LOG },
@@ -256,7 +257,7 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, NULL,                   HYSCAN_SOURCE_INVALID }
 };
 
-/* Уровни сообщений и их названия. */
+/* Уровни сообщений и их идентификаторы. */
 static HyScanLogLevelInfo hyscan_log_levels_info[] =
 {
   { 0, "debug",                HYSCAN_LOG_LEVEL_DEBUG },
@@ -269,7 +270,7 @@ static HyScanLogLevelInfo hyscan_log_levels_info[] =
   { 0, NULL,                   0 }
 };
 
-/* Типы галсов и их названия. */
+/* Типы галсов и их идентификаторы. */
 static HyScanTrackTypeInfo hyscan_track_types_info[] =
 {
   { 0, "calibration",          HYSCAN_TRACK_CALIBRATION },
@@ -287,20 +288,20 @@ hyscan_types_initialize (void)
 {
   guint i;
 
-  for (i = 0; hyscan_data_types_info[i].name != NULL; i++)
-    hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].name);
+  for (i = 0; hyscan_data_types_info[i].id != NULL; i++)
+    hyscan_data_types_info[i].quark = g_quark_from_static_string (hyscan_data_types_info[i].id);
 
-  for (i = 0; hyscan_discretization_types_info[i].name != NULL; i++)
-    hyscan_discretization_types_info[i].quark = g_quark_from_static_string (hyscan_discretization_types_info[i].name);
+  for (i = 0; hyscan_discretization_types_info[i].id != NULL; i++)
+    hyscan_discretization_types_info[i].quark = g_quark_from_static_string (hyscan_discretization_types_info[i].id);
 
-  for (i = 0; hyscan_log_levels_info[i].name != NULL; i++)
-    hyscan_log_levels_info[i].quark = g_quark_from_static_string (hyscan_log_levels_info[i].name);
+  for (i = 0; hyscan_log_levels_info[i].id != NULL; i++)
+    hyscan_log_levels_info[i].quark = g_quark_from_static_string (hyscan_log_levels_info[i].id);
 
-  for (i = 0; hyscan_track_types_info[i].name != NULL; i++)
-    hyscan_track_types_info[i].quark = g_quark_from_static_string (hyscan_track_types_info[i].name);
+  for (i = 0; hyscan_track_types_info[i].id != NULL; i++)
+    hyscan_track_types_info[i].quark = g_quark_from_static_string (hyscan_track_types_info[i].id);
 
-  for (i = 0; hyscan_source_types_info[i].name != NULL; i++)
-    hyscan_source_types_info[i].quark = g_quark_from_static_string (hyscan_source_types_info[i].name);
+  for (i = 0; hyscan_source_types_info[i].id != NULL; i++)
+    hyscan_source_types_info[i].quark = g_quark_from_static_string (hyscan_source_types_info[i].id);
 
   atexit (xmlCleanupParser);
 }
@@ -405,15 +406,15 @@ G_DEFINE_BOXED_TYPE (HyScanAntennaOffset, hyscan_antenna_offset, hyscan_antenna_
 G_DEFINE_BOXED_TYPE (HyScanAcousticDataInfo, hyscan_acoustic_data_info, hyscan_acoustic_data_info_copy, hyscan_acoustic_data_info_free)
 
 /**
- * hyscan_data_get_name_by_type:
+ * hyscan_data_get_id_by_type:
  * @type: тип данныx
  *
- * Функция преобразовывает нумерованное значение типа данных в название типа.
+ * Функция преобразовывает нумерованное значение типа данных в идентификатор.
  *
- * Returns: Строка с названием типа данных.
+ * Returns: (nullable): Идентификатор типа данных или %NULL.
  */
 const gchar *
-hyscan_data_get_name_by_type (HyScanDataType type)
+hyscan_data_get_id_by_type (HyScanDataType type)
 {
   guint i;
 
@@ -421,28 +422,28 @@ hyscan_data_get_name_by_type (HyScanDataType type)
   for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     {
       if (hyscan_data_types_info[i].type == type)
-        return hyscan_data_types_info[i].name;
+        return hyscan_data_types_info[i].id;
     }
 
   return NULL;
 }
 
 /**
- * hyscan_data_get_type_by_name:
- * @name: название типа данныx
+ * hyscan_data_get_type_by_id:
+ * @id: идентификатор типа данныx
  *
- * Функция преобразовывает строку с названием типа данных в нумерованное значение.
+ * Функция преобразовывает идентификатор типа данных в нумерованное значение.
  *
  * Returns: Тип данных.
  */
 HyScanDataType
-hyscan_data_get_type_by_name (const gchar *name)
+hyscan_data_get_type_by_id (const gchar *id)
 {
   GQuark quark;
   guint i;
 
   /* Ищем тип данных с указанным именем. */
-  quark = g_quark_try_string (name);
+  quark = g_quark_try_string (id);
   for (i = 0; hyscan_data_types_info[i].quark != 0; i++)
     {
       if (hyscan_data_types_info[i].quark == quark)
@@ -456,7 +457,8 @@ hyscan_data_get_type_by_name (const gchar *name)
  * hyscan_data_get_point_size:
  * @type: тип данныx
  *
- * Функция возвращает размер одного элемента данных в байтах, для указанного типа.
+ * Функция возвращает размер одного элемента данных в байтах, для указанного
+ * типа данных.
  *
  * Returns: Размер одного елемента данных в байтах.
  */
@@ -476,16 +478,16 @@ hyscan_data_get_point_size (HyScanDataType type)
 }
 
 /**
- * hyscan_discretization_get_name_by_type:
+ * hyscan_discretization_get_id_by_type:
  * @type: тип дискретизации данныx
  *
  * Функция преобразовывает нумерованное значение типа дискретизации в
- * название типа.
+ * идентификатор.
  *
- * Returns: Строка с названием типа дискретизации.
+ * Returns: (nullable): Идентификатор типа дискретизации или %NULL.
  */
 const gchar *
-hyscan_discretization_get_name_by_type (HyScanDiscretizationType type)
+hyscan_discretization_get_id_by_type (HyScanDiscretizationType type)
 {
   guint i;
 
@@ -493,29 +495,29 @@ hyscan_discretization_get_name_by_type (HyScanDiscretizationType type)
   for (i = 0; hyscan_discretization_types_info[i].quark != 0; i++)
     {
       if (hyscan_discretization_types_info[i].type == type)
-        return hyscan_discretization_types_info[i].name;
+        return hyscan_discretization_types_info[i].id;
     }
 
   return NULL;
 }
 
 /**
- * hyscan_discretization_get_type_by_name:
- * @name: название типа дискретизации
+ * hyscan_discretization_get_type_by_id:
+ * @id: идентификатор типа дискретизации
  *
- * Функция преобразовывает строку с названием типа дискретизации в
- * нумерованное значение.
+ * Функция преобразовывает идентификатор типа дискретизации в нумерованное
+ * значение.
  *
  * Returns: Тип дискретизации.
  */
 HyScanDiscretizationType
-hyscan_discretization_get_type_by_name (const gchar *name)
+hyscan_discretization_get_type_by_id (const gchar *id)
 {
   GQuark quark;
   guint i;
 
   /* Ищем тип дискретизации с указанным именем. */
-  quark = g_quark_try_string (name);
+  quark = g_quark_try_string (id);
   for (i = 0; hyscan_discretization_types_info[i].quark != 0; i++)
     {
       if (hyscan_discretization_types_info[i].quark == quark)
@@ -549,44 +551,46 @@ hyscan_discretization_get_type_by_data (HyScanDataType type)
 }
 
 /**
- * hyscan_source_get_name_by_type:
+ * hyscan_source_get_id_by_type:
  * @source: тип источника данныx
  *
- * Функция возвращает название источника данных по его типу.
+ * Функция преобразовывает нумерованное значение источника данных в
+ * идентификатор.
  *
- * Returns: Название источника данных или NULL.
+ * Returns: (nullable): Идентификатор источника данных или %NULL.
  */
 const gchar *
-hyscan_source_get_name_by_type (HyScanSourceType source)
+hyscan_source_get_id_by_type (HyScanSourceType source)
 {
   guint i;
 
-  /* Ищем название канала для указанных характеристик. */
+  /* Ищем идентификатор канала для указанных характеристик. */
   for (i = 0; hyscan_source_types_info[i].quark != 0; i++)
     {
       if (hyscan_source_types_info[i].type == source)
-        return hyscan_source_types_info[i].name;
+        return hyscan_source_types_info[i].id;
     }
 
   return NULL;
 }
 
 /**
- * hyscan_source_get_type_by_name:
- * @name: название источника данныx
+ * hyscan_source_get_type_by_id:
+ * @id: идентификатор источника данныx
  *
- * Функция возвращает тип источника данных по его названию.
+ * Функция преобразовывает идентификатор источника данных в нумерованное
+ * значение.
  *
  * Returns: Тип источника данных.
  */
 HyScanSourceType
-hyscan_source_get_type_by_name (const gchar *name)
+hyscan_source_get_type_by_id (const gchar *id)
 {
   GQuark quark;
   guint i;
 
   /* Ищем канал с указанным именем. */
-  quark = g_quark_try_string (name);
+  quark = g_quark_try_string (id);
   for (i = 0; hyscan_source_types_info[i].quark != 0; i++)
     {
       if (hyscan_source_types_info[i].quark == quark)
@@ -664,44 +668,46 @@ hyscan_source_is_sonar (HyScanSourceType source)
 }
 
 /**
- * hyscan_log_level_get_name_by_type:
+ * hyscan_log_level_get_id_by_type:
  * @level: тип сообщения
  *
- * Функция возвращает название типа информационного сообщения.
+ * Функция преобразовывает нумерованное значение типа сообщения в
+ * идентификатор.
  *
- * Returns: Название типа информационного сообщения или NULL.
+ * Returns: (nullable): Идентификатор типа сообщения или %NULL.
  */
 const gchar *
-hyscan_log_level_get_name_by_type (HyScanLogLevel level)
+hyscan_log_level_get_id_by_type (HyScanLogLevel level)
 {
   guint i;
 
-  /* Ищем название типа. */
+  /* Ищем идентификатор типа. */
   for (i = 0; hyscan_log_levels_info[i].quark != 0; i++)
     {
       if (hyscan_log_levels_info[i].level == level)
-        return hyscan_log_levels_info[i].name;
+        return hyscan_log_levels_info[i].id;
     }
 
   return NULL;
 }
 
 /**
- * hyscan_log_level_get_type_by_name:
- * @name: название типа сообщения
+ * hyscan_log_level_get_type_by_id:
+ * @id: идентификатор типа сообщения
  *
- * Функция возвращает тип информационного сообщения по его названию.
+ * Функция преобразовывает идентификатор типа сообщения в нумерованное
+ * значение.
  *
- * Returns: Тип информационного сообщения.
+ * Returns: Тип сообщения.
  */
 HyScanLogLevel
-hyscan_log_level_get_type_by_name (const gchar *name)
+hyscan_log_level_get_type_by_id (const gchar *id)
 {
   GQuark quark;
   guint i;
 
-  /* Ищем тип по названию. */
-  quark = g_quark_try_string (name);
+  /* Ищем тип по идентификатору. */
+  quark = g_quark_try_string (id);
   for (i = 0; hyscan_log_levels_info[i].quark != 0; i++)
     {
       if (hyscan_log_levels_info[i].quark == quark)
@@ -712,44 +718,44 @@ hyscan_log_level_get_type_by_name (const gchar *name)
 }
 
 /**
- * hyscan_track_get_name_by_type:
+ * hyscan_track_get_id_by_type:
  * @type: тип галса
  *
- * Функция возвращает название типа галса.
+ * Функция преобразовывает нумерованное значение типа галса в идентификатор.
  *
- * Returns: Название типа галса или NULL.
+ * Returns: (nullable): Идентификатор типа галса или %NULL.
  */
 const gchar *
-hyscan_track_get_name_by_type (HyScanTrackType type)
+hyscan_track_get_id_by_type (HyScanTrackType type)
 {
   guint i;
 
-  /* Ищем название типа. */
+  /* Ищем иентификатор типа. */
   for (i = 0; hyscan_track_types_info[i].quark != 0; i++)
     {
       if (hyscan_track_types_info[i].type == type)
-        return hyscan_track_types_info[i].name;
+        return hyscan_track_types_info[i].id;
     }
 
   return NULL;
 }
 
 /**
- * hyscan_track_get_type_by_name:
- * @name: название типа галса
+ * hyscan_track_get_type_by_id:
+ * @id: идентификатор типа галса
  *
- * Функция возвращает тип галса по его названию.
+ * Функция преобразовывает идентификатор типа галса в нумерованное значение.
  *
  * Returns: Тип галса.
  */
 HyScanTrackType
-hyscan_track_get_type_by_name (const gchar *name)
+hyscan_track_get_type_by_id (const gchar *id)
 {
   GQuark quark;
   guint i;
 
-  /* Ищем тип по названию. */
-  quark = g_quark_try_string (name);
+  /* Ищем тип по идентификатору. */
+  quark = g_quark_try_string (id);
   for (i = 0; hyscan_track_types_info[i].quark != 0; i++)
     {
       if (hyscan_track_types_info[i].quark == quark)
@@ -760,34 +766,34 @@ hyscan_track_get_type_by_name (const gchar *name)
 }
 
 /**
- * hyscan_channel_get_name_by_types:
+ * hyscan_channel_get_id_by_types:
  * @source: тип источника данныx
  * @type: тип канала данныx
  * @channel: индекс канала данныx
  *
- * Функция возвращает название канала данных для указанных характеристик.
+ * Функция возвращает идентификатор канала данных для указанных характеристик.
  *
- * Returns: Название канала данных.
+ * Returns: Идентификатор канала данных.
  */
 const gchar *
-hyscan_channel_get_name_by_types (HyScanSourceType  source,
-                                  HyScanChannelType type,
-                                  guint             channel)
+hyscan_channel_get_id_by_types (HyScanSourceType  source,
+                                HyScanChannelType type,
+                                guint             channel)
 {
-  const gchar *source_name;
-  const gchar *channel_type;
+  const gchar *source_id;
+  const gchar *channel_id;
   gchar channel_name[256];
-  GQuark id;
+  GQuark quark;
 
   if (channel == 0)
     return NULL;
 
-  source_name = hyscan_source_get_name_by_type (source);
-  if (source_name == NULL)
+  source_id = hyscan_source_get_id_by_type (source);
+  if (source_id == NULL)
     return NULL;
 
   if (source == HYSCAN_SOURCE_LOG)
-    return source_name;
+    return source_id;
 
   if (hyscan_source_is_sensor (source))
     type = HYSCAN_CHANNEL_DATA;
@@ -795,19 +801,19 @@ hyscan_channel_get_name_by_types (HyScanSourceType  source,
   switch (type)
     {
     case HYSCAN_CHANNEL_DATA:
-      channel_type = DATA_CHANNEL_PREFIX;
+      channel_id = DATA_CHANNEL_PREFIX;
       break;
 
     case HYSCAN_CHANNEL_NOISE:
-      channel_type = NOISE_CHANNEL_PREFIX;
+      channel_id = NOISE_CHANNEL_PREFIX;
       break;
 
     case HYSCAN_CHANNEL_SIGNAL:
-      channel_type = SIGNAL_CHANNEL_PREFIX;
+      channel_id = SIGNAL_CHANNEL_PREFIX;
       break;
 
     case HYSCAN_CHANNEL_TVG:
-      channel_type = TVG_CHANNEL_PREFIX;
+      channel_id = TVG_CHANNEL_PREFIX;
       break;
 
     default:
@@ -817,50 +823,50 @@ hyscan_channel_get_name_by_types (HyScanSourceType  source,
   if (channel == 1)
     {
       g_snprintf (channel_name, sizeof (channel_name),
-                  "%s%s", source_name, channel_type);
+                  "%s%s", source_id, channel_id);
     }
   else
     {
       g_snprintf (channel_name, sizeof (channel_name),
-                  "%s%s-%u", source_name, channel_type, channel);
+                  "%s%s-%u", source_id, channel_id, channel);
     }
 
-  id = g_quark_from_string (channel_name);
+  quark = g_quark_from_string (channel_name);
 
-  return g_quark_to_string (id);
+  return g_quark_to_string (quark);
 }
 
 /**
- * hyscan_channel_get_types_by_name:
- * @name: название канала данныx
+ * hyscan_channel_get_types_by_id:
+ * @id: идентификатор канала данныx
  * @source: (out): тип источника данныx
  * @type: (out): тип канала данныx
  * @channel: (out): индекс канала данныx
  *
- * Функция возвращает характеристики канала данных по его имени.
+ * Функция возвращает характеристики канала данных по его идентификатору.
  *
  * Returns: %TRUE если характеристики канала определены, иначе %FALSE.
  */
 gboolean
-hyscan_channel_get_types_by_name (const gchar       *name,
-                                  HyScanSourceType  *source,
-                                  HyScanChannelType *type,
-                                  guint             *channel)
+hyscan_channel_get_types_by_id (const gchar       *id,
+                                HyScanSourceType  *source,
+                                HyScanChannelType *type,
+                                guint             *channel)
 {
   const gchar *cur;
   gchar *end;
   guint i;
 
-  for (i = 0; hyscan_source_types_info[i].name != NULL; i++)
+  for (i = 0; hyscan_source_types_info[i].id != NULL; i++)
     {
-      cur = name;
-      if (g_str_has_prefix (cur, hyscan_source_types_info[i].name))
+      cur = id;
+      if (g_str_has_prefix (cur, hyscan_source_types_info[i].id))
         {
           *source = hyscan_source_types_info[i].type;
           *type = HYSCAN_CHANNEL_DATA;
 
-          /* Проверяем что название источника данных не имеет продолжения. */
-          cur += strlen (hyscan_source_types_info[i].name);
+          /* Проверяем что идентификатор источника данных не имеет продолжения. */
+          cur += strlen (hyscan_source_types_info[i].id);
           if (*cur == 0)
             {
               *channel = 1;
@@ -898,7 +904,6 @@ hyscan_channel_get_types_by_name (const gchar       *name,
             {
               cur += 1;
             }
-
 
           *channel = g_ascii_strtoull (cur, &end, 10);
           if ((*channel > 0) && (*end == 0))
