@@ -33,6 +33,7 @@
  */
 
 #include <gio/gio.h>
+#include <hyscan-param-proxy.h>
 #include <hyscan-data-box.h>
 #include <hyscan-param-controller.h>
 
@@ -61,9 +62,10 @@ set_cb (HyScanDataBox   *data,
       return FALSE;
     }
 
-  if (g_strcmp0 (cur_name, names[0]) != 0)
+  if (g_strcmp0 (names[0] + sizeof ("/orig"), cur_name + sizeof ("/data-box")) != 0)
     {
-      g_warning ("set_cb: incorrect name '%s', should be '%s'", names[0], cur_name);
+      g_warning ("set_cb: incorrect name '%s', should be '%s'",
+                 names[0] + sizeof ("/orig"), cur_name + sizeof ("/data-box"));
       return FALSE;
     }
 
@@ -640,13 +642,14 @@ int
 main (int    argc,
       char **argv)
 {
-  gchar *param_type = NULL;
   gchar *schema_file = NULL;
   gboolean silent = FALSE;
 
-  HyScanParamController *controller = NULL;
-  HyScanDataBox *data = NULL;
+  HyScanParamController *controller;
+  HyScanDataBox *data;
+
   HyScanDataSchema *schema;
+  HyScanParamProxy *proxy;
   HyScanParam *param;
   GMutex lock;
 
@@ -665,7 +668,6 @@ main (int    argc,
     GOptionEntry entries[] =
       {
         { "dump-schema", 'd', 0, G_OPTION_ARG_STRING, &schema_file, "Dump test schema to file", NULL },
-        { "param-type", 'p', 0, G_OPTION_ARG_STRING, &param_type, "HyScanParam type (data-box, controller)", NULL },
         { "silent", 's', 0, G_OPTION_ARG_NONE, &silent, "Don't show messages", NULL },
         { NULL }
       };
@@ -703,80 +705,79 @@ main (int    argc,
   if (keys_list == NULL)
     g_error ("empty schema");
 
-  if (param_type == NULL)
-    param_type = g_strdup ("data-box");
+  /* Бэкенд - data-box. */
+  data = hyscan_data_box_new_from_string (schema_data, "test");
+  g_signal_connect (data, "set", G_CALLBACK (set_cb), NULL);
+  g_signal_connect (data, "changed", G_CALLBACK (changed_cb), NULL);
 
-  if (g_strcmp0 (param_type, "data-box") == 0)
+  /* Бэкенд - controller. */
+  controller = hyscan_param_controller_new (&lock);
+  for (i = 0; keys_list[i] != NULL; i++)
     {
-      data = hyscan_data_box_new_from_string (schema_data, "test");
-      g_signal_connect (data, "set", G_CALLBACK (set_cb), NULL);
-      g_signal_connect (data, "changed", G_CALLBACK (changed_cb), NULL);
+      HyScanDataSchemaKeyType type;
+      HyScanDataSchemaKeyAccess access;
+      gpointer data;
 
-      param = HYSCAN_PARAM (data);
-    }
-  else if (g_strcmp0 (param_type, "controller") == 0)
-    {
-      controller = hyscan_param_controller_new (&lock);
-
-      for (i = 0; keys_list[i] != NULL; i++)
+      access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
+      if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
         {
-          HyScanDataSchemaKeyType type;
-          HyScanDataSchemaKeyAccess access;
-          gpointer data;
-
-          access = hyscan_data_schema_key_get_access (schema, keys_list[i]);
-          if (!(access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
-            {
-              hyscan_param_controller_add_user (controller, keys_list[i], NULL, NULL, NULL);
-              continue;
-            }
-
-          type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
-          switch (type)
-            {
-            case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
-              data = g_new (gboolean, 1);
-              hyscan_param_controller_add_boolean (controller, keys_list[i], data);
-              objects1 = g_list_prepend (objects1, data);
-              break;
-
-            case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
-              data = g_new (gint64, 1);
-              hyscan_param_controller_add_integer (controller, keys_list[i], data);
-              objects1 = g_list_prepend (objects1, data);
-              break;
-
-            case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
-              data = g_new (gdouble, 1);
-              hyscan_param_controller_add_double (controller, keys_list[i], data);
-              objects1 = g_list_prepend (objects1, data);
-              break;
-
-            case HYSCAN_DATA_SCHEMA_KEY_STRING:
-              data = g_string_new (NULL);
-              hyscan_param_controller_add_string (controller, keys_list[i], data);
-              objects2 = g_list_prepend (objects2, data);
-              break;
-
-            case HYSCAN_DATA_SCHEMA_KEY_ENUM:
-              data = g_new (gint64, 1);
-              hyscan_param_controller_add_enum (controller, keys_list[i], data);
-              objects1 = g_list_prepend (objects1, data);
-              break;
-
-            default:
-              break;
-            }
+          hyscan_param_controller_add_user (controller, keys_list[i], NULL, NULL, NULL);
+          continue;
         }
 
-      hyscan_param_controller_set_schema (controller, schema);
+      type = hyscan_data_schema_key_get_value_type (schema, keys_list[i]);
+      switch (type)
+        {
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+          data = g_new (gboolean, 1);
+          hyscan_param_controller_add_boolean (controller, keys_list[i], data);
+          objects1 = g_list_prepend (objects1, data);
+          break;
 
-      param = HYSCAN_PARAM (controller);
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+          data = g_new (gint64, 1);
+          hyscan_param_controller_add_integer (controller, keys_list[i], data);
+          objects1 = g_list_prepend (objects1, data);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+          data = g_new (gdouble, 1);
+          hyscan_param_controller_add_double (controller, keys_list[i], data);
+          objects1 = g_list_prepend (objects1, data);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
+          data = g_string_new (NULL);
+          hyscan_param_controller_add_string (controller, keys_list[i], data);
+          objects2 = g_list_prepend (objects2, data);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+          data = g_new (gint64, 1);
+          hyscan_param_controller_add_enum (controller, keys_list[i], data);
+          objects1 = g_list_prepend (objects1, data);
+          break;
+
+        default:
+          break;
+        }
     }
-  else
-    {
-      g_error ("unsupported param type %s", param_type);
-    }
+  hyscan_param_controller_set_schema (controller, schema);
+
+  g_object_unref (schema);
+
+  /* Прокси для двух бэкендов. */
+  proxy = hyscan_param_proxy_new ();
+  hyscan_param_proxy_add (proxy, "/data-box/", HYSCAN_PARAM (data), "/orig");
+  hyscan_param_proxy_add (proxy, "/controller", HYSCAN_PARAM (controller), "/orig/");
+  hyscan_param_proxy_bind (proxy);
+  param = HYSCAN_PARAM (proxy);
+
+  /* Список проксируемых параметров. */
+  schema = hyscan_param_schema (param);
+  keys_list = hyscan_data_schema_list_keys (schema);
+  if (keys_list == NULL)
+    g_error ("empty schema");
 
   for (i = 0; keys_list[i] != NULL; i++)
     {
@@ -815,7 +816,7 @@ main (int    argc,
         }
     }
 
-  if (HYSCAN_IS_DATA_BOX (param))
+  /* Проверяем сериализацию data-box. */
     {
       HyScanDataBox *data2;
       gchar *sparams;
@@ -832,24 +833,21 @@ main (int    argc,
       if (!hyscan_data_box_deserialize (data2, sparams))
         g_error ("can't deserialize values");
 
-      compare_values (param, HYSCAN_PARAM (data2));
+      compare_values (HYSCAN_PARAM (data), HYSCAN_PARAM (data2));
 
       g_object_unref (data2);
       g_free (sparams);
     }
-  else if (HYSCAN_IS_PARAM_CONTROLLER (param))
-    {
-      g_list_free_full (objects1, g_free);
-      g_list_free_full (objects2, g_string_destroy);
-    }
 
-  g_clear_object (&controller);
-  g_clear_object (&data);
+  g_list_free_full (objects1, g_free);
+  g_list_free_full (objects2, g_string_destroy);
+
+  g_object_unref (proxy);
+  g_object_unref (controller);
+  g_object_unref (data);
   g_object_unref (schema);
   g_object_unref (list);
-
   g_free (schema_data);
-  g_free (param_type);
 
   g_mutex_clear (&lock);
 

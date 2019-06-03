@@ -29,6 +29,7 @@ add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-data-schema-internal.c
              hyscan-param-list.c
              hyscan-param.c
+             hyscan-param-proxy.c
              hyscan-param-controller.c
              hyscan-data-box.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c")

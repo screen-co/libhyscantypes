@@ -29,9 +29,7 @@ add_test (NAME DataSchemaTest COMMAND data-schema-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 add_test (NAME ParamListTest COMMAND param-list-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-add_test (NAME ParamTest:data-box COMMAND param-test -p data-box
-          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-add_test (NAME ParamTest:controller COMMAND param-test -p controller
+add_test (NAME ParamTest COMMAND param-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 install (TARGETS slice-pool-test
