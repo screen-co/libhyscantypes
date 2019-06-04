@@ -427,7 +427,10 @@ HYSCAN_API
 HyScanDiscretizationType  hyscan_discretization_get_type_by_data  (HyScanDataType                type);
 
 HYSCAN_API
-const gchar              *hyscan_source_get_id_by_type            (HyScanSourceType              source);
+const gchar *             hyscan_source_get_id_by_type            (HyScanSourceType              source);
+
+HYSCAN_API
+const gchar *             hyscan_source_get_name_by_type          (HyScanSourceType              source);
 
 HYSCAN_API
 HyScanSourceType          hyscan_source_get_type_by_id            (const gchar                  *id);

@@ -70,7 +70,9 @@
  *
  * Функции #hyscan_source_get_id_by_type и #hyscan_source_get_type_by_id
  * используются для получения идентификатора источника данных по его типу и
- * наоборот.
+ * наоборот. Функция #hyscan_source_get_name_by_type возвращает название
+ * источника данных, подходящее для применения в графическом интерфейсе
+ * пользователя.
  *
  * Функции #hyscan_source_is_sensor и #hyscan_source_is_sonar используются
  * для проверки принадлежности источника данных к определённому классу данных:
@@ -100,6 +102,7 @@
 #include "hyscan-constructor.h"
 #include "hyscan-types.h"
 
+#include <glib/gi18n-lib.h>
 #include <libxml/parser.h>
 #include <stdlib.h>
 #include <string.h>
@@ -133,6 +136,7 @@ typedef struct
   GQuark                       quark;
   const gchar                 *id;
   HyScanSourceType             type;
+  const gchar                 *name;
 } HyScanSourceTypeInfo;
 
 /* Уровни сообщений и их идентификаторы. */
@@ -224,37 +228,58 @@ static HyScanDiscretizationTypeInfo hyscan_discretization_types_info[] =
 /* Типы источников данных и их идентификаторы. */
 static HyScanSourceTypeInfo hyscan_source_types_info[] =
 {
-  { 0, "log",                  HYSCAN_SOURCE_LOG },
+  { 0, "log",                  HYSCAN_SOURCE_LOG,
+    N_("Log") },
 
-  { 0, "ss-starboard",         HYSCAN_SOURCE_SIDE_SCAN_STARBOARD },
-  { 0, "ss-starboard-low",     HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW },
-  { 0, "ss-starboard-hi",      HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI },
+  { 0, "ss-starboard",         HYSCAN_SOURCE_SIDE_SCAN_STARBOARD,
+    N_("Starboard sidescan") },
+  { 0, "ss-starboard-low",     HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_LOW,
+    N_("Starboard sidescan, lf") },
+  { 0, "ss-starboard-hi",      HYSCAN_SOURCE_SIDE_SCAN_STARBOARD_HI,
+    N_("Starboard sidescan, hf") },
 
-  { 0, "ss-port",              HYSCAN_SOURCE_SIDE_SCAN_PORT },
-  { 0, "ss-port-low",          HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW },
-  { 0, "ss-port-hi",           HYSCAN_SOURCE_SIDE_SCAN_PORT_HI },
+  { 0, "ss-port",              HYSCAN_SOURCE_SIDE_SCAN_PORT,
+    N_("Port sidescan") },
+  { 0, "ss-port-low",          HYSCAN_SOURCE_SIDE_SCAN_PORT_LOW,
+    N_("Port sidescan, lf") },
+  { 0, "ss-port-hi",           HYSCAN_SOURCE_SIDE_SCAN_PORT_HI,
+    N_("Port sidescan, hf") },
 
-  { 0, "echosounder",          HYSCAN_SOURCE_ECHOSOUNDER },
-  { 0, "echosounder-low",      HYSCAN_SOURCE_ECHOSOUNDER_LOW },
-  { 0, "echosounder-hi",       HYSCAN_SOURCE_ECHOSOUNDER_HI },
+  { 0, "echosounder",          HYSCAN_SOURCE_ECHOSOUNDER,
+    N_("Echosounder") },
+  { 0, "echosounder-low",      HYSCAN_SOURCE_ECHOSOUNDER_LOW,
+    N_("Echosounder, lf") },
+  { 0, "echosounder-hi",       HYSCAN_SOURCE_ECHOSOUNDER_HI,
+    N_("Echosounder, hf") },
 
-  { 0, "bathy-starboard",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD },
-  { 0, "bathy-port",           HYSCAN_SOURCE_BATHYMETRY_PORT },
+  { 0, "bathy-starboard",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
+    N_("Starboard bathymetry") },
+  { 0, "bathy-port",           HYSCAN_SOURCE_BATHYMETRY_PORT,
+    N_("Port bathymetry") },
 
-  { 0, "profiler",             HYSCAN_SOURCE_PROFILER },
-  { 0, "profiler-echo",        HYSCAN_SOURCE_PROFILER_ECHO },
+  { 0, "profiler",             HYSCAN_SOURCE_PROFILER,
+    N_("Profiler") },
+  { 0, "profiler-echo",        HYSCAN_SOURCE_PROFILER_ECHO,
+    N_("Profiler echosounder") },
 
-  { 0, "around-starboard",     HYSCAN_SOURCE_LOOK_AROUND_STARBOARD },
-  { 0, "around-port",          HYSCAN_SOURCE_LOOK_AROUND_PORT },
+  { 0, "around-starboard",     HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
+    N_("Look around, starboard") },
+  { 0, "around-port",          HYSCAN_SOURCE_LOOK_AROUND_PORT,
+    N_("Look around, port") },
 
-  { 0, "forward-look",         HYSCAN_SOURCE_FORWARD_LOOK },
-  { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO },
+  { 0, "forward-look",         HYSCAN_SOURCE_FORWARD_LOOK,
+    N_("Forwardlook") },
+  { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO,
+    N_("Forward echosounder") },
 
-  { 0, "sas",                  HYSCAN_SOURCE_SAS },
-  { 0, "nmea",                 HYSCAN_SOURCE_NMEA },
-  { 0, "1pps",                 HYSCAN_SOURCE_1PPS },
+  { 0, "sas",                  HYSCAN_SOURCE_SAS,
+    N_("SAS") },
+  { 0, "nmea",                 HYSCAN_SOURCE_NMEA,
+    N_("NMEA") },
+  { 0, "1pps",                 HYSCAN_SOURCE_1PPS,
+    N_("1 PPS") },
 
-  { 0, NULL,                   HYSCAN_SOURCE_INVALID }
+  { 0, NULL,                   HYSCAN_SOURCE_INVALID, NULL }
 };
 
 /* Уровни сообщений и их идентификаторы. */
@@ -569,6 +594,31 @@ hyscan_source_get_id_by_type (HyScanSourceType source)
     {
       if (hyscan_source_types_info[i].type == source)
         return hyscan_source_types_info[i].id;
+    }
+
+  return NULL;
+}
+
+/**
+ * hyscan_source_get_name_by_type:
+ * @source: тип источника данныx
+ *
+ * Функция возвращает название источника данных пригодное для отображения
+ * пользователю. Название источника данных возвращается в локализованном
+ * виде.
+ *
+ * Returns: (nullable): Название источника данных или %NULL.
+ */
+const gchar *
+hyscan_source_get_name_by_type (HyScanSourceType source)
+{
+  guint i;
+
+  /* Ищем идентификатор канала для указанных характеристик. */
+  for (i = 0; hyscan_source_types_info[i].quark != 0; i++)
+    {
+      if (hyscan_source_types_info[i].type == source)
+        return g_dgettext (GETTEXT_PACKAGE, hyscan_source_types_info[i].name);
     }
 
   return NULL;

@@ -59,5 +59,6 @@ add_definitions (${GLIB2_CFLAGS} ${LIBXML2_CFLAGS})
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscantypes")
 
 add_definitions (-DG_LOG_DOMAIN="HyScanTypes")
+add_definitions (-DGETTEXT_PACKAGE="hyscantypes")
 add_subdirectory (hyscantypes)
 add_subdirectory (tests)
