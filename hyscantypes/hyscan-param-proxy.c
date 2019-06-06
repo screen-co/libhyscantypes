@@ -108,7 +108,7 @@ hyscan_param_proxy_object_constructed (GObject *object)
   HyScanParamProxyPrivate *priv = proxy->priv;
 
   priv->keys = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                      NULL, hyscan_param_proxy_key_free);
+                                      g_free, hyscan_param_proxy_key_free);
 
   priv->list = hyscan_param_list_new ();
 
