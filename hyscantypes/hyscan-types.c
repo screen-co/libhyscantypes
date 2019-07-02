@@ -272,6 +272,9 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO,
     N_("Forward echosounder") },
 
+  { 0, "encoder",              HYSCAN_SOURCE_ENCODER,
+    N_("Encoder") },
+
   { 0, "sas",                  HYSCAN_SOURCE_SAS,
     N_("SAS") },
   { 0, "nmea",                 HYSCAN_SOURCE_NMEA,
@@ -664,6 +667,7 @@ hyscan_source_is_sensor (HyScanSourceType source)
 {
   switch (source)
     {
+    case HYSCAN_SOURCE_ENCODER:
     case HYSCAN_SOURCE_SAS:
     case HYSCAN_SOURCE_NMEA:
     case HYSCAN_SOURCE_1PPS:
