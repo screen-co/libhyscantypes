@@ -63,6 +63,7 @@ install (FILES hyscan-api.h
                hyscan-data-schema-builder.h
                hyscan-param-list.h
                hyscan-param.h
+               hyscan-param-proxy.h
                hyscan-param-controller.h
                hyscan-data-box.h
          COMPONENT development
