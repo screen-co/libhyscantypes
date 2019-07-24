@@ -667,10 +667,10 @@ hyscan_source_is_sensor (HyScanSourceType source)
 {
   switch (source)
     {
-    case HYSCAN_SOURCE_ENCODER:
     case HYSCAN_SOURCE_SAS:
     case HYSCAN_SOURCE_NMEA:
     case HYSCAN_SOURCE_1PPS:
+    case HYSCAN_SOURCE_ENCODER:
       return TRUE;
 
     default:
@@ -712,6 +712,7 @@ hyscan_source_is_sonar (HyScanSourceType source)
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
     case HYSCAN_SOURCE_FORWARD_LOOK:
     case HYSCAN_SOURCE_FORWARD_ECHO:
+    case HYSCAN_SOURCE_ENCODER:
       return TRUE;
 
     default:
