@@ -182,6 +182,7 @@ hyscan_param_proxy_add (HyScanParamProxy *proxy,
 {
   HyScanParamProxyPrivate *priv;
 
+  GList *backends;
   HyScanParamProxyBackend *backend;
   HyScanDataSchema *schema;
   const gchar * const *keys;
@@ -219,9 +220,25 @@ hyscan_param_proxy_add (HyScanParamProxy *proxy,
   root_path = hyscan_data_schema_internal_normalize_id (root);
   root_len = strlen (root_path);
 
-  backend = g_slice_new0 (HyScanParamProxyBackend);
-  backend->backend = g_object_ref (param);
-  backend->keys = g_hash_table_new (g_str_hash, g_str_equal);
+  backend = NULL;
+  backends = priv->backends;
+  while (backends != NULL)
+    {
+      backend = backends->data;
+      if (backend->backend == param)
+        break;
+
+      backends = g_list_next (backends);
+      backend = NULL;
+    }
+
+  if (backend == NULL)
+    {
+      backend = g_slice_new0 (HyScanParamProxyBackend);
+      backend->backend = g_object_ref (param);
+      backend->keys = g_hash_table_new (g_str_hash, g_str_equal);
+      priv->backends = g_list_prepend (priv->backends, backend);
+    }
 
   for (i = 0; keys[i] != NULL; i++)
     {
@@ -239,8 +256,6 @@ hyscan_param_proxy_add (HyScanParamProxy *proxy,
       g_hash_table_insert (priv->keys, proxy_key_path, proxy_key);
       g_hash_table_insert (backend->keys, (gchar*)keys[i], proxy_key_path);
     }
-
-  priv->backends = g_list_prepend (priv->backends, backend);
 
   g_object_unref (schema);
 
