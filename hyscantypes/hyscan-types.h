@@ -167,6 +167,7 @@ typedef enum
  * @HYSCAN_SOURCE_LOOK_AROUND_PORT: круговой обзор, левый борт
  * @HYSCAN_SOURCE_FORWARD_LOOK: вперёдсмотрящий гидролокатор
  * @HYSCAN_SOURCE_FORWARD_ECHO: вперёдсмотрящий эхолот
+ * @HYSCAN_SOURCE_DVL: Доплеровский лаг
  * @HYSCAN_SOURCE_ENCODER: энкодер местоположения антены
  * @HYSCAN_SOURCE_SAS: сообщения САД
  * @HYSCAN_SOURCE_NMEA: сообщения NMEA
@@ -198,6 +199,7 @@ typedef enum
   HYSCAN_SOURCE_LOOK_AROUND_PORT,
   HYSCAN_SOURCE_FORWARD_LOOK,
   HYSCAN_SOURCE_FORWARD_ECHO,
+  HYSCAN_SOURCE_DVL,
   HYSCAN_SOURCE_ENCODER,
 
   HYSCAN_SOURCE_SAS,

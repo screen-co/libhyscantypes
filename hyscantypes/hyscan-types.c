@@ -272,6 +272,9 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
   { 0, "forward-echo",         HYSCAN_SOURCE_FORWARD_ECHO,
     N_("Forward echosounder") },
 
+  { 0, "dvl",                  HYSCAN_SOURCE_DVL,
+    N_("Doppler Velocity Log") },
+
   { 0, "encoder",              HYSCAN_SOURCE_ENCODER,
     N_("Encoder") },
 
@@ -712,6 +715,7 @@ hyscan_source_is_sonar (HyScanSourceType source)
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
     case HYSCAN_SOURCE_FORWARD_LOOK:
     case HYSCAN_SOURCE_FORWARD_ECHO:
+    case HYSCAN_SOURCE_DVL:
     case HYSCAN_SOURCE_ENCODER:
       return TRUE;
 
