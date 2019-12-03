@@ -439,11 +439,44 @@ hyscan_acoustic_data_info_free (HyScanAcousticDataInfo *info)
     g_slice_free (HyScanAcousticDataInfo, info);
 }
 
+/**
+ * hyscan_track_plan_copy:
+ * @info: структура #HyScanTrackPlan для копирования
+ *
+ * Функция создаёт копию структуры #HyScanTrackPlan.
+ *
+ * Returns: (transfer full): Новая структура #HyScanTrackPlan.
+ * Для удаления #hyscan_track_plan_free.
+ */
+HyScanTrackPlan *
+hyscan_track_plan_copy (const HyScanTrackPlan        *track_plan)
+{
+  if (track_plan != NULL)
+    return g_slice_dup (HyScanTrackPlan, track_plan);
+
+  return NULL;
+}
+
+/**
+ * hyscan_track_plan_free:
+ * @info: структура #HyScanTrackPlan для удаления
+ *
+ * Функция удаляет структуру #HyScanTrackPlan.
+ */
+void
+hyscan_track_plan_free (HyScanTrackPlan *track_plan)
+{
+  if (track_plan != NULL)
+    g_slice_free (HyScanTrackPlan, track_plan);
+}
+
 G_DEFINE_BOXED_TYPE (HyScanSoundVelocity, hyscan_sound_velocity, hyscan_sound_velocity_copy, hyscan_sound_velocity_free)
 
 G_DEFINE_BOXED_TYPE (HyScanAntennaOffset, hyscan_antenna_offset, hyscan_antenna_offset_copy, hyscan_antenna_offset_free)
 
 G_DEFINE_BOXED_TYPE (HyScanAcousticDataInfo, hyscan_acoustic_data_info, hyscan_acoustic_data_info_copy, hyscan_acoustic_data_info_free)
+
+G_DEFINE_BOXED_TYPE (HyScanTrackPlan, hyscan_track_plan, hyscan_track_plan_copy, hyscan_track_plan_free)
 
 /**
  * hyscan_data_get_id_by_type:
