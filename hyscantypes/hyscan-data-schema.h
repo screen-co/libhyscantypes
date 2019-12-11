@@ -100,6 +100,10 @@ typedef enum
  * @HYSCAN_DATA_SCHEMA_VIEW_DATE: дата, UTC unix time
  * @HYSCAN_DATA_SCHEMA_VIEW_TIME: время, UTC unix time
  * @HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME: дата и время, UTC unix time
+ * @HYSCAN_DATA_SCHEMA_VIEW_RGB: цвет без прозрачности
+ * @HYSCAN_DATA_SCHEMA_VIEW_RGBA: цвет с прозрачностью
+ * @HYSCAN_DATA_SCHEMA_VIEW_FILE: путь к файлу
+ * @HYSCAN_DATA_SCHEMA_VIEW_DIR: путь к каталогу
  * @HYSCAN_DATA_SCHEMA_VIEW_SCHEMA: схема данныx
  *
  * Рекомендуемый вид отображения значения параметра.
@@ -113,6 +117,10 @@ typedef enum
   HYSCAN_DATA_SCHEMA_VIEW_DATE,
   HYSCAN_DATA_SCHEMA_VIEW_TIME,
   HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME,
+  HYSCAN_DATA_SCHEMA_VIEW_RGB,
+  HYSCAN_DATA_SCHEMA_VIEW_RGBA,
+  HYSCAN_DATA_SCHEMA_VIEW_FILE,
+  HYSCAN_DATA_SCHEMA_VIEW_DIR,
   HYSCAN_DATA_SCHEMA_VIEW_SCHEMA
 } HyScanDataSchemaViewType;
 

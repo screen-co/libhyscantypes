@@ -400,6 +400,14 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"time\"");
   else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME)
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"datetime\"");
+  else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_RGB)
+    g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"rgb\"");
+  else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_RGBA)
+    g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"rgba\"");
+  else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_FILE)
+    g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"file\"");
+  else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DIR)
+    g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"dir\"");
   else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_SCHEMA)
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"schema\"");
 
