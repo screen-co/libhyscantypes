@@ -721,7 +721,7 @@ hyscan_data_schema_builder_join_key (HyScanDataSchemaBuilder   *builder,
     }
 
   /* Свойства параметра. */
-  key_id = g_strdup_printf ("%s/%s", dst_root, id);
+  key_id = hyscan_data_schema_internal_make_path (dst_root, id);
   default_value = hyscan_data_schema_key_get_default (schema, key->id);
   minimum_value = hyscan_data_schema_key_get_minimum (schema, key->id);
   maximum_value = hyscan_data_schema_key_get_maximum (schema, key->id);
