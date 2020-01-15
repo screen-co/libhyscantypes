@@ -32,6 +32,7 @@ add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-param-proxy.c
              hyscan-param-controller.c
              hyscan-data-box.c
+             hyscan-cancellable.c
              "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshallers.c")
 
 target_link_libraries (${HYSCAN_TYPES_LIBRARY} ${GLIB2_LIBRARIES} ${LIBXML2_LIBRARIES})
@@ -66,6 +67,7 @@ install (FILES hyscan-api.h
                hyscan-param-proxy.h
                hyscan-param-controller.h
                hyscan-data-box.h
+               hyscan-cancellable.h
          COMPONENT development
          DESTINATION "include/hyscan-${HYSCAN_MAJOR_VERSION}/hyscantypes"
          PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

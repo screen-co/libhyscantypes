@@ -10,6 +10,7 @@ add_executable (data-schema-test data-schema-test.c data-schema-create.c)
 add_executable (param-list-test param-list-test.c)
 add_executable (param-test param-test.c data-schema-create.c)
 add_executable (data-schema-list data-schema-list.c)
+add_executable (cancellable-test cancellable-test.c)
 
 target_link_libraries (slice-pool-test ${TEST_LIBRARIES})
 target_link_libraries (channel-name-test ${TEST_LIBRARIES})
@@ -18,6 +19,8 @@ target_link_libraries (data-schema-test ${TEST_LIBRARIES})
 target_link_libraries (param-list-test ${TEST_LIBRARIES})
 target_link_libraries (param-test ${TEST_LIBRARIES})
 target_link_libraries (data-schema-list ${TEST_LIBRARIES})
+target_link_libraries (cancellable-test ${TEST_LIBRARIES})
+
 
 add_test (NAME SlicePoolTest COMMAND slice-pool-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
@@ -31,6 +34,9 @@ add_test (NAME ParamListTest COMMAND param-list-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 add_test (NAME ParamTest COMMAND param-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+add_test (NAME CancellableTest COMMAND cancellable-test
+          WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
 
 install (TARGETS slice-pool-test
                  channel-name-test
@@ -39,6 +45,7 @@ install (TARGETS slice-pool-test
                  param-list-test
                  param-test
                  data-schema-list
+                 cancellable-test
          COMPONENT test
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
