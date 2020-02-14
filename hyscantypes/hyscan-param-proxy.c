@@ -266,6 +266,36 @@ hyscan_param_proxy_add (HyScanParamProxy *proxy,
 }
 
 /**
+ * hyscan_param_proxy_node_set_name:
+ * @proxy: указатель на #HyScanParamProxy
+ * @path: путь до узла
+ * @name: название узла
+ * @description: описание узла
+ *
+ * Функция устанавливает название и описание узла. Если узел не существует,
+ * он будет создан.
+ *
+ * Returns: %TRUE - если название и описание узла установлено, иначе %FALSE.
+ */
+gboolean
+hyscan_param_proxy_node_set_name (HyScanParamProxy *proxy,
+                                  const gchar      *path,
+                                  const gchar      *name,
+                                  const gchar      *description)
+{
+  HyScanParamProxyPrivate *priv;
+
+  g_return_val_if_fail (HYSCAN_IS_PARAM_PROXY (proxy), FALSE);
+
+  priv = proxy->priv;
+
+  if (priv->builder == NULL)
+    return FALSE;
+
+  return hyscan_data_schema_builder_node_set_name (priv->builder, path, name, description);
+}
+
+/**
  * hyscan_param_proxy_bind:
  * @proxy: указатель на #HyScanParamProxy
  *

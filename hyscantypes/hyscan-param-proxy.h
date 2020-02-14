@@ -75,6 +75,12 @@ gboolean               hyscan_param_proxy_add          (HyScanParamProxy *proxy,
                                                         const gchar      *root);
 
 HYSCAN_API
+gboolean               hyscan_param_proxy_node_set_name(HyScanParamProxy *proxy,
+                                                        const gchar      *path,
+                                                        const gchar      *name,
+                                                        const gchar      *description);
+
+HYSCAN_API
 gboolean               hyscan_param_proxy_bind         (HyScanParamProxy *proxy);
 
 G_END_DECLS
