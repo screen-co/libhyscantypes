@@ -31,6 +31,7 @@ add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-param-list.c
              hyscan-param.c
              hyscan-param-proxy.c
+             hyscan-param-merge.c
              hyscan-param-controller.c
              hyscan-data-box.c
              hyscan-cancellable.c
@@ -67,6 +68,7 @@ install (FILES hyscan-api.h
                hyscan-param-list.h
                hyscan-param.h
                hyscan-param-proxy.h
+               hyscan-param-merge.h
                hyscan-param-controller.h
                hyscan-data-box.h
                hyscan-cancellable.h
