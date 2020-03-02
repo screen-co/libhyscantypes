@@ -350,6 +350,7 @@ struct _HyScanAntennaOffset
  * @data_rate: частота дискретизации, Гц
  * @signal_frequency: несущая частота излучаемого сигнала, Гц
  * @signal_bandwidth: полоса излучаемого сигнала, Гц
+ * @signal_heterodyne: частота гетеродина, Гц
  * @antenna_voffset: смещение антенны в "решётке" в вертикальной плоскости, м
  * @antenna_hoffset: смещение антенны в "решётке" в горизонтальной плоскости, м
  * @antenna_vaperture: апертура антенны в вертикальной плоскости, м
@@ -368,6 +369,7 @@ struct _HyScanAcousticDataInfo
 
   gdouble                 signal_frequency;
   gdouble                 signal_bandwidth;
+  gdouble                 signal_heterodyne;
 
   gdouble                 antenna_voffset;
   gdouble                 antenna_hoffset;
