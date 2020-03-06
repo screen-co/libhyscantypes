@@ -2081,7 +2081,7 @@ hyscan_data_schema_enum_value_new (gint64       value,
  * Для удаления #hyscan_data_schema_enum_value_free.
  */
 HyScanDataSchemaEnumValue *
-hyscan_data_schema_enum_value_copy (HyScanDataSchemaEnumValue *value)
+hyscan_data_schema_enum_value_copy (const HyScanDataSchemaEnumValue *value)
 {
   HyScanDataSchemaEnumValue *new_value;
 
@@ -2154,7 +2154,7 @@ hyscan_data_schema_node_new (const gchar *path,
  * Для удаления #hyscan_data_schema_node_free.
  */
 HyScanDataSchemaNode *
-hyscan_data_schema_node_copy (HyScanDataSchemaNode *node)
+hyscan_data_schema_node_copy (const HyScanDataSchemaNode *node)
 {
   HyScanDataSchemaNode *new_node;
   GList *nodes, *new_nodes;
@@ -2252,7 +2252,7 @@ hyscan_data_schema_key_new (const gchar               *id,
  * Для удаления #hyscan_data_schema_key_free.
  */
 HyScanDataSchemaKey *
-hyscan_data_schema_key_copy (HyScanDataSchemaKey *key)
+hyscan_data_schema_key_copy (const HyScanDataSchemaKey *key)
 {
   HyScanDataSchemaKey *new_key;
 

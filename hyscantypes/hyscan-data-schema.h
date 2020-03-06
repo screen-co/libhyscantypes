@@ -213,172 +213,172 @@ HYSCAN_API
 GType                             hyscan_data_schema_get_type             (void);
 
 HYSCAN_API
-HyScanDataSchema *                hyscan_data_schema_new_from_string      (const gchar               *schema_data,
-                                                                           const gchar               *schema_id);
+HyScanDataSchema *                hyscan_data_schema_new_from_string      (const gchar                     *schema_data,
+                                                                           const gchar                     *schema_id);
 
 HYSCAN_API
-HyScanDataSchema *                hyscan_data_schema_new_from_file        (const gchar               *schema_path,
-                                                                           const gchar               *schema_id);
+HyScanDataSchema *                hyscan_data_schema_new_from_file        (const gchar                     *schema_path,
+                                                                           const gchar                     *schema_id);
 
 HYSCAN_API
-HyScanDataSchema  *               hyscan_data_schema_new_from_resource    (const gchar               *schema_resource,
-                                                                           const gchar               *schema_id);
+HyScanDataSchema  *               hyscan_data_schema_new_from_resource    (const gchar                     *schema_resource,
+                                                                           const gchar                     *schema_id);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_get_data             (HyScanDataSchema          *schema);
+const gchar *                     hyscan_data_schema_get_data             (HyScanDataSchema                *schema);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_get_id               (HyScanDataSchema          *schema);
+const gchar *                     hyscan_data_schema_get_id               (HyScanDataSchema                *schema);
 
 HYSCAN_API
-const gchar * const *             hyscan_data_schema_list_keys            (HyScanDataSchema          *schema);
+const gchar * const *             hyscan_data_schema_list_keys            (HyScanDataSchema                *schema);
 
 HYSCAN_API
-const HyScanDataSchemaNode *      hyscan_data_schema_list_nodes           (HyScanDataSchema          *schema);
+const HyScanDataSchemaNode *      hyscan_data_schema_list_nodes           (HyScanDataSchema                *schema);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_has_key              (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+gboolean                          hyscan_data_schema_has_key              (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_node_get_name        (HyScanDataSchema          *schema,
-                                                                           const gchar               *path);
+const gchar *                     hyscan_data_schema_node_get_name        (HyScanDataSchema                *schema,
+                                                                           const gchar                     *path);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_node_get_description (HyScanDataSchema          *schema,
-                                                                           const gchar               *path);
+const gchar *                     hyscan_data_schema_node_get_description (HyScanDataSchema                *schema,
+                                                                           const gchar                     *path);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_key_get_name         (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+const gchar *                     hyscan_data_schema_key_get_name         (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_key_get_description  (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+const gchar *                     hyscan_data_schema_key_get_description  (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-HyScanDataSchemaKeyType           hyscan_data_schema_key_get_value_type   (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+HyScanDataSchemaKeyType           hyscan_data_schema_key_get_value_type   (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-HyScanDataSchemaViewType          hyscan_data_schema_key_get_view         (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+HyScanDataSchemaViewType          hyscan_data_schema_key_get_view         (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-HyScanDataSchemaKeyAccess         hyscan_data_schema_key_get_access       (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+HyScanDataSchemaKeyAccess         hyscan_data_schema_key_get_access       (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-const gchar                      *hyscan_data_schema_key_get_enum_id      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+const gchar                      *hyscan_data_schema_key_get_enum_id      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-GVariant *                        hyscan_data_schema_key_get_default      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+GVariant *                        hyscan_data_schema_key_get_default      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-GVariant *                        hyscan_data_schema_key_get_minimum      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+GVariant *                        hyscan_data_schema_key_get_minimum      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-GVariant *                        hyscan_data_schema_key_get_maximum      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+GVariant *                        hyscan_data_schema_key_get_maximum      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-GVariant *                        hyscan_data_schema_key_get_step         (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+GVariant *                        hyscan_data_schema_key_get_step         (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_key_get_boolean      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           gboolean                  *default_value);
+gboolean                          hyscan_data_schema_key_get_boolean      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           gboolean                        *default_value);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_key_get_integer      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           gint64                    *minimum_value,
-                                                                           gint64                    *maximum_value,
-                                                                           gint64                    *default_value,
-                                                                           gint64                    *value_step);
+gboolean                          hyscan_data_schema_key_get_integer      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           gint64                          *minimum_value,
+                                                                           gint64                          *maximum_value,
+                                                                           gint64                          *default_value,
+                                                                           gint64                          *value_step);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_key_get_double       (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           gdouble                   *minimum_value,
-                                                                           gdouble                   *maximum_value,
-                                                                           gdouble                   *default_value,
-                                                                           gdouble                   *value_step);
+gboolean                          hyscan_data_schema_key_get_double       (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           gdouble                         *minimum_value,
+                                                                           gdouble                         *maximum_value,
+                                                                           gdouble                         *default_value,
+                                                                           gdouble                         *value_step);
 
 HYSCAN_API
-const gchar *                     hyscan_data_schema_key_get_string       (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id);
+const gchar *                     hyscan_data_schema_key_get_string       (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_key_get_enum         (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           gint64                    *default_value);
+gboolean                          hyscan_data_schema_key_get_enum         (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           gint64                          *default_value);
 
 HYSCAN_API
-gboolean                          hyscan_data_schema_key_check            (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           GVariant                  *value);
+gboolean                          hyscan_data_schema_key_check            (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           GVariant                        *value);
 
 HYSCAN_API
-gchar *                           hyscan_data_schema_key_print_value      (HyScanDataSchema          *schema,
-                                                                           const gchar               *key_id,
-                                                                           GVariant                  *value);
+gchar *                           hyscan_data_schema_key_print_value      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *key_id,
+                                                                           GVariant                        *value);
 
 HYSCAN_API
-GList *                           hyscan_data_schema_enum_get_values      (HyScanDataSchema          *schema,
-                                                                           const gchar               *enum_id);
+GList *                           hyscan_data_schema_enum_get_values      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *enum_id);
 
 HYSCAN_API
-const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_id      (HyScanDataSchema          *schema,
-                                                                           const gchar               *enum_id,
-                                                                           const gchar               *value_id);
+const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_id      (HyScanDataSchema                *schema,
+                                                                           const gchar                     *enum_id,
+                                                                           const gchar                     *value_id);
 
 HYSCAN_API
-const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_value   (HyScanDataSchema          *schema,
-                                                                           const gchar               *enum_id,
-                                                                           gint64                     enum_value);
+const HyScanDataSchemaEnumValue * hyscan_data_schema_enum_find_by_value   (HyScanDataSchema                *schema,
+                                                                           const gchar                     *enum_id,
+                                                                           gint64                           enum_value);
 
 HYSCAN_API
-HyScanDataSchemaEnumValue *       hyscan_data_schema_enum_value_new       (gint64                     value,
-                                                                           const gchar               *id,
-                                                                           const gchar               *name,
-                                                                           const gchar               *description);
+HyScanDataSchemaEnumValue *       hyscan_data_schema_enum_value_new       (gint64                           value,
+                                                                           const gchar                     *id,
+                                                                           const gchar                     *name,
+                                                                           const gchar                     *description);
 
 HYSCAN_API
-HyScanDataSchemaEnumValue *       hyscan_data_schema_enum_value_copy      (HyScanDataSchemaEnumValue *value);
+HyScanDataSchemaEnumValue *       hyscan_data_schema_enum_value_copy      (const HyScanDataSchemaEnumValue *value);
 
 HYSCAN_API
-void                              hyscan_data_schema_enum_value_free      (HyScanDataSchemaEnumValue *value);
+void                              hyscan_data_schema_enum_value_free      (HyScanDataSchemaEnumValue       *value);
 
 HYSCAN_API
-HyScanDataSchemaNode *            hyscan_data_schema_node_new             (const gchar               *path,
-                                                                           const gchar               *name,
-                                                                           const gchar               *description,
-                                                                           GList                     *nodes,
-                                                                           GList                     *keys);
+HyScanDataSchemaNode *            hyscan_data_schema_node_new             (const gchar                     *path,
+                                                                           const gchar                     *name,
+                                                                           const gchar                     *description,
+                                                                           GList                           *nodes,
+                                                                           GList                           *keys);
 
 HYSCAN_API
-HyScanDataSchemaNode *            hyscan_data_schema_node_copy            (HyScanDataSchemaNode      *node);
+HyScanDataSchemaNode *            hyscan_data_schema_node_copy            (const HyScanDataSchemaNode      *node);
 
 HYSCAN_API
-void                              hyscan_data_schema_node_free            (HyScanDataSchemaNode      *node);
+void                              hyscan_data_schema_node_free            (HyScanDataSchemaNode            *node);
 
 HYSCAN_API
-HyScanDataSchemaKey *             hyscan_data_schema_key_new              (const gchar               *id,
-                                                                           const gchar               *name,
-                                                                           const gchar               *description,
-                                                                           HyScanDataSchemaKeyType    type,
-                                                                           HyScanDataSchemaViewType   view,
-                                                                           HyScanDataSchemaKeyAccess  access);
+HyScanDataSchemaKey *             hyscan_data_schema_key_new              (const gchar                     *id,
+                                                                           const gchar                     *name,
+                                                                           const gchar                     *description,
+                                                                           HyScanDataSchemaKeyType          type,
+                                                                           HyScanDataSchemaViewType         view,
+                                                                           HyScanDataSchemaKeyAccess        access);
 HYSCAN_API
-HyScanDataSchemaKey *             hyscan_data_schema_key_copy             (HyScanDataSchemaKey       *key);
+HyScanDataSchemaKey *             hyscan_data_schema_key_copy             (const HyScanDataSchemaKey       *key);
 
 HYSCAN_API
-void                              hyscan_data_schema_key_free             (HyScanDataSchemaKey       *key);
+void                              hyscan_data_schema_key_free             (HyScanDataSchemaKey             *key);
 
 G_END_DECLS
 
