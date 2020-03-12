@@ -365,6 +365,7 @@ struct _HyScanAntennaOffset
  * @antenna_haperture: апертура антенны в горизонтальной плоскости, м
  * @antenna_frequency: центральная частота антенны, Гц
  * @antenna_bandwidth: полоса пропускания антенны, Гц
+ * @antenna_group: группировка антенны в "решётке"
  * @adc_vref: опорное напряжение АЦП, В
  * @adc_offset: смещение нуля АЦП, отсчёты
  *
@@ -385,6 +386,7 @@ struct _HyScanAcousticDataInfo
   gdouble                 antenna_haperture;
   gdouble                 antenna_frequency;
   gdouble                 antenna_bandwidth;
+  guint                   antenna_group;
 
   gdouble                 adc_vref;
   gint                    adc_offset;
