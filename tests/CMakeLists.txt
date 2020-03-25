@@ -11,6 +11,7 @@ add_executable (param-list-test param-list-test.c)
 add_executable (param-test param-test.c data-schema-create.c)
 add_executable (data-schema-list data-schema-list.c)
 add_executable (cancellable-test cancellable-test.c)
+add_executable (config-test config-test.c)
 
 target_link_libraries (slice-pool-test ${TEST_LIBRARIES})
 target_link_libraries (channel-name-test ${TEST_LIBRARIES})
@@ -20,6 +21,7 @@ target_link_libraries (param-list-test ${TEST_LIBRARIES})
 target_link_libraries (param-test ${TEST_LIBRARIES})
 target_link_libraries (data-schema-list ${TEST_LIBRARIES})
 target_link_libraries (cancellable-test ${TEST_LIBRARIES})
+target_link_libraries (config-test ${TEST_LIBRARIES})
 
 
 add_test (NAME SlicePoolTest COMMAND slice-pool-test

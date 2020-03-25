@@ -23,6 +23,7 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/marshallers/hyscan-types-marshal
 add_library (${HYSCAN_TYPES_LIBRARY} SHARED
              hyscan-slice-pool.c
              hyscan-types.c
+             hyscan-config.c
              hyscan-buffer.c
              hyscan-data-schema.c
              hyscan-data-schema-builder.c
@@ -59,6 +60,7 @@ install (FILES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hyscantypes-${HYSCAN_MAJOR_VER
 install (FILES hyscan-api.h
                hyscan-slice-pool.h
                hyscan-types.h
+               hyscan-config.h
                hyscan-buffer.h
                hyscan-data-schema.h
                hyscan-data-schema-builder.h
