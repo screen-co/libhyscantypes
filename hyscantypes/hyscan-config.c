@@ -44,18 +44,20 @@
  * В Linux все пути задаются абсолютными. В Windows они относительно папки с
  * выполняемой программой ("path/to/app.exe/../").
  *
- * Путь к файлам локализации определяется переменной FNN_LOCALE_DIR. По умолчанию
- * это "/usr/share/locale" для Linux и "/share/locale" для Windows.
+ * Путь к файлам локализации определяется переменными HYSCAN_LOCALE_PREFIX и 
+ * HYSCAN_LOCALE_POSTFIX. По умолчанию это "/usr/share/locale" для Linux и
+ * "/share/locale" для Windows.
  *
  * Пути к файлам профилей составляются чуть сложней.
  * Безусловно присутствует каталог с т.н. системными профилями. В случае standalone
  * сборки добавляется пользовательская папка с конфигурационными файлами.
  *
- * Если сборка standalone (задана переменная FNN_PROFILE_STANDALONE),
+ * Если сборка standalone (НЕ задана переменная HYSCAN_PORTABLE),
  * то к списку путей добавляется пользовательская папка с конфигурационными
  * файлами (g_get_user_config_dir()).
  *
- * При этом в случае standalone базовый путь к профилям - "/usr/share/HYSCAN_GTK_PROFILE_PATH",
+ * При этом в случае standalone базовый путь к профилям - 
+ * "/usr/HYSCAN_USER_FILES_PREFIX/HYSCAN_USER_FILES_DIR",
  * а для portable -- "/../config/"
  *
  * В псевдокоде это можно представить так:
@@ -82,12 +84,13 @@
 #include <hyscan-constructor.h>
 #include <stdlib.h>
 
-static void          hyscan_config_initialise (void);
-static void          hyscan_config_clear      (void);
-static const gchar * hyscan_config_base_path  (void);
+static void          hyscan_config_initialise        (void);
+static void          hyscan_config_clear             (void);
+static const gchar * hyscan_config_installation_dir  (void);
 
-static gchar **      hyscan_config_profile_dirs = NULL;
-static gchar *       hyscan_config_locale_dir = NULL;
+static gchar **      hyscan_config_profiles = NULL;
+static gchar *       hyscan_config_locale = NULL;
+static gchar *       hyscan_config_user_files = NULL;
 
 HYSCAN_CONSTRUCTOR (hyscan_config_initialise);
 
@@ -96,43 +99,56 @@ static void
 hyscan_config_initialise (void)
 {
   gint i = 0;
-  gchar ** profile_dirs = NULL;
-  gchar * locale_dir = NULL;
+  gchar ** profiles = NULL;
+  gchar * locale = NULL;
+  gchar * user_files = NULL;
 
   #ifdef G_OS_WIN32
     gchar *utf8_path;
   #endif
 
   /* Локализация. */
-  locale_dir = g_build_filename (hyscan_config_base_path (),
-                                 HYSCAN_LOCALE_PREFIX,
-                                 HYSCAN_LOCALE_POSTFIX,
-                                 NULL);
+  locale = g_build_filename (hyscan_config_installation_dir (),
+                             HYSCAN_LOCALE_PREFIX,
+                             HYSCAN_LOCALE_POSTFIX,
+                             NULL);
   #ifdef G_OS_WIN32
-    utf8_path = locale_dir;
-    locale_dir = g_win32_locale_filename_from_utf8 (utf8_path);
+    utf8_path = locale;
+    locale = g_win32_locale_filename_from_utf8 (utf8_path);
     g_free (utf8_path);
   #endif
 
-  /* Профили. */
-  #ifndef HYSCAN_PORTABLE
-    profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
-    profile_dirs[i - 1] = g_build_filename (g_get_user_config_dir (),
-                                            HYSCAN_PROFILE_PATH,
-                                            NULL);
+  /* Пользовательские файлы. */
+  #ifdef HYSCAN_STANDALONE
+    user_files = g_build_filename (g_get_user_config_dir (),
+                                   HYSCAN_USER_FILES_DIR, 
+                                   NULL);
+  #else
+    user_files = g_build_filename (hyscan_config_installation_dir (),
+                                   HYSCAN_USER_FILES_PREFIX,
+                                   HYSCAN_USER_FILES_DIR, 
+                                   NULL);
   #endif
 
-  profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
-  profile_dirs[i - 1] = g_build_filename (hyscan_config_base_path (),
-                                          HYSCAN_PROFILE_PREFIX,
-                                          HYSCAN_PROFILE_PATH,
-                                          NULL);
-  /* NULL-терминируем. */
-  profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
-  profile_dirs[i - 1] = NULL;
+  /* Профили. */
+  #ifdef HYSCAN_STANDALONE
+    profiles = g_realloc (profiles, ++i * sizeof (gchar*));
+    profiles[i - 1] = g_build_filename (hyscan_config_installation_dir (),
+                                        HYSCAN_USER_FILES_PREFIX,
+                                        HYSCAN_USER_FILES_DIR,
+                                        NULL);
+  #endif
 
-  hyscan_config_locale_dir = locale_dir;
-  hyscan_config_profile_dirs = profile_dirs;
+  profiles = g_realloc (profiles, ++i * sizeof (gchar*));
+  profiles[i - 1] = g_strdup (user_files);
+
+  /* NULL-терминируем. */
+  profiles = g_realloc (profiles, ++i * sizeof (gchar*));
+  profiles[i - 1] = NULL;
+
+  hyscan_config_locale = locale;
+  hyscan_config_user_files = user_files;
+  hyscan_config_profiles = profiles;
 
   atexit (hyscan_config_clear);
 }
@@ -141,22 +157,23 @@ hyscan_config_initialise (void)
 static void
 hyscan_config_clear (void)
 {
-  g_strfreev (hyscan_config_profile_dirs);
-  g_free (hyscan_config_locale_dir);
+  g_strfreev (hyscan_config_profiles);
+  g_free (hyscan_config_locale);
+  g_free (hyscan_config_user_files);
 }
 
 /* Функция возвращает базовый путь. В виндоус это папка, где установлено
  * запускаемое приложение, в линуксе это либо корень ФС, либо папка, где лежит
  * приложение. */
 static const gchar *
-hyscan_config_base_path (void)
+hyscan_config_installation_dir (void)
 {
   static gchar *base_path = NULL;
 
   if (base_path != NULL)
     return base_path;
 
-  #if G_OS_WIN32
+  #ifdef G_OS_WIN32
     /* ... If that directory's last component is "bin" or "lib",
      * its parent directory is returned, otherwise the directory itself. */
     base_path = g_win32_get_package_installation_directory_of_module (NULL);
@@ -166,10 +183,10 @@ hyscan_config_base_path (void)
         return NULL;
       }
   #else
-    #if HYSCAN_PORTABLE
-      base_path = g_strdup ("../");
-    #else
+    #ifdef HYSCAN_STANDALONE
       base_path = g_strdup ("/usr");
+    #else
+      base_path = g_strdup ("../");
     #endif
   #endif
 
@@ -184,7 +201,7 @@ hyscan_config_base_path (void)
 const gchar **
 hyscan_config_get_profile_dirs (void)
 {
-  return (const gchar **) hyscan_config_profile_dirs;
+  return (const gchar **) hyscan_config_profiles;
 }
 
 /**
@@ -195,5 +212,17 @@ hyscan_config_get_profile_dirs (void)
 const gchar *
 hyscan_config_get_locale_dir (void)
 {
-  return hyscan_config_locale_dir;
+  return hyscan_config_locale;
+}
+
+/**
+ * hyscan_config_get_user_files_dir:
+ *
+ * Returns: (transfer none): папка, в которую можно класть файлы пользователя 
+ * (логи, конфигурации, etc)
+ */
+const gchar *
+hyscan_config_get_user_files_dir (void)
+{
+  return hyscan_config_user_files;
 }

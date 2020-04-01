@@ -8,6 +8,7 @@ enable_testing()
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_TYPES_VERSION 0)
 set (HYSCAN_TYPES_LIBRARY "hyscantypes-${HYSCAN_MAJOR_VERSION}")
+set (HYSCAN_STANDALONE 1)
 
 include (FindPkgConfig)
 
@@ -63,23 +64,22 @@ add_definitions(-DHYSCAN_LOCALE_PREFIX="share")
 add_definitions(-DHYSCAN_LOCALE_POSTFIX="locale")
 
 # Папка с профилями.
-if (NOT DEFINED HYSCAN_PROFILE_DIR)
+if (NOT DEFINED HYSCAN_USER_FILES_DIR)
   message ("Profile path not defined. Using \"hyscan\"")
-  # add_definitions(-DHYSCAN_PROFILE_DIR="hyscan")
-  set (HYSCAN_PROFILE_DIR "hyscan")
+  set (HYSCAN_USER_FILES_DIR "hyscan")
 endif()
 
-message ("Profile path:" ${HYSCAN_PROFILE_DIR})
-add_definitions(-DHYSCAN_PROFILE_PATH="${HYSCAN_PROFILE_DIR}")
+message ("Profile path:" ${HYSCAN_USER_FILES_DIR})
+add_definitions(-DHYSCAN_USER_FILES_DIR="${HYSCAN_USER_FILES_DIR}")
 
 # Пути в portable и standalone сборках
-if (DEFINED HYSCAN_PORTABLE)
-  add_definitions(-DHYSCAN_PORTABLE=1)
-  add_definitions (-DHYSCAN_PROFILE_PREFIX="config")
-  message ("HyScan will be portable")
-else()
-  add_definitions (-DHYSCAN_PROFILE_PREFIX="share")
+if (DEFINED HYSCAN_STANDALONE)
+  add_definitions(-DHYSCAN_STANDALONE=1)
+  add_definitions (-DHYSCAN_USER_FILES_PREFIX="share")
   message ("HyScan will be standalone")
+else()
+  add_definitions (-DHYSCAN_USER_FILES_PREFIX="config")
+  message ("HyScan will be portable")
 endif()
 
 

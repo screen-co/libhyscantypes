@@ -46,6 +46,9 @@ const gchar **            hyscan_config_get_profile_dirs          (void);
 HYSCAN_API
 const gchar *             hyscan_config_get_locale_dir            (void);
 
+HYSCAN_API
+const gchar *             hyscan_config_get_user_files_dir        (void);
+
 G_END_DECLS
 
 #endif /* __HYSCAN_CONFIG_H__ */
