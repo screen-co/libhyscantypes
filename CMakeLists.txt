@@ -63,23 +63,25 @@ add_definitions(-DHYSCAN_LOCALE_PREFIX="share")
 add_definitions(-DHYSCAN_LOCALE_POSTFIX="locale")
 
 # Папка с профилями.
-if (NOT DEFINED ENV{HYSCAN_PROFILE_DIR})
-  add_definitions(-DHYSCAN_PROFILE_DIR="hyscan")
+if (NOT DEFINED HYSCAN_PROFILE_DIR)
   message ("Profile path not defined. Using \"hyscan\"")
-else()
-  add_definitions(-DHYSCAN_PROFILE_PATH=$ENV{HYSCAN_PROFILE_DIR})
-  message ("Profile path:" $ENV{HYSCAN_PROFILE_DIR})
+  # add_definitions(-DHYSCAN_PROFILE_DIR="hyscan")
+  set (HYSCAN_PROFILE_DIR "hyscan")
 endif()
 
+message ("Profile path:" ${HYSCAN_PROFILE_DIR})
+add_definitions(-DHYSCAN_PROFILE_PATH="${HYSCAN_PROFILE_DIR}")
+
 # Пути в portable и standalone сборках
-if (DEFINED ENV{HYSCAN_PORTABLE})
+if (DEFINED HYSCAN_PORTABLE)
   add_definitions(-DHYSCAN_PORTABLE=1)
-  message ("HyScan will be portable")
   add_definitions (-DHYSCAN_PROFILE_PREFIX="config")
+  message ("HyScan will be portable")
 else()
-  message ("HyScan will be standalone")
   add_definitions (-DHYSCAN_PROFILE_PREFIX="share")
+  message ("HyScan will be standalone")
 endif()
+
 
 add_definitions (-DG_LOG_DOMAIN="HyScanTypes")
 add_definitions (-DGETTEXT_PACKAGE="hyscantypes")

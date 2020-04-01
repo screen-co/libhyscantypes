@@ -32,8 +32,8 @@
  * лицензии. Для этого свяжитесь с ООО Экран - <info@screen-co.ru>.
  */
 
-#ifndef __HYSCAN_TYPES_H__
-#define __HYSCAN_TYPES_H__
+#ifndef __HYSCAN_CONFIG_H__
+#define __HYSCAN_CONFIG_H__
 
 #include <glib-object.h>
 #include <hyscan-api.h>
@@ -48,4 +48,4 @@ const gchar *             hyscan_config_get_locale_dir            (void);
 
 G_END_DECLS
 
-#endif /* __HYSCAN_TYPES_H__ */
+#endif /* __HYSCAN_CONFIG_H__ */

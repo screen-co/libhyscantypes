@@ -82,7 +82,6 @@
 #include <hyscan-constructor.h>
 #include <stdlib.h>
 
-
 static void          hyscan_config_initialise (void);
 static void          hyscan_config_clear      (void);
 static const gchar * hyscan_config_base_path  (void);
@@ -119,14 +118,14 @@ hyscan_config_initialise (void)
   #ifndef HYSCAN_PORTABLE
     profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
     profile_dirs[i - 1] = g_build_filename (g_get_user_config_dir (),
-                                            HYSCAN_PROFILE_DIR,
+                                            HYSCAN_PROFILE_PATH,
                                             NULL);
   #endif
 
   profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
   profile_dirs[i - 1] = g_build_filename (hyscan_config_base_path (),
                                           HYSCAN_PROFILE_PREFIX,
-                                          HYSCAN_PROFILE_DIR,
+                                          HYSCAN_PROFILE_PATH,
                                           NULL);
   /* NULL-терминируем. */
   profile_dirs = g_realloc (profile_dirs, ++i * sizeof (gchar*));
