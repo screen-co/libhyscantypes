@@ -38,7 +38,7 @@
  * @Title: HyScanConfig
  *
  * Здесь предоставлены функции получения путей к профилям и файлам локализации.
- * Они могут быть настроены только на этапе компиляции для portable и standalone
+ * Они могут быть настроены только на этапе компиляции для portable и installed
  * сборок.
  *
  * В Linux все пути задаются абсолютными. В Windows они относительно папки с
@@ -49,32 +49,32 @@
  * "/share/locale" для Windows.
  *
  * Пути к файлам профилей составляются чуть сложней.
- * Безусловно присутствует каталог с т.н. системными профилями. В случае standalone
+ * Безусловно присутствует каталог с т.н. системными профилями. В случае installed
  * сборки добавляется пользовательская папка с конфигурационными файлами.
  *
- * Если сборка standalone (НЕ задана переменная HYSCAN_PORTABLE),
+ * Если сборка installed (задана переменная HYSCAN_INSTALLED),
  * то к списку путей добавляется пользовательская папка с конфигурационными
  * файлами (g_get_user_config_dir()).
  *
- * При этом в случае standalone базовый путь к профилям - 
+ * При этом в случае installed базовый путь к профилям - 
  * "/usr/HYSCAN_USER_FILES_PREFIX/HYSCAN_USER_FILES_DIR",
  * а для portable -- "/../config/"
  *
  * В псевдокоде это можно представить так:
  * |[<!-- language="C" -->
- * if (STANDALONE)
+ * if (INSTALLED)
  *  dirs += g_get_user_config_dir ()
  *
- * if (STANDALONE)
+ * if (INSTALLED)
  *   infix = "/share/"
  * else
  *   infix = "./../config/"
  *
  * if (G_OS_WIN32)
  *   prefix = "path/to/app/../"
- * if (G_OS_UNIX and STANDALONE)
+ * if (G_OS_UNIX and INSTALLED)
  *   prefix = "/usr/"
- * if (G_OS_UNIX and not STANDALONE)
+ * if (G_OS_UNIX and not INSTALLED)
  *   prefix = "../"
  * ]|
  */
@@ -119,7 +119,7 @@ hyscan_config_initialise (void)
   #endif
 
   /* Пользовательские файлы. */
-  #ifdef HYSCAN_STANDALONE
+  #ifdef HYSCAN_INSTALLED
     user_files = g_build_filename (g_get_user_config_dir (),
                                    HYSCAN_USER_FILES_DIR, 
                                    NULL);
@@ -131,7 +131,7 @@ hyscan_config_initialise (void)
   #endif
 
   /* Профили. */
-  #ifdef HYSCAN_STANDALONE
+  #ifdef HYSCAN_INSTALLED
     profiles = g_realloc (profiles, ++i * sizeof (gchar*));
     profiles[i - 1] = g_build_filename (hyscan_config_installation_dir (),
                                         HYSCAN_USER_FILES_PREFIX,
@@ -183,7 +183,7 @@ hyscan_config_installation_dir (void)
         return NULL;
       }
   #else
-    #ifdef HYSCAN_STANDALONE
+    #ifdef HYSCAN_INSTALLED
       base_path = g_strdup ("/usr");
     #else
       base_path = g_strdup ("../");
