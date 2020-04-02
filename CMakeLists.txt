@@ -78,7 +78,7 @@ if (DEFINED HYSCAN_INSTALLED)
   add_definitions (-DHYSCAN_USER_FILES_PREFIX="share")
   message ("HyScan will be standalone")
 else()
-  add_definitions (-DHYSCAN_USER_FILES_PREFIX="config")
+  add_definitions (-DHYSCAN_USER_FILES_PREFIX="../config")
   message ("HyScan will be portable")
 endif()
 
