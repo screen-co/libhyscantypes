@@ -45,6 +45,8 @@ typedef struct _HyScanDOA HyScanDOA;
 typedef struct _HyScanSoundVelocity HyScanSoundVelocity;
 typedef struct _HyScanAntennaOffset HyScanAntennaOffset;
 typedef struct _HyScanAcousticDataInfo HyScanAcousticDataInfo;
+typedef struct _HyScanTrackPlan HyScanTrackPlan;
+typedef struct _HyScanGeoPoint HyScanGeoPoint;
 
 /**
  * HyScanDataType:
@@ -392,6 +394,34 @@ struct _HyScanAcousticDataInfo
   gint                    adc_offset;
 };
 
+/**
+ * HyScanGeoPoint:
+ * @lat: широта точки
+ * @lon: долгота точки
+ *
+ * Географические координаты.
+ */
+struct _HyScanGeoPoint
+{
+  gdouble                 lat;
+  gdouble                 lon;
+};
+
+/**
+ * HyScanTrackPlan:
+ * @start: точка начала движения
+ * @end: точка конца движения
+ * @velocity: скорость движения, м/с
+ *
+ * Запланированные параметры прямолинейного галса.
+ */
+struct _HyScanTrackPlan
+{
+  HyScanGeoPoint          start;
+  HyScanGeoPoint          end;
+  gdouble                 velocity;
+};
+
 HYSCAN_API
 GType                     hyscan_sound_velocity_get_type          (void);
 
@@ -400,6 +430,9 @@ GType                     hyscan_antenna_offset_get_type          (void);
 
 HYSCAN_API
 GType                     hyscan_acoustic_data_info_get_type      (void);
+
+HYSCAN_API
+GType                     hyscan_track_plan_get_type              (void);
 
 HYSCAN_API
 HyScanSoundVelocity *     hyscan_sound_velocity_copy              (const HyScanSoundVelocity    *svp);
@@ -418,6 +451,12 @@ HyScanAcousticDataInfo *  hyscan_acoustic_data_info_copy          (const HyScanA
 
 HYSCAN_API
 void                      hyscan_acoustic_data_info_free          (HyScanAcousticDataInfo       *info);
+
+HYSCAN_API
+HyScanTrackPlan *         hyscan_track_plan_copy                  (const HyScanTrackPlan        *track_plan);
+
+HYSCAN_API
+void                      hyscan_track_plan_free                  (HyScanTrackPlan              *track_plan);
 
 HYSCAN_API
 const gchar *             hyscan_data_get_id_by_type              (HyScanDataType                type);
