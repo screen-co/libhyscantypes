@@ -398,8 +398,6 @@ struct _HyScanAcousticDataInfo
  * HyScanGeoPoint:
  * @lat: широта точки
  * @lon: долгота точки
- * @h: высота или азимут (направление оси Y топоцентрической СК,
- *     отмеряется относительно северного направления долготы по часовой стрелке).
  *
  * Географические координаты.
  */
@@ -407,7 +405,6 @@ struct _HyScanGeoPoint
 {
   gdouble                 lat;
   gdouble                 lon;
-  gdouble                 h;
 };
 
 /**
