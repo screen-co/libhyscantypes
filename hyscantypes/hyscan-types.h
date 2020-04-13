@@ -411,7 +411,7 @@ struct _HyScanGeoPoint
  * HyScanTrackPlan:
  * @start: точка начала движения
  * @end: точка конца движения
- * @velocity: скорость движения, м/с
+ * @speed: скорость движения, м/с
  *
  * Запланированные параметры прямолинейного галса.
  */
@@ -419,7 +419,7 @@ struct _HyScanTrackPlan
 {
   HyScanGeoPoint          start;
   HyScanGeoPoint          end;
-  gdouble                 velocity;
+  gdouble                 speed;
 };
 
 HYSCAN_API
