@@ -1020,6 +1020,38 @@ hyscan_channel_get_types_by_id (const gchar       *id,
 }
 
 /**
+ * hyscan_rand_id:
+ * @buffer: буфер для идентификатора
+ * @size: размер буфера
+ *
+ * Функция создаёт случайный идентификатор длины @size - 1 и записывает его в полученный буфер.
+ * Идентификатор формируется из символов [0-9a-zA-Z].
+ *
+ * Returns: (transfer none): указатель на полученный буфер.
+ */
+gchar *
+hyscan_rand_id (gchar *buffer,
+                guint  size)
+{
+  guint i;
+
+  for (i = 0; i < (size - 1); i++)
+    {
+      gint rnd = g_random_int_range (0, 62);
+      if (rnd < 10)
+        buffer[i] = '0' + rnd;
+      else if (rnd < 36)
+        buffer[i] = 'a' + rnd - 10;
+      else
+        buffer[i] = 'A' + rnd - 36;
+    }
+
+  buffer[i] = 0;
+
+  return buffer;
+}
+
+/**
  * hyscan_param_name_constructor:
  * @buffer: буфер для имени
  * @size: размер буфера

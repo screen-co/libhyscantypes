@@ -515,6 +515,10 @@ gboolean                  hyscan_channel_get_types_by_id          (const gchar  
                                                                    guint                        *channel);
 
 HYSCAN_API
+gchar *                   hyscan_rand_id                          (gchar                        *buffer,
+                                                                   guint                         size);
+
+HYSCAN_API
 void                      hyscan_param_name_constructor           (gchar                        *buffer,
                                                                    guint                         size,
                                                                    ...);
