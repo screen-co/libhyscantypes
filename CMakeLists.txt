@@ -8,7 +8,7 @@ enable_testing()
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_TYPES_VERSION 0)
 set (HYSCAN_TYPES_LIBRARY "hyscantypes-${HYSCAN_MAJOR_VERSION}")
-# set (HYSCAN_INSTALLED 1 )
+# set (HYSCAN_PORTABLE 1 )
 
 include (FindPkgConfig)
 
@@ -73,13 +73,13 @@ message ("Profile path:" ${HYSCAN_USER_FILES_DIR})
 add_definitions(-DHYSCAN_USER_FILES_DIR="${HYSCAN_USER_FILES_DIR}")
 
 # Пути в portable и standalone сборках
-if (DEFINED HYSCAN_INSTALLED)
+if (DEFINED HYSCAN_PORTABLE)
+  add_definitions (-DHYSCAN_USER_FILES_PREFIX="../config")
+  message ("HyScan will be portable")
+else()
   add_definitions(-DHYSCAN_INSTALLED=1)
   add_definitions (-DHYSCAN_USER_FILES_PREFIX="share")
   message ("HyScan will be standalone")
-else()
-  add_definitions (-DHYSCAN_USER_FILES_PREFIX="../config")
-  message ("HyScan will be portable")
 endif()
 
 
