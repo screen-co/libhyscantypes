@@ -435,10 +435,16 @@ HYSCAN_API
 GType                     hyscan_track_plan_get_type              (void);
 
 HYSCAN_API
+HyScanSoundVelocity *     hyscan_sound_velocity_new               (void);
+
+HYSCAN_API
 HyScanSoundVelocity *     hyscan_sound_velocity_copy              (const HyScanSoundVelocity    *svp);
 
 HYSCAN_API
 void                      hyscan_sound_velocity_free              (HyScanSoundVelocity          *svp);
+
+HYSCAN_API
+HyScanAntennaOffset *     hyscan_antenna_offset_new               (void);
 
 HYSCAN_API
 HyScanAntennaOffset *     hyscan_antenna_offset_copy              (const HyScanAntennaOffset    *offset);
@@ -447,10 +453,16 @@ HYSCAN_API
 void                      hyscan_antenna_offset_free              (HyScanAntennaOffset          *offset);
 
 HYSCAN_API
+HyScanAcousticDataInfo *  hyscan_acoustic_data_info_new           (void);
+
+HYSCAN_API
 HyScanAcousticDataInfo *  hyscan_acoustic_data_info_copy          (const HyScanAcousticDataInfo *info);
 
 HYSCAN_API
 void                      hyscan_acoustic_data_info_free          (HyScanAcousticDataInfo       *info);
+
+HYSCAN_API
+HyScanTrackPlan *         hyscan_track_plan_new                   (void);
 
 HYSCAN_API
 HyScanTrackPlan *         hyscan_track_plan_copy                  (const HyScanTrackPlan        *track_plan);

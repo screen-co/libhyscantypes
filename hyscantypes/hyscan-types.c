@@ -347,6 +347,20 @@ hyscan_types_initialize (void)
 }
 
 /**
+ * hyscan_sound_velocity_new:
+ *
+ * Функция создаёт новую структуру #HyScanSoundVelocity.
+ *
+ * Returns: (transfer full): Новая структура #HyScanSoundVelocity.
+ * Для удаления #hyscan_sound_velocity_free.
+ */
+HyScanSoundVelocity *
+hyscan_sound_velocity_new (void)
+{
+  return g_slice_new0 (HyScanSoundVelocity);
+}
+
+/**
  * hyscan_sound_velocity_copy:
  * @svp: структура #HyScanSoundVelocity для копирования
  *
@@ -375,6 +389,20 @@ hyscan_sound_velocity_free (HyScanSoundVelocity *svp)
 {
   if (svp != NULL)
     g_slice_free (HyScanSoundVelocity, svp);
+}
+
+/**
+ * hyscan_antenna_offset_new:
+ *
+ * Функция создаёт новую структуру #HyScanAntennaOffset.
+ *
+ * Returns: (transfer full): Новая структура #HyScanAntennaOffset.
+ * Для удаления #hyscan_antenna_offset_free.
+ */
+HyScanAntennaOffset *
+hyscan_antenna_offset_new (void)
+{
+  return g_slice_new0 (HyScanAntennaOffset);
 }
 
 /**
@@ -409,6 +437,20 @@ hyscan_antenna_offset_free (HyScanAntennaOffset *offset)
 }
 
 /**
+ * hyscan_acoustic_data_info_new:
+ *
+ * Функция создаёт новую структуру #HyScanAcousticDataInfo.
+ *
+ * Returns: (transfer full): Новая структура #HyScanAcousticDataInfo.
+ * Для удаления #hyscan_acoustic_data_info_free.
+ */
+HyScanAcousticDataInfo *
+hyscan_acoustic_data_info_new (void)
+{
+  return g_slice_new0 (HyScanAcousticDataInfo);
+}
+
+/**
  * hyscan_acoustic_data_info_copy:
  * @info: структура #HyScanAcousticDataInfo для копирования
  *
@@ -437,6 +479,20 @@ hyscan_acoustic_data_info_free (HyScanAcousticDataInfo *info)
 {
   if (info != NULL)
     g_slice_free (HyScanAcousticDataInfo, info);
+}
+
+/**
+ * hyscan_track_plan_new:
+ *
+ * Функция создаёт новую структуру #HyScanTrackPlan.
+ *
+ * Returns: (transfer full): Новая структура #HyScanTrackPlan.
+ * Для удаления #hyscan_track_plan_free.
+ */
+HyScanTrackPlan *
+hyscan_track_plan_new (void)
+{
+  return g_slice_new0 (HyScanTrackPlan);
 }
 
 /**
