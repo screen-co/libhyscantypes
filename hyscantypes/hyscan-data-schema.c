@@ -165,6 +165,7 @@
  * - "datetime" - #HYSCAN_DATA_SCHEMA_VIEW_DATE_TIME;
  * - "rgb" - #HYSCAN_DATA_SCHEMA_VIEW_RGB;
  * - "rgba" - #HYSCAN_DATA_SCHEMA_VIEW_RGBA;
+ * - "button" - #HYSCAN_DATA_SCHEMA_VIEW_BUTTON;
  * - "file" - #HYSCAN_DATA_SCHEMA_VIEW_FILE;
  * - "dir" - #HYSCAN_DATA_SCHEMA_VIEW_DIR;
  * - "schema" - #HYSCAN_DATA_SCHEMA_VIEW_SCHEMA.
@@ -661,6 +662,8 @@ hyscan_data_schema_parse_key (HyScanDataSchemaPrivate *priv,
         key_view = HYSCAN_DATA_SCHEMA_VIEW_RGB;
       else if (g_ascii_strcasecmp ((const gchar *)viewx, "rgba") == 0)
         key_view = HYSCAN_DATA_SCHEMA_VIEW_RGBA;
+      else if (g_ascii_strcasecmp ((const gchar *)viewx, "button") == 0)
+        key_view = HYSCAN_DATA_SCHEMA_VIEW_BUTTON;
       else if (g_ascii_strcasecmp ((const gchar *)viewx, "file") == 0)
         key_view = HYSCAN_DATA_SCHEMA_VIEW_FILE;
       else if (g_ascii_strcasecmp ((const gchar *)viewx, "dir") == 0)

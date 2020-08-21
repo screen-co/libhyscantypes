@@ -404,6 +404,8 @@ hyscan_data_schema_builder_dump_key (GOutputStream               *ostream,
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"rgb\"");
   else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_RGBA)
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"rgba\"");
+  else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_BUTTON)
+    g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"button\"");
   else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_FILE)
     g_output_stream_printf (ostream, NULL, NULL, NULL, " view=\"file\"");
   else if (ikey->view == HYSCAN_DATA_SCHEMA_VIEW_DIR)
