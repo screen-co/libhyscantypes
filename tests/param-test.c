@@ -46,6 +46,8 @@ GVariant *cur_value;
 static volatile guint32 mod_counter1 = 0;
 static volatile guint32 mod_counter2 = 0;
 
+#define SCHEMA_ID "test"
+#define SCHEMA_VERSION 12345
 #define USER_DATA (gpointer)0x12345678
 
 gboolean
@@ -784,14 +786,21 @@ main (int    argc,
   g_object_unref (schema);
 
   /* Прокси для двух бэкендов. */
-  proxy = hyscan_param_proxy_new ();
+  proxy = hyscan_param_proxy_new_full (SCHEMA_ID, SCHEMA_VERSION);
   hyscan_param_proxy_add (proxy, "/data-box/", HYSCAN_PARAM (data), "/orig");
   hyscan_param_proxy_add (proxy, "/controller", HYSCAN_PARAM (controller), "/orig/");
   hyscan_param_proxy_bind (proxy);
   param = HYSCAN_PARAM (proxy);
 
-  /* Список проксируемых параметров. */
+  /* Проверяем идентификатор и версию схемы данных. */
   schema = hyscan_param_schema (param);
+  if ((g_strcmp0 (SCHEMA_ID, hyscan_data_schema_get_id (schema)) != 0) ||
+      (SCHEMA_VERSION != hyscan_data_schema_get_version (schema)))
+    {
+      g_error ("schema id error");
+    }
+
+  /* Список проксируемых параметров. */
   keys_list = hyscan_data_schema_list_keys (schema);
   if (keys_list == NULL)
     g_error ("empty schema");
@@ -835,25 +844,25 @@ main (int    argc,
 
   /* Проверяем сериализацию data-box. */
     {
+      GKeyFile *kf;
       HyScanDataBox *data2;
-      gchar *sparams;
 
+      kf = g_key_file_new ();
       data2 = hyscan_data_box_new_from_string (schema_data, "test");
-      sparams = hyscan_data_box_serialize (data);
 
-      if (sparams == NULL)
+      if (!hyscan_data_box_serialize (data, kf, NULL))
         g_error ("can't serialize values");
 
       if (mod_counter1 != hyscan_data_box_get_mod_count (data, NULL))
         g_error ("modification counter error");
 
-      if (!hyscan_data_box_deserialize (data2, sparams))
+      if (!hyscan_data_box_deserialize (data2, kf, NULL))
         g_error ("can't deserialize values");
 
       compare_values (HYSCAN_PARAM (data), HYSCAN_PARAM (data2));
 
       g_object_unref (data2);
-      g_free (sparams);
+      g_key_file_unref (kf);
     }
 
   /* Счётчики изменений Controller и DataBox должны совпадать. */

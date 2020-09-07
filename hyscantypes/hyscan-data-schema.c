@@ -79,13 +79,13 @@
  *     </value>
  *   </enum>
  *
- *   <schema id="name">
+ *   <schema id="name" version="1000100">
  *     <key id="first" name="First name" type="string"/>
  *     <key id="middle" name="Middle name" type="string"/>
  *     <key id="last" name="Last name" type="string"/>
  *   </schema>
  *
- *   <schema id="person" name="Person">
+ *   <schema id="person" name="Person" version="1000100">
  *     <description>Person info</descruption>
  *     <node id="name" name="Person name" schema="name">
  *       <description>Person name</descruption>
@@ -301,6 +301,8 @@ struct _HyScanDataSchemaPrivate
 
   GArray                      *keys_list;              /* Список параметров по порядку их описания в схеме. */
   HyScanDataSchemaNode        *nodes_list;             /* Список узлов по порядку их описания в схеме. */
+
+  gint64                       schema_version;         /* Версия схемы. */
 };
 
 static void            hyscan_data_schema_set_property         (GObject                    *object,
@@ -1069,14 +1071,28 @@ hyscan_data_schema_parse_schema (HyScanDataSchemaPrivate *priv,
         continue;
 
       id = xmlGetProp (node, (xmlChar *)"id");
+
       if (g_ascii_strcasecmp ((gchar*)id, schema) != 0)
         {
           xmlFree (id);
           continue;
         }
+      /* Версию надо считывать только у запрошенной пользователем схемы. */
+      if (g_ascii_strcasecmp ((gchar*)id, priv->schema_id) == 0)
+        {
+          xmlChar *version = xmlGetProp (node, (xmlChar *)"version");
+
+          if (version != NULL)
+            priv->schema_version = g_ascii_strtoll ((const gchar *)version, NULL, 10);
+          else
+            priv->schema_version = 0;
+
+          xmlFree (version);
+        }
+
       xmlFree (id);
 
-      /* Названиеи описание схемы считываем только для корня. */
+      /* Название и описание схемы считываем только для корня. */
       if (is_root)
         {
           xmlChar *name = xmlGetProp (node, (xmlChar *)"name");
@@ -1233,6 +1249,22 @@ hyscan_data_schema_get_id (HyScanDataSchema *schema)
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), NULL);
 
   return schema->priv->schema_id;
+}
+
+/**
+ * hyscan_data_schema_get_version:
+ * @schema: указатель на #HyScanDataSchema
+ *
+ * Функция возвращает версию загруженной схемы данных.
+ *
+ * Returns: Версия загруженной схемы данных.
+ */
+gint64
+hyscan_data_schema_get_version (HyScanDataSchema *schema)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA (schema), -1);
+
+  return schema->priv->schema_version;
 }
 
 /**

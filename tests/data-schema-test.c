@@ -35,8 +35,12 @@
 #include <gio/gio.h>
 #include <hyscan-data-schema-builder.h>
 
-#define SCHEMA_NAME        "Test schema"
-#define SCHEMA_DESCRIPTION "Test schema description"
+#define SCHEMA_ID_STAGE1        "orig"
+#define SCHEMA_ID_STAGE2        "test"
+#define SCHEMA_VERSION_STAGE1   123456
+#define SCHEMA_VERSION_STAGE2   123456
+#define SCHEMA_NAME             "Test schema"
+#define SCHEMA_DESCRIPTION      "Test schema description"
 
 gchar *test_schema_create (const gchar *schema_id);
 
@@ -616,17 +620,18 @@ main (int    argc,
   schema = hyscan_data_schema_new_from_string (schema_data, "orig");
   g_free (schema_data);
 
-  builder = hyscan_data_schema_builder_new ("orig");
+  builder = hyscan_data_schema_builder_new_with_version (SCHEMA_ID_STAGE1, SCHEMA_VERSION_STAGE1);
   hyscan_data_schema_builder_schema_join (builder, "/orig", schema, "/orig");
   hyscan_data_schema_builder_node_set_name (builder, "/orig", SCHEMA_NAME, SCHEMA_DESCRIPTION);
   schema_data = hyscan_data_schema_builder_get_data (builder);
   g_object_unref (builder);
   g_object_unref (schema);
 
-  schema = hyscan_data_schema_new_from_string (schema_data, "orig");
+  schema = hyscan_data_schema_new_from_string (schema_data, SCHEMA_ID_STAGE1);
+  g_assert (SCHEMA_VERSION_STAGE1 == hyscan_data_schema_get_version (schema));
   g_free (schema_data);
 
-  builder = hyscan_data_schema_builder_new ("test");
+  builder = hyscan_data_schema_builder_new_with_version (SCHEMA_ID_STAGE2, SCHEMA_VERSION_STAGE2);
   hyscan_data_schema_builder_schema_join (builder, "/", schema, "/orig");
   schema_data = hyscan_data_schema_builder_get_data (builder);
   g_object_unref (builder);
@@ -635,7 +640,8 @@ main (int    argc,
   if (schema_file != NULL)
     g_file_set_contents (schema_file, schema_data, -1, NULL);
 
-  schema = hyscan_data_schema_new_from_string (schema_data, "test");
+  schema = hyscan_data_schema_new_from_string (schema_data, SCHEMA_ID_STAGE2);
+  g_assert (SCHEMA_VERSION_STAGE2 == hyscan_data_schema_get_version (schema));
   g_free (schema_data);
 
   keys_list = hyscan_data_schema_list_keys (schema);

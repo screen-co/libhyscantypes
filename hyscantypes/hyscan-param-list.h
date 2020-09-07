@@ -142,6 +142,11 @@ gchar *                hyscan_param_list_dup_string       (HyScanParamList    *l
                                                            const gchar        *name);
 
 HYSCAN_API
+gchar **               hyscan_param_list_dup_stringv      (HyScanParamList    *list,
+                                                           const gchar        *name,
+                                                           const gchar        *delimiter);
+
+HYSCAN_API
 gint64                 hyscan_param_list_get_enum         (HyScanParamList    *list,
                                                            const gchar        *name);
 

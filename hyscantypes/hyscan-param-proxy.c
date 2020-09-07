@@ -54,6 +54,13 @@
 
 #include <string.h>
 
+enum
+{
+  PROP_O,
+  PROP_SCHEMA_ID,
+  PROP_SCHEMA_VERSION
+};
+
 typedef struct
 {
   HyScanParam                 *backend;        /* Бэкенд для параметра. */
@@ -68,6 +75,9 @@ typedef struct
 
 struct _HyScanParamProxyPrivate
 {
+  gchar                       *schema_id;      /* Идентификатор общей схемы. */
+  gint64                       schema_version; /* Версия общей схемы. */
+
   GList                       *backends;       /* Список бэкендов. */
   GHashTable                  *keys;           /* Список параметров. */
   HyScanParamList             *list;           /* Значения параметров. */
@@ -77,6 +87,10 @@ struct _HyScanParamProxyPrivate
 };
 
 static void    hyscan_param_proxy_interface_init       (HyScanParamInterface  *iface);
+static void    hyscan_param_proxy_set_property         (GObject               *object,
+                                                        guint                  prop_id,
+                                                        const GValue          *value,
+                                                        GParamSpec            *pspec);
 static void    hyscan_param_proxy_object_constructed   (GObject               *object);
 static void    hyscan_param_proxy_object_finalize      (GObject               *object);
 static void    hyscan_param_proxy_backend_free         (gpointer               data);
@@ -91,14 +105,49 @@ hyscan_param_proxy_class_init (HyScanParamProxyClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->set_property = hyscan_param_proxy_set_property;
+
   object_class->constructed = hyscan_param_proxy_object_constructed;
   object_class->finalize = hyscan_param_proxy_object_finalize;
+
+  g_object_class_install_property (object_class, PROP_SCHEMA_ID,
+    g_param_spec_string ("schema-id", "ID", "Schema ID", NULL,
+                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
+  g_object_class_install_property (object_class, PROP_SCHEMA_VERSION,
+    g_param_spec_int64 ("schema-version", "Version", "Schema version", G_MININT64, G_MAXINT64, 0,
+                        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
 hyscan_param_proxy_init (HyScanParamProxy *proxy)
 {
   proxy->priv = hyscan_param_proxy_get_instance_private (proxy);
+}
+
+static void
+hyscan_param_proxy_set_property (GObject      *object,
+                             guint         prop_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
+{
+  HyScanParamProxy *param_proxy = HYSCAN_PARAM_PROXY (object);
+  HyScanParamProxyPrivate *priv = param_proxy->priv;
+
+  switch (prop_id)
+    {
+    case PROP_SCHEMA_ID:
+      priv->schema_id = g_value_dup_string (value);
+      break;
+
+    case PROP_SCHEMA_VERSION:
+      priv->schema_version = g_value_get_int64 (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
 }
 
 static void
@@ -112,7 +161,10 @@ hyscan_param_proxy_object_constructed (GObject *object)
 
   priv->list = hyscan_param_list_new ();
 
-  priv->builder = hyscan_data_schema_builder_new ("proxy");
+  if (priv->schema_id == NULL)
+    priv->schema_id = g_strdup ("proxy");
+
+  priv->builder = hyscan_data_schema_builder_new_full (priv->schema_id, priv->schema_version, NULL);
 }
 
 static void
@@ -127,6 +179,8 @@ hyscan_param_proxy_object_finalize (GObject *object)
   g_clear_object (&priv->builder);
   g_clear_object (&priv->schema);
   g_clear_object (&priv->list);
+
+  g_free (priv->schema_id);
 
   G_OBJECT_CLASS (hyscan_param_proxy_parent_class)->finalize (object);
 }
@@ -160,7 +214,26 @@ hyscan_param_proxy_key_free (gpointer data)
 HyScanParamProxy *
 hyscan_param_proxy_new (void)
 {
-  return g_object_new (HYSCAN_TYPE_PARAM_PROXY, NULL);
+  return hyscan_param_proxy_new_full ("proxy", 0);
+}
+
+/**
+ * hyscan_param_proxy_new:
+ * @schema_id: идентификатор схемы объекта
+ * @schema_version: версия схемы объекта
+ *
+ * Функция создаёт новый объект #HyScanParamProxy.
+ *
+ * Returns: #HyScanParamProxy. Для удаления #g_object_unref.
+ */
+HyScanParamProxy *
+hyscan_param_proxy_new_full (const gchar *schema_id,
+                             gint64       schema_version)
+{
+  return g_object_new (HYSCAN_TYPE_PARAM_PROXY,
+                       "schema-id", schema_id,
+                       "schema-version", schema_version,
+                       NULL);
 }
 
 /**

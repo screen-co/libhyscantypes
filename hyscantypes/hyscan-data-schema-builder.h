@@ -69,7 +69,16 @@ HYSCAN_API
 HyScanDataSchemaBuilder * hyscan_data_schema_builder_new                 (const gchar              *schema_id);
 
 HYSCAN_API
+HyScanDataSchemaBuilder * hyscan_data_schema_builder_new_with_version    (const gchar              *schema_id,
+                                                                          gint64                    schema_version);
+
+HYSCAN_API
 HyScanDataSchemaBuilder * hyscan_data_schema_builder_new_with_gettext    (const gchar              *schema_id,
+                                                                          const gchar              *gettext_domain);
+
+HYSCAN_API
+HyScanDataSchemaBuilder * hyscan_data_schema_builder_new_full            (const gchar              *schema_id,
+                                                                          gint64                    schema_version,
                                                                           const gchar              *gettext_domain);
 
 HYSCAN_API
@@ -80,6 +89,9 @@ gchar *                   hyscan_data_schema_builder_get_data            (HyScan
 
 HYSCAN_API
 const gchar *             hyscan_data_schema_builder_get_id              (HyScanDataSchemaBuilder  *builder);
+
+HYSCAN_API
+gint64                    hyscan_data_schema_builder_get_version         (HyScanDataSchemaBuilder  *builder);
 
 HYSCAN_API
 const gchar *             hyscan_data_schema_builder_get_text_domain     (HyScanDataSchemaBuilder  *builder);
