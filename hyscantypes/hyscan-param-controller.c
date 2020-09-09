@@ -43,6 +43,9 @@
  * и #hyscan_param_controller_get. Кроме этого имеется возможность связать
  * параметр с одиночной переменной или объектом GString для строковых
  * параметров.
+ *
+ * Также имеется возможность зарегистрировать функции пост обработки,
+ * вызываемые после изменения параметров.
  */
 
 #include "hyscan-param-controller.h"
@@ -53,11 +56,20 @@ enum
   PROP_LOCK
 };
 
+/* Структура с описанием действия пост обработки. */
+typedef struct
+{
+  hyscan_param_controller_post post_fn;        /* Функция пост обработки. */
+  gboolean                     post_exec;      /* Признак необходимости пост обработки. */
+  gpointer                     user_data;      /* Пользовательские данные. */
+} HyScanParamControllerPost;
+
 /* Стуктура с описанием действия над параметром. */
 typedef struct
 {
   hyscan_param_controller_set  set_fn;         /* Функция установки значения параметра. */
-  hyscan_param_controller_get  get_fn;         /* Функция чтния значения параметра. */
+  hyscan_param_controller_get  get_fn;         /* Функция чтения значения параметра. */
+  HyScanParamControllerPost   *post;           /* Описание пост обработки. */
   gpointer                     user_data;      /* Пользовательские данные. */
 } HyScanParamControllerExec;
 
@@ -65,6 +77,7 @@ struct _HyScanParamControllerPrivate
 {
   HyScanDataSchema            *schema;         /* Схема данных. */
   GHashTable                  *params;         /* Список обрабатываемых параметров. */
+  GHashTable                  *posts;          /* Список функций пост обработки. */
   GMutex                      *lock;           /* Блокировка доступа к параметрам. */
 };
 
@@ -76,6 +89,7 @@ static void    hyscan_param_controller_set_property          (GObject           
 static void    hyscan_param_controller_object_constructed    (GObject                *object);
 static void    hyscan_param_controller_object_finalize       (GObject                *object);
 
+static void    hyscan_param_controller_free_post             (gpointer                data);
 static void    hyscan_param_controller_free_exec             (gpointer                data);
 
 G_DEFINE_TYPE_WITH_CODE (HyScanParamController, hyscan_param_controller, G_TYPE_OBJECT,
@@ -224,6 +238,9 @@ hyscan_param_controller_object_constructed (GObject *object)
 
   priv->params = g_hash_table_new_full (g_str_hash, g_str_equal,
                                         g_free, hyscan_param_controller_free_exec);
+
+  priv->posts  = g_hash_table_new_full (NULL, NULL,
+                                        NULL, hyscan_param_controller_free_post);
 }
 
 static void
@@ -233,9 +250,17 @@ hyscan_param_controller_object_finalize (GObject *object)
   HyScanParamControllerPrivate *priv = controller->priv;
 
   g_hash_table_unref (priv->params);
+  g_hash_table_unref (priv->posts);
   g_clear_object (&priv->schema);
 
   G_OBJECT_CLASS (hyscan_param_controller_parent_class)->finalize (object);
+}
+
+/* Функция освобождает память занятую структурой HyScanParamControllerPost. */
+static void
+hyscan_param_controller_free_post (gpointer data)
+{
+  g_slice_free (HyScanParamControllerPost, data);
 }
 
 /* Функция освобождает память занятую структурой HyScanParamControllerExec. */
@@ -434,6 +459,7 @@ hyscan_param_controller_add_user (HyScanParamController       *controller,
   exec = g_slice_new0 (HyScanParamControllerExec);
   exec->set_fn = set_fn;
   exec->get_fn = get_fn;
+  exec->post = NULL;
   exec->user_data = user_data;
 
   g_hash_table_insert (params, g_strdup (name), exec);
@@ -443,6 +469,69 @@ exit:
   (lock != NULL) ? g_mutex_unlock (lock) : 0;
 
   return status;
+}
+
+/**
+ * hyscan_param_controller_add_post:
+ * @controller: указатель на #HyScanParamController
+ * @name: название параметра
+ * @post_fn: функция пост обработки
+ * @user_data: пользовательские данные
+ *
+ * Функция устанавливает функцию пост обработки. Она будет вызвана
+ * после изменения параметра @name. Одна и та же функция может
+ * использоваться для разных параметров. В этом случае она будет
+ * вызвана при изменении любого из параметров.
+ *
+ * Returns: %TRUE если функция пост обработки добавлена, иначе %FALSE.
+ */
+gboolean
+hyscan_param_controller_add_post (HyScanParamController       *controller,
+                                  const gchar                 *name,
+                                  hyscan_param_controller_post post_fn,
+                                  gpointer                     user_data)
+{
+  HyScanParamControllerExec *exec;
+  HyScanParamControllerPost *post;
+  GHashTable *params;
+  GHashTable *posts;
+  GMutex *lock;
+
+  gboolean status = FALSE;
+
+  g_return_val_if_fail (HYSCAN_IS_PARAM_CONTROLLER (controller), FALSE);
+
+  params = controller->priv->params;
+  posts = controller->priv->posts;
+  lock = controller->priv->lock;
+
+  (lock != NULL) ? g_mutex_lock (lock) : 0;
+
+  /* Параметр не существует. */
+  exec = g_hash_table_lookup (params, name);
+  if (exec == NULL)
+    goto exit;
+
+  /* Регистрируем функцию пост обработки. */
+  post = g_hash_table_lookup (posts, post_fn);
+  if (post == NULL)
+    {
+      post = g_slice_new0 (HyScanParamControllerPost);
+      post->post_fn = post_fn;
+      post->post_exec = FALSE;
+      post->user_data = user_data;
+
+      g_hash_table_insert (posts, post_fn, post);
+    }
+
+  /* Связываем функцию пост обработки с параметром. */
+  exec->post = post;
+  status = TRUE;
+
+  exit:
+    (lock != NULL) ? g_mutex_unlock (lock) : 0;
+
+    return status;
 }
 
 static HyScanDataSchema *
@@ -464,8 +553,12 @@ hyscan_param_controller_param_set (HyScanParam     *param,
   HyScanParamController *controller = HYSCAN_PARAM_CONTROLLER (param);
   HyScanDataSchema *schema = controller->priv->schema;
   GHashTable *params = controller->priv->params;
+  GHashTable *posts = controller->priv->posts;
   GMutex *lock = controller->priv->lock;
   gboolean status = TRUE;
+
+  GHashTableIter iter;
+  gpointer key, value;
 
   const gchar * const *names;
   guint i;
@@ -518,6 +611,25 @@ hyscan_param_controller_param_set (HyScanParam     *param,
         }
 
       g_clear_pointer (&value, g_variant_unref);
+
+      if (!status)
+        goto fail;
+
+      if (exec->post != NULL)
+        exec->post->post_exec = TRUE;
+    }
+
+  /* Пост обработка параметров. */
+  g_hash_table_iter_init (&iter, posts);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      HyScanParamControllerPost *post = value;
+
+      if (post->post_exec)
+        {
+          post->post_exec = FALSE;
+          status = post->post_fn (names, post->user_data);
+        }
 
       if (!status)
         goto fail;

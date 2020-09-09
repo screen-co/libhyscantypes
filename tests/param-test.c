@@ -43,7 +43,10 @@ HyScanParamList *list;
 const gchar *cur_name;
 GVariant *cur_value;
 
-static volatile guint32 mod_counter = 0;
+static volatile guint32 mod_counter1 = 0;
+static volatile guint32 mod_counter2 = 0;
+
+#define USER_DATA (gpointer)0x12345678
 
 gboolean
 set_cb (HyScanDataBox   *data,
@@ -94,7 +97,19 @@ void
 changed_cb (HyScanDataBox *data,
             const gchar   *name)
 {
-  mod_counter += 1;
+  mod_counter1 += 1;
+}
+
+gboolean
+post_cb (const gchar *const *names,
+         gpointer            user_data)
+{
+  mod_counter2 += 1;
+
+  if (user_data != USER_DATA)
+    return FALSE;
+
+  return TRUE;
 }
 
 /* Функция проверяет readonly/writeonly параметры. */
@@ -160,7 +175,7 @@ check_boolean (HyScanParam      *param,
   GVariant *default_value;
 
   cur_name = name;
-  local_mod_counter = mod_counter;
+  local_mod_counter = mod_counter1;
 
   hyscan_param_list_clear (list);
 
@@ -210,7 +225,7 @@ check_boolean (HyScanParam      *param,
 
   if (HYSCAN_IS_DATA_BOX (param))
     {
-      local_mod_counter = mod_counter - local_mod_counter;
+      local_mod_counter = mod_counter1 - local_mod_counter;
       if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
         g_error ("%s: modification counter error", name);
     }
@@ -242,7 +257,7 @@ check_integer (HyScanParam      *param,
   gint64 i;
 
   cur_name = name;
-  local_mod_counter = mod_counter;
+  local_mod_counter = mod_counter1;
 
   hyscan_param_list_clear (list);
 
@@ -298,7 +313,7 @@ check_integer (HyScanParam      *param,
 
   if (HYSCAN_IS_DATA_BOX (param))
     {
-      local_mod_counter = mod_counter - local_mod_counter;
+      local_mod_counter = mod_counter1 - local_mod_counter;
       if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
         g_error ("%s: modification counter error", name);
     }
@@ -333,7 +348,7 @@ check_double (HyScanParam      *param,
   gdouble i;
 
   cur_name = name;
-  local_mod_counter = mod_counter;
+  local_mod_counter = mod_counter1;
 
   hyscan_param_list_clear (list);
 
@@ -389,7 +404,7 @@ check_double (HyScanParam      *param,
 
   if (HYSCAN_IS_DATA_BOX (param))
     {
-      local_mod_counter = mod_counter - local_mod_counter;
+      local_mod_counter = mod_counter1 - local_mod_counter;
       if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
         g_error ("%s: modification counter error", name);
     }
@@ -421,7 +436,7 @@ check_string (HyScanParam      *param,
   gint32 i;
 
   cur_name = name;
-  local_mod_counter = mod_counter;
+  local_mod_counter = mod_counter1;
 
   hyscan_param_list_clear (list);
 
@@ -478,7 +493,7 @@ check_string (HyScanParam      *param,
 
   if (HYSCAN_IS_DATA_BOX (param))
     {
-      local_mod_counter = mod_counter - local_mod_counter;
+      local_mod_counter = mod_counter1 - local_mod_counter;
       if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
         g_error ("%s: modification counter error", name);
     }
@@ -509,7 +524,7 @@ check_enum (HyScanParam      *param,
   gint64 value;
 
   cur_name = name;
-  local_mod_counter = mod_counter;
+  local_mod_counter = mod_counter1;
 
   hyscan_param_list_clear (list);
 
@@ -561,7 +576,7 @@ check_enum (HyScanParam      *param,
 
   if (HYSCAN_IS_DATA_BOX (param))
     {
-      local_mod_counter = mod_counter - local_mod_counter;
+      local_mod_counter = mod_counter1 - local_mod_counter;
       if (local_mod_counter != hyscan_data_box_get_mod_count (HYSCAN_DATA_BOX (param), name))
         g_error ("%s: modification counter error", name);
     }
@@ -761,6 +776,8 @@ main (int    argc,
         default:
           break;
         }
+
+      hyscan_param_controller_add_post (controller, keys_list[i], post_cb, USER_DATA);
     }
   hyscan_param_controller_set_schema (controller, schema);
 
@@ -827,7 +844,7 @@ main (int    argc,
       if (sparams == NULL)
         g_error ("can't serialize values");
 
-      if (mod_counter != hyscan_data_box_get_mod_count (data, NULL))
+      if (mod_counter1 != hyscan_data_box_get_mod_count (data, NULL))
         g_error ("modification counter error");
 
       if (!hyscan_data_box_deserialize (data2, sparams))
@@ -838,6 +855,10 @@ main (int    argc,
       g_object_unref (data2);
       g_free (sparams);
     }
+
+  /* Счётчики изменений Controller и DataBox должны совпадать. */
+  if (mod_counter1 != mod_counter2)
+    g_error ("modification counters mismatch %d != %d", mod_counter1, mod_counter2);
 
   g_list_free_full (objects1, g_free);
   g_list_free_full (objects2, g_string_destroy);
