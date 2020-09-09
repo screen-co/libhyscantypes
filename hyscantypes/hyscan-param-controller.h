@@ -72,6 +72,20 @@ typedef gboolean     (*hyscan_param_controller_set)           (const gchar      
 typedef GVariant *   (*hyscan_param_controller_get)           (const gchar            *name,
                                                                gpointer                user_data);
 
+/**
+ * hyscan_param_controller_post:
+ * @names: список изменённых параметров
+ * @user_data: пользовательские данные
+ *
+ * Функция выполняет пост обработку изменённых параметров. Она вызывается
+ * после изменения значений всех параметров. Если эта функция вернёт
+ * значение %FALSE, вызов hyscan_param_set тоже вернёт %FALSE. Но старые
+ * значения изменённых параметров не будут восстановлены.
+ *
+ * Returns: %TRUE если пост обработка успешно выполнена, иначе %FALSE.
+ */
+typedef gboolean     (*hyscan_param_controller_post)          (const gchar* const     *names,
+                                                               gpointer                user_data);
 
 typedef struct _HyScanParamController HyScanParamController;
 typedef struct _HyScanParamControllerPrivate HyScanParamControllerPrivate;
@@ -129,6 +143,12 @@ gboolean               hyscan_param_controller_add_user          (HyScanParamCon
                                                                   const gchar                 *name,
                                                                   hyscan_param_controller_set  set_fn,
                                                                   hyscan_param_controller_get  get_fn,
+                                                                  gpointer                     user_data);
+
+HYSCAN_API
+gboolean               hyscan_param_controller_add_post          (HyScanParamController       *controller,
+                                                                  const gchar                 *name,
+                                                                  hyscan_param_controller_post post_fn,
                                                                   gpointer                     user_data);
 
 G_END_DECLS
