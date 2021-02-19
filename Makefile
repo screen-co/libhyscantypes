@@ -21,6 +21,7 @@ release:
 	@cd build && cmake -G $(CMAKE_GENERATOR) \
                        -D CMAKE_BUILD_TYPE=Release \
                        -D CMAKE_INSTALL_PREFIX=$(PREFIX) \
+                       -D HYSCAN_PORTABLE=$(PORTABLE) \
                        ..
 	@$(MAKE) -C build
 
@@ -33,6 +34,7 @@ debug:
 	@cd build && cmake -G $(CMAKE_GENERATOR) \
                        -D CMAKE_BUILD_TYPE=Debug \
                        -D CMAKE_INSTALL_PREFIX=$(PREFIX) \
+                       -D HYSCAN_PORTABLE=$(PORTABLE) \
                        ..
 	@$(MAKE) -C build
 

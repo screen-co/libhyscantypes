@@ -73,15 +73,14 @@ message ("Profile path:" ${HYSCAN_USER_FILES_DIR})
 add_definitions(-DHYSCAN_USER_FILES_DIR="${HYSCAN_USER_FILES_DIR}")
 
 # Пути в portable и standalone сборках
-if (DEFINED HYSCAN_PORTABLE)
+if (HYSCAN_PORTABLE)
   add_definitions (-DHYSCAN_USER_FILES_PREFIX="../config")
   message ("HyScan will be portable")
 else()
   add_definitions(-DHYSCAN_INSTALLED=1)
   add_definitions (-DHYSCAN_USER_FILES_PREFIX="share")
-  message ("HyScan will be standalone")
+  message ("HyScan will be installed")
 endif()
-
 
 add_definitions (-DG_LOG_DOMAIN="HyScanTypes")
 add_definitions (-DGETTEXT_PACKAGE="hyscantypes")
