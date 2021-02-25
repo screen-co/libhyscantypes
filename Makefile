@@ -9,8 +9,6 @@ else
   REMOVE_DIR = rm -rf
 endif
 
-PREFIX ?= /usr
-
 all: release
 
 test: release-test
@@ -19,8 +17,6 @@ release:
 	@-${MAKE_DIR} bin
 	@-${MAKE_DIR} build
 	@cd build && cmake -G $(CMAKE_GENERATOR) \
-                       -D CMAKE_BUILD_TYPE=Release \
-                       -D CMAKE_INSTALL_PREFIX=$(PREFIX) \
                        ..
 	@$(MAKE) -C build
 
@@ -32,7 +28,6 @@ debug:
 	@-${MAKE_DIR} build
 	@cd build && cmake -G $(CMAKE_GENERATOR) \
                        -D CMAKE_BUILD_TYPE=Debug \
-                       -D CMAKE_INSTALL_PREFIX=$(PREFIX) \
                        ..
 	@$(MAKE) -C build
 
