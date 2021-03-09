@@ -254,16 +254,16 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
 
   { 0, "bathy-starboard",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD,
     N_("Starboard bathymetry") },
-  { 0, "bathy-starboard-low",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD_LOW,
+  { 0, "bathy-starboard-low",  HYSCAN_SOURCE_BATHYMETRY_STARBOARD_LOW,
     N_("Starboard bathymetry, lf") },
-  { 0, "bathy-starboard-hi",      HYSCAN_SOURCE_BATHYMETRY_STARBOARD_HI,
+  { 0, "bathy-starboard-hi",   HYSCAN_SOURCE_BATHYMETRY_STARBOARD_HI,
     N_("Starboard bathymetry, hf") },
 
   { 0, "bathy-port",           HYSCAN_SOURCE_BATHYMETRY_PORT,
     N_("Port bathymetry") },
-  { 0, "bathy-port-low",           HYSCAN_SOURCE_BATHYMETRY_PORT_LOW,
+  { 0, "bathy-port-low",       HYSCAN_SOURCE_BATHYMETRY_PORT_LOW,
     N_("Port bathymetry, lf") },
-  { 0, "bathy-port-hi",           HYSCAN_SOURCE_BATHYMETRY_PORT_HI,
+  { 0, "bathy-port-hi",        HYSCAN_SOURCE_BATHYMETRY_PORT_HI,
     N_("Port bathymetry, hf") },
 
   { 0, "profiler",             HYSCAN_SOURCE_PROFILER,
@@ -273,8 +273,17 @@ static HyScanSourceTypeInfo hyscan_source_types_info[] =
 
   { 0, "around-starboard",     HYSCAN_SOURCE_LOOK_AROUND_STARBOARD,
     N_("Look around, starboard") },
+  { 0, "around-starboard-low", HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_LOW,
+    N_("Look around, starboard, lf") },
+  { 0, "around-starboard-hi",  HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_HI,
+    N_("Look around, starboard, hf") },
+
   { 0, "around-port",          HYSCAN_SOURCE_LOOK_AROUND_PORT,
     N_("Look around, port") },
+  { 0, "around-port-low",      HYSCAN_SOURCE_LOOK_AROUND_PORT_LOW,
+    N_("Look around, port, lf") },
+  { 0, "around-port-hi",       HYSCAN_SOURCE_LOOK_AROUND_PORT_HI,
+    N_("Look around, port, hf") },
 
   { 0, "forward-look",         HYSCAN_SOURCE_FORWARD_LOOK,
     N_("Forwardlook") },
@@ -758,7 +767,11 @@ hyscan_source_is_sonar (HyScanSourceType source)
     case HYSCAN_SOURCE_PROFILER:
     case HYSCAN_SOURCE_PROFILER_ECHO:
     case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD:
+    case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_LOW:
+    case HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_HI:
     case HYSCAN_SOURCE_LOOK_AROUND_PORT:
+    case HYSCAN_SOURCE_LOOK_AROUND_PORT_LOW:
+    case HYSCAN_SOURCE_LOOK_AROUND_PORT_HI:
     case HYSCAN_SOURCE_FORWARD_LOOK:
     case HYSCAN_SOURCE_FORWARD_ECHO:
     case HYSCAN_SOURCE_DVL:
