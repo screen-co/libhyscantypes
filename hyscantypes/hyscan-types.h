@@ -170,7 +170,11 @@ typedef enum
  * @HYSCAN_SOURCE_PROFILER: профилограф
  * @HYSCAN_SOURCE_PROFILER_ECHO: эхолот профилографа
  * @HYSCAN_SOURCE_LOOK_AROUND_STARBOARD: круговой обзор, правый борт
+ * @HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_LOW: круговой обзор, правый борт, низкое разрешение
+ * @HYSCAN_SOURCE_LOOK_AROUND_STARBOARD_HI: круговой обзор, правый борт, высокое разрешение
  * @HYSCAN_SOURCE_LOOK_AROUND_PORT: круговой обзор, левый борт
+ * @HYSCAN_SOURCE_LOOK_AROUND_PORT_LOW: круговой обзор, левый борт, низкое разрешение
+ * @HYSCAN_SOURCE_LOOK_AROUND_PORT_HI: круговой обзор, левый борт, высокое разрешение
  * @HYSCAN_SOURCE_FORWARD_LOOK: вперёдсмотрящий гидролокатор
  * @HYSCAN_SOURCE_FORWARD_ECHO: вперёдсмотрящий эхолот
  * @HYSCAN_SOURCE_DVL: Доплеровский лаг

@@ -233,6 +233,9 @@ HYSCAN_API
 const gchar *                     hyscan_data_schema_get_id               (HyScanDataSchema                *schema);
 
 HYSCAN_API
+gint64                            hyscan_data_schema_get_version          (HyScanDataSchema                *schema);
+
+HYSCAN_API
 const gchar * const *             hyscan_data_schema_list_keys            (HyScanDataSchema                *schema);
 
 HYSCAN_API

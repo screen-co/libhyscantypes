@@ -1,6 +1,6 @@
 prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/lib
-includedir=${prefix}/include/hyscan-@HYSCAN_MAJOR_VERSION@/hyscantypes
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@/hyscan-@HYSCAN_MAJOR_VERSION@/hyscantypes
 
 Name: HyScanTypes
 Version: @HYSCAN_MAJOR_VERSION@.@HYSCAN_TYPES_VERSION@

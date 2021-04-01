@@ -1,6 +1,7 @@
 /* hyscan-config.h
  *
  * Copyright 2020 Screen LLC, Alexander Dmitriev <m1n7@yandex.ru>
+ * Copyright 2021 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
  *
@@ -37,60 +38,51 @@
  * @Short_description: конфигурационные параметры времени компиляции
  * @Title: HyScanConfig
  *
- * Здесь предоставлены функции получения путей к профилям и файлам локализации.
- * Они могут быть настроены только на этапе компиляции для portable и installed
- * сборок.
+ * Здесь предоставлены функции получения путей к каталогам с файлами
+ * переводов, профилям, лог файлам и т.п. Настройка этих путей выполняется
+ * на этапе компиляции и зависит от типа сборки (portable или installed),
+ * а также платформы (Windows, Unix).
  *
- * В Linux все пути задаются абсолютными. В Windows они относительно папки с
- * выполняемой программой ("path/to/app.exe/../").
+ * Существует два варианта сборки программы portable и installed. Portable
+ * версия предполагает возможность запуска программы из любого места, без
+ * необходимости выполнения установки в операционной системе. Installed версия
+ * требует установки с использованием инсталятора HyScan (в Windows) или
+ * пакетного менеджера дистрибутива (в Linux).
  *
- * Путь к файлам локализации определяется переменными HYSCAN_LOCALE_PREFIX и 
- * HYSCAN_LOCALE_POSTFIX. По умолчанию это "/usr/share/locale" для Linux и
- * "/share/locale" для Windows.
+ * В portable версии все файлы профилей, настроек, логов и пр. располагаются
+ * внутри каталога с программой. А в installed, они размещаются в различных
+ * каталогах в соответствии с идеологией операционной системы.
  *
- * Пути к файлам профилей составляются чуть сложней.
- * Безусловно присутствует каталог с т.н. системными профилями. В случае installed
- * сборки добавляется пользовательская папка с конфигурационными файлами.
+ * Доступны следующие функции для определения путей:
  *
- * Если сборка installed (задана переменная HYSCAN_INSTALLED),
- * то к списку путей добавляется пользовательская папка с конфигурационными
- * файлами (g_get_user_config_dir()).
+ * - #hyscan_config_get_locale_dir - возвращает путь к файлам с переводами;
+ * - #hyscan_config_get_driver_dir - возвращает путь к драйверам устройств;
+ * - #hyscan_config_get_system_dir - возвращает путь к общесистемным файлам;
+ * - #hyscan_config_get_user_dir - возвращает путь к пользовательским файлам;
+ * - #hyscan_config_get_log_dir - возвращает путь к лог файлам.
  *
- * При этом в случае installed базовый путь к профилям - 
- * "/usr/HYSCAN_USER_FILES_PREFIX/HYSCAN_USER_FILES_DIR",
- * а для portable -- "/../config/"
- *
- * В псевдокоде это можно представить так:
- * |[<!-- language="C" -->
- * if (INSTALLED)
- *  dirs += g_get_user_config_dir ()
- *
- * if (INSTALLED)
- *   infix = "/share/"
- * else
- *   infix = "./../config/"
- *
- * if (G_OS_WIN32)
- *   prefix = "path/to/app/../"
- * if (G_OS_UNIX and INSTALLED)
- *   prefix = "/usr/"
- * if (G_OS_UNIX and not INSTALLED)
- *   prefix = "../"
- * ]|
+ * Программы HyScan имеют возможность создавать свою иерархию подкаталогов
+ * с общесистемными и пользовательскими файлами. При этом необходимо иметь
+ * ввиду, что общесистемные файлы доступны только для чтения.
  */
-
 
 #include "hyscan-config.h"
 #include <hyscan-constructor.h>
 #include <stdlib.h>
 
-static void          hyscan_config_initialise        (void);
-static void          hyscan_config_clear             (void);
-static const gchar * hyscan_config_installation_dir  (void);
+#ifdef __linux__
+#include <unistd.h>
+#endif
 
-static gchar **      hyscan_config_profiles = NULL;
-static gchar *       hyscan_config_locale = NULL;
-static gchar *       hyscan_config_user_files = NULL;
+static gchar *         hyscan_config_prefix = NULL;
+static gchar *         hyscan_config_locale = NULL;
+static gchar *         hyscan_config_driver = NULL;
+static gchar *         hyscan_config_system = NULL;
+static gchar *         hyscan_config_user = NULL;
+static gchar *         hyscan_config_log = NULL;
+
+static void            hyscan_config_initialise        (void);
+static void            hyscan_config_clear             (void);
 
 HYSCAN_CONSTRUCTOR (hyscan_config_initialise);
 
@@ -98,57 +90,156 @@ HYSCAN_CONSTRUCTOR (hyscan_config_initialise);
 static void
 hyscan_config_initialise (void)
 {
-  gint i = 0;
-  gchar ** profiles = NULL;
-  gchar * locale = NULL;
-  gchar * user_files = NULL;
+  /* Базовый путь. */
 
-  #ifdef G_OS_WIN32
-    gchar *utf8_path;
-  #endif
+#ifdef G_OS_WIN32
 
-  /* Локализация. */
-  locale = g_build_filename (hyscan_config_installation_dir (),
-                             HYSCAN_LOCALE_PREFIX,
-                             HYSCAN_LOCALE_POSTFIX,
-                             NULL);
-  #ifdef G_OS_WIN32
-    utf8_path = locale;
-    locale = g_win32_locale_filename_from_utf8 (utf8_path);
-    g_free (utf8_path);
-  #endif
+  /* В Windows исполняемый файл HyScan находится в подкаталоге bin основного
+   * каталога приложения. Функция g_win32_get_package_installation_directory_of_module
+   * возвращает путь к основному каталогу, автоматически исключая bin. */
 
-  /* Пользовательские файлы. */
+  hyscan_config_prefix = g_win32_get_package_installation_directory_of_module (NULL);
+  if (hyscan_config_prefix == NULL)
+    g_error ("HyScanConfig: can't get prefix path");
+
+#else
   #ifdef HYSCAN_INSTALLED
-    user_files = g_build_filename (g_get_user_config_dir (),
-                                   HYSCAN_USER_FILES_DIR, 
-                                   NULL);
+
+    /* Если программа установлена в системный каталог дистрибутива,
+     * используется путь HYSCAN_INSTALL_PREFIX. */
+
+    hyscan_config_prefix = g_strdup (HYSCAN_INSTALL_PREFIX);
+
   #else
-    user_files = g_build_filename (hyscan_config_installation_dir (),
-                                   HYSCAN_USER_FILES_PREFIX,
-                                   HYSCAN_USER_FILES_DIR, 
-                                   NULL);
+    #ifdef __linux__
+
+      /* В Linux используется ссылка /proc/self/exe для определения
+       * пути к исполняемому файлу в portable варианте сборки. */
+      {
+        gchar *exe_path;
+        char self_path[2*NAME_MAX+1];
+        ssize_t path_len;
+
+        path_len = readlink ("/proc/self/exe", self_path, 2*NAME_MAX);
+        if (path_len < 0)
+          g_error ("HyScanConfig: can't get executable path");
+
+        self_path[path_len] = 0;
+
+        exe_path = g_path_get_dirname (self_path);
+        hyscan_config_prefix = g_path_get_dirname (exe_path);
+        g_free (exe_path);
+
+      }
+    #else
+
+      #error "unsupported platform"
+
+    #endif
+  #endif
+#endif
+
+  /* Файлы переводов. */
+
+  /* Файлы переводов находятся в ${hyscan_config_prefix}/HYSCAN_INSTALL_LOCALEDIR. */
+  hyscan_config_locale = g_build_filename (hyscan_config_prefix,
+                                           HYSCAN_INSTALL_LOCALEDIR,
+                                           NULL);
+  #ifdef G_OS_WIN32
+    {
+      gchar *utf8_path = hyscan_config_locale;
+      hyscan_config_locale = g_win32_locale_filename_from_utf8 (utf8_path);
+      g_free (utf8_path);
+    }
   #endif
 
-  /* Профили. */
+  /* Путь к драйверам. */
+
+  #if defined (G_OS_WIN32) || !defined (HYSCAN_INSTALLED)
+
+    /* В Windows драйверы устройств всегда хранятся в каталоге с исполняемым
+     * файлом. Аналогичный путь используется в portable версиях. */
+
+    hyscan_config_driver = g_build_filename (hyscan_config_prefix,
+                                              "bin",
+                                              NULL);
+
+  #else
+
+    /* Если программа установлена в системный каталог дистрибутива,
+     * используется путь HYSCAN_INSTALL_LIBDIR. */
+
+    hyscan_config_driver = g_build_filename (HYSCAN_INSTALL_LIBDIR,
+                                             "hyscan"HYSCAN_MAJOR_VERSION,
+                                             "drivers",
+                                             NULL);
+
+  #endif
+
+    /* Системные настройки. */
+
+    #if defined (G_OS_WIN32) || !defined (HYSCAN_INSTALLED)
+
+      /* В Windows системные настройки программы всегда хранятся в каталоге
+       * ${hyscan_config_prefix}/etc/hyscanX, где X - основная версия HyScan.
+       * Аналогичный путь используется в portable версиях. */
+
+      hyscan_config_system = g_build_filename (hyscan_config_prefix,
+                                                "etc",
+                                                "hyscan"HYSCAN_MAJOR_VERSION,
+                                                NULL);
+
+    #else
+
+      /* Если программа установлена в системный каталог дистрибутива,
+       * используется путь HYSCAN_INSTALL_SYSCONFDIR. */
+
+      hyscan_config_system = g_build_filename (HYSCAN_INSTALL_SYSCONFDIR,
+                                               "hyscan"HYSCAN_MAJOR_VERSION,
+                                               NULL);
+
+    #endif
+
+  /* Пользовательские настройки. */
+
   #ifdef HYSCAN_INSTALLED
-    profiles = g_realloc (profiles, ++i * sizeof (gchar*));
-    profiles[i - 1] = g_build_filename (hyscan_config_installation_dir (),
-                                        HYSCAN_USER_FILES_PREFIX,
-                                        HYSCAN_USER_FILES_DIR,
-                                        NULL);
+
+    /* Если программа установлена в системный каталог дистрибутива,
+     * пользовательские настройки хранятся в домашнем каталоге. */
+
+    hyscan_config_user = g_build_filename (g_get_user_config_dir (),
+                                           "hyscan"HYSCAN_MAJOR_VERSION,
+                                           NULL);
+
+  #else
+
+    /* В portable версии нет разделения на пользовательские и
+     * системные настройки. */
+
+    hyscan_config_user = g_strdup (hyscan_config_system);
+
   #endif
 
-  profiles = g_realloc (profiles, ++i * sizeof (gchar*));
-  profiles[i - 1] = g_strdup (user_files);
+  /* Путь к лог файлам. */
 
-  /* NULL-терминируем. */
-  profiles = g_realloc (profiles, ++i * sizeof (gchar*));
-  profiles[i - 1] = NULL;
+  #ifdef HYSCAN_INSTALLED
 
-  hyscan_config_locale = locale;
-  hyscan_config_user_files = user_files;
-  hyscan_config_profiles = profiles;
+    /* Если программа установлена в системный каталог дистрибутива,
+     * лог файлы хранятся в домашнем каталоге. */
+
+    hyscan_config_log = g_build_filename (g_get_user_data_dir (),
+                                          "hyscan"HYSCAN_MAJOR_VERSION,
+                                          NULL);
+
+  #else
+
+    /* В portable версии лог файлы хранятся в каталоге ${hyscan_config_prefix}/log. */
+
+    hyscan_config_log = g_build_filename (hyscan_config_prefix,
+                                          "log",
+                                          NULL);
+
+  #endif
 
   atexit (hyscan_config_clear);
 }
@@ -157,57 +248,24 @@ hyscan_config_initialise (void)
 static void
 hyscan_config_clear (void)
 {
-  g_strfreev (hyscan_config_profiles);
+  g_free (hyscan_config_prefix);
   g_free (hyscan_config_locale);
-  g_free (hyscan_config_user_files);
-}
-
-/* Функция возвращает базовый путь. В виндоус это папка, где установлено
- * запускаемое приложение, в линуксе это либо корень ФС, либо папка, где лежит
- * приложение. */
-static const gchar *
-hyscan_config_installation_dir (void)
-{
-  static gchar *base_path = NULL;
-
-  if (base_path != NULL)
-    return base_path;
-
-  #ifdef G_OS_WIN32
-    /* ... If that directory's last component is "bin" or "lib",
-     * its parent directory is returned, otherwise the directory itself. */
-    base_path = g_win32_get_package_installation_directory_of_module (NULL);
-    if (base_path == NULL)
-      {
-        g_error ("Something is totally wrong");
-        return NULL;
-      }
-  #else
-    #ifdef HYSCAN_INSTALLED
-      base_path = g_strdup ("/usr");
-    #else
-      base_path = g_strdup ("../");
-    #endif
-  #endif
-
-  return base_path;
-}
-
-/**
- * hyscan_config_get_profile_dirs:
- *
- * Returns: (transfer none): список папок, в которых следует искать профили.
- */
-const gchar **
-hyscan_config_get_profile_dirs (void)
-{
-  return (const gchar **) hyscan_config_profiles;
+  g_free (hyscan_config_driver);
+  g_free (hyscan_config_system);
+  g_free (hyscan_config_user);
+  g_free (hyscan_config_log);
 }
 
 /**
  * hyscan_config_get_locale_dir:
  *
- * Returns: (transfer none): папка с файлами локализации.
+ * Функция возвращает путь к файлам с переводами. Возвращаемый путь представлен
+ * в системной кодировке, как того требует функция bindtextdomain.
+ *
+ * Сами файлы с переводами должны размещаться про этому пути в соответствии
+ * с требованиями системы Gettext.
+ *
+ * Returns: (transfer none): Путь к файлам с переводами.
  */
 const gchar *
 hyscan_config_get_locale_dir (void)
@@ -216,13 +274,57 @@ hyscan_config_get_locale_dir (void)
 }
 
 /**
- * hyscan_config_get_user_files_dir:
+ * hyscan_config_get_driver_dir:
  *
- * Returns: (transfer none): папка, в которую можно класть файлы пользователя 
- * (логи, конфигурации, etc)
+ * Функция возвращает путь к драйверам устройств. В Windows путь представлен в
+ * кодировке UTF-8, в Unix в системной кодировке.
+ *
+ * Returns: (transfer none): Путь к драйверам устройств.
  */
 const gchar *
-hyscan_config_get_user_files_dir (void)
+hyscan_config_get_driver_dir (void)
 {
-  return hyscan_config_user_files;
+  return hyscan_config_driver;
+}
+
+/**
+ * hyscan_config_get_system_dir:
+ *
+ * Функция возвращает путь к общесистемным файлам. В Windows путь представлен в
+ * кодировке UTF-8, в Unix в системной кодировке.
+ *
+ * Returns: (transfer none): Путь к общесистемным файлам.
+ */
+const gchar *
+hyscan_config_get_system_dir (void)
+{
+  return hyscan_config_system;
+}
+
+/**
+ * hyscan_config_get_system_dir:
+ *
+ * Функция возвращает путь к пользовательским файлам. В Windows путь представлен в
+ * кодировке UTF-8, в Unix в системной кодировке.
+ *
+ * Returns: (transfer none): Путь к пользовательским файлам.
+ */
+const gchar *
+hyscan_config_get_user_dir (void)
+{
+  return hyscan_config_user;
+}
+
+/**
+ * hyscan_config_get_log_dir:
+ *
+ * Функция возвращает путь к лог файлам. В Windows путь представлен в
+ * кодировке UTF-8, в Unix в системной кодировке.
+ *
+ * Returns: (transfer none): Путь к лог файлам.
+ */
+const gchar *
+hyscan_config_get_log_dir (void)
+{
+  return hyscan_config_log;
 }

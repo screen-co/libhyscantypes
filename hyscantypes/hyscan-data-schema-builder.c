@@ -41,8 +41,9 @@
  * описание схем данных приведено в разделе #HyScanDataSchema.
  *
  * Создание объекта производится функциями #hyscan_data_schema_builder_new,
+ * #hyscan_data_schema_builder_new_with_version,
  * #hyscan_data_schema_builder_new_with_gettext и
- * #hyscan_data_schema_builder_new_from_schema.
+ * #hyscan_data_schema_builder_new_full.
  *
  * Название и описание узла можно задать с помощью функции
  * #hyscan_data_schema_builder_node_set_name.
@@ -71,7 +72,8 @@
  *
  * Для получения XML описания схемы и её характеристик, после определения
  * параметров, можно использовать функции #hyscan_data_schema_builder_get_data,
- * #hyscan_data_schema_builder_get_id и #hyscan_data_schema_builder_get_text_domain.
+ * #hyscan_data_schema_builder_get_id, #hyscan_data_schema_builder_get_version и
+ * #hyscan_data_schema_builder_get_text_domain.
  *
  * Для создания схемы данных предназначена функция
  * #hyscan_data_schema_builder_get_schema.
@@ -89,12 +91,14 @@ enum
 {
   PROP_O,
   PROP_SCHEMA_ID,
+  PROP_SCHEMA_VERSION,
   PROP_GETTEXT_DOMAIN
 };
 
 struct _HyScanDataSchemaBuilderPrivate
 {
   gchar                       *schema_id;              /* Идентификатор схемы. */
+  gint64                       schema_version;         /* Версия схемы. */
   gchar                       *gettext_domain;         /* Домен gettext. */
 
   GHashTable                  *keys;                   /* Список параметров. */
@@ -146,6 +150,11 @@ hyscan_data_schema_builder_class_init (HyScanDataSchemaBuilderClass *klass)
     g_param_spec_string ("schema-id", "SchemaID", "Data schema id", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 
+  g_object_class_install_property (object_class, PROP_SCHEMA_VERSION,
+    g_param_spec_int64 ("schema-version", "SchemaVersion", "Data schema version",
+                        0, G_MAXINT64, 0,
+                        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
   g_object_class_install_property (object_class, PROP_GETTEXT_DOMAIN,
     g_param_spec_string ("gettext-domain", "GettextDomain", "Gettext domain", NULL,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
@@ -170,6 +179,10 @@ hyscan_data_schema_builder_set_property (GObject      *object,
     {
     case PROP_SCHEMA_ID:
       priv->schema_id = g_value_dup_string (value);
+      break;
+
+    case PROP_SCHEMA_VERSION:
+      priv->schema_version = g_value_get_int64 (value);
       break;
 
     case PROP_GETTEXT_DOMAIN:
@@ -848,9 +861,23 @@ hyscan_data_schema_builder_join_key (HyScanDataSchemaBuilder   *builder,
 HyScanDataSchemaBuilder *
 hyscan_data_schema_builder_new (const gchar *schema_id)
 {
-  return g_object_new (HYSCAN_TYPE_DATA_SCHEMA_BUILDER,
-                       "schema-id", schema_id,
-                       NULL);
+  return hyscan_data_schema_builder_new_full (schema_id, 0, NULL);
+}
+
+/**
+ * hyscan_data_schema_builder_new_with_version:
+ * @schema_id: идентификатор создаваемой схемы
+ * @schema_version: версия создаваемой схемы
+ *
+ * Функция создаёт новый объект #HyScanDataSchemaBuilder с возможностью перевода.
+ *
+ * Returns: #HyScanDataSchemaBuilder. Для удаления #g_object_unref.
+ */
+HyScanDataSchemaBuilder *
+hyscan_data_schema_builder_new_with_version (const gchar *schema_id,
+                                             gint64       schema_version)
+{
+  return hyscan_data_schema_builder_new_full (schema_id, schema_version, NULL);
 }
 
 /**
@@ -866,8 +893,28 @@ HyScanDataSchemaBuilder *
 hyscan_data_schema_builder_new_with_gettext (const gchar *schema_id,
                                              const gchar *gettext_domain)
 {
+  return hyscan_data_schema_builder_new_full (schema_id, 0, gettext_domain);
+}
+
+
+/**
+ * hyscan_data_schema_builder_new_with_gettext:
+ * @schema_id: идентификатор создаваемой схемы
+ * @schema_version: версия создаваемой схемы
+ * @gettext_domain: название домена перевода gettext
+ *
+ * Функция создаёт новый объект #HyScanDataSchemaBuilder с возможностью перевода.
+ *
+ * Returns: #HyScanDataSchemaBuilder. Для удаления #g_object_unref.
+ */
+HyScanDataSchemaBuilder *
+hyscan_data_schema_builder_new_full (const gchar *schema_id,
+                                     gint64       schema_version,
+                                     const gchar *gettext_domain)
+{
   return g_object_new (HYSCAN_TYPE_DATA_SCHEMA_BUILDER,
                        "schema-id", schema_id,
+                       "schema-version", schema_version,
                        "gettext-domain", gettext_domain,
                        NULL);
 }
@@ -947,14 +994,14 @@ hyscan_data_schema_builder_get_data (HyScanDataSchemaBuilder *builder)
   if (priv->nodes->name != NULL)
     {
       g_output_stream_printf (ostream, NULL, NULL, NULL,
-                              "  <schema id=\"%s\" name=\"%s\">\n",
-                              priv->schema_id, priv->nodes->name);
+                              "  <schema id=\"%s\" version=\"%" G_GINT64_FORMAT "\" name=\"%s\">\n",
+                              priv->schema_id, priv->schema_version, priv->nodes->name);
     }
   else
     {
       g_output_stream_printf (ostream, NULL, NULL, NULL,
-                              "  <schema id=\"%s\">\n",
-                              priv->schema_id);
+                              "  <schema id=\"%s\" version=\"%" G_GINT64_FORMAT "\" >\n",
+                              priv->schema_id, priv->schema_version);
     }
 
   if (priv->nodes->description != NULL)
@@ -995,6 +1042,22 @@ hyscan_data_schema_builder_get_id (HyScanDataSchemaBuilder *builder)
   g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), NULL);
 
   return builder->priv->schema_id;
+}
+
+/**
+ * hyscan_data_schema_builder_get_version:
+ * @builder: указатель на #HyScanDataSchemaBuilder
+ *
+ * Функция возвращает версию схемы данных.
+ *
+ * Returns: Версия схемы данных.
+ */
+gint64
+hyscan_data_schema_builder_get_version (HyScanDataSchemaBuilder *builder)
+{
+  g_return_val_if_fail (HYSCAN_IS_DATA_SCHEMA_BUILDER (builder), -1);
+
+  return builder->priv->schema_version;
 }
 
 /**

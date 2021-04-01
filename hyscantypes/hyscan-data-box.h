@@ -66,18 +66,18 @@ HYSCAN_API
 GType                  hyscan_data_box_get_type                (void);
 
 HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new                     (HyScanDataSchema      *schema);
+HyScanDataBox *        hyscan_data_box_new                     (HyScanDataSchema      *schema);
 
 HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new_from_string         (const gchar           *schema_data,
+HyScanDataBox *        hyscan_data_box_new_from_string         (const gchar           *schema_data,
                                                                 const gchar           *schema_id);
 
 HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new_from_file           (const gchar           *schema_path,
+HyScanDataBox *        hyscan_data_box_new_from_file           (const gchar           *schema_path,
                                                                 const gchar           *schema_id);
 
 HYSCAN_API
-HyScanDataBox         *hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
+HyScanDataBox *        hyscan_data_box_new_from_resource       (const gchar           *schema_resource,
                                                                 const gchar           *schema_id);
 
 HYSCAN_API
@@ -85,11 +85,14 @@ guint32                hyscan_data_box_get_mod_count           (HyScanDataBox   
                                                                 const gchar           *name);
 
 HYSCAN_API
-gchar                 *hyscan_data_box_serialize               (HyScanDataBox         *data_box);
+gboolean               hyscan_data_box_serialize               (HyScanDataBox         *data_box,
+                                                                GKeyFile              *kf,
+                                                                const gchar           *group);
 
 HYSCAN_API
 gboolean               hyscan_data_box_deserialize             (HyScanDataBox         *data_box,
-                                                                const gchar           *svalues);
+                                                                GKeyFile              *kf,
+                                                                const gchar           *group);
 
 G_END_DECLS
 

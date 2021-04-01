@@ -69,6 +69,10 @@ HYSCAN_API
 HyScanParamProxy *     hyscan_param_proxy_new          (void);
 
 HYSCAN_API
+HyScanParamProxy *     hyscan_param_proxy_new_full     (const gchar      *schema_id,
+                                                        gint64            schema_version);
+
+HYSCAN_API
 gboolean               hyscan_param_proxy_add          (HyScanParamProxy *proxy,
                                                         const gchar      *prefix,
                                                         HyScanParam      *param,

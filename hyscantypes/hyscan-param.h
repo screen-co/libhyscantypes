@@ -72,7 +72,7 @@ HYSCAN_API
 GType                  hyscan_param_get_type                   (void);
 
 HYSCAN_API
-HyScanDataSchema      *hyscan_param_schema                     (HyScanParam           *param);
+HyScanDataSchema *     hyscan_param_schema                     (HyScanParam           *param);
 
 HYSCAN_API
 gboolean               hyscan_param_set                        (HyScanParam           *param,

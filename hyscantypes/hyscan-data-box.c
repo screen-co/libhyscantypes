@@ -62,6 +62,9 @@
 #include <gio/gio.h>
 #include <string.h>
 
+#define SCHEMA_ID_KEY "schema-id"
+#define SCHEMA_VERSION_KEY "schema-version"
+
 enum
 {
   PROP_O,
@@ -414,127 +417,6 @@ hyscan_data_box_get_mod_count (HyScanDataBox *data_box,
   return 0;
 }
 
-/**
- * hyscan_data_box_serialize:
- * @data_box: указатель на #HyScanDataBox
- *
- * Функция сериализует внутреннее состояние объекта в строку.
- *
- * Returns: (transfer full): Сериализованные данные или NULL.
- */
-gchar *
-hyscan_data_box_serialize (HyScanDataBox *data_box)
-{
-  HyScanDataBoxPrivate *priv;
-  GVariantDict *dict;
-  GVariant *vdict;
-
-  gboolean has_params = FALSE;
-  gchar *sparams = NULL;
-  gsize i;
-
-  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), NULL);
-
-  priv = data_box->priv;
-
-  if (priv->keys_list == NULL)
-    return NULL;
-
-  g_mutex_lock (&priv->lock);
-
-  dict = g_variant_dict_new (NULL);
-
-  /* Проверяем все параметры на предмет установки значения
-   * отличного от значения по умолчанию. */
-  for (i = 0; priv->keys_list[i] != NULL; i++)
-    {
-      HyScanDataBoxParam *param;
-      GVariant *value;
-
-      param = g_hash_table_lookup (priv->params, priv->keys_list[i]);
-      if ((param == NULL) || !(param->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
-        continue;
-
-      value = param->value;
-      if (value == NULL)
-        continue;
-
-      /* Добавляем изменённые значения в массив. */
-      g_variant_dict_insert_value (dict, priv->keys_list[i], value);
-      has_params = TRUE;
-    }
-
-  if (has_params)
-    {
-      vdict = g_variant_dict_end (dict);
-      sparams = g_variant_print (vdict, TRUE);
-      g_variant_unref (vdict);
-    }
-
-  g_variant_dict_unref (dict);
-
-  g_mutex_unlock (&priv->lock);
-
-  return sparams;
-}
-
-/**
- * hyscan_data_box_deserialize:
- * @data_box: указатель на #HyScanDataBox
- * @svalues: сериализованные данные
- *
- * Функция де-сериализует состояние объекта.
- *
- * Returns: %TRUE если де-сериализация прошла успешно, иначе %FALSE.
- */
-gboolean
-hyscan_data_box_deserialize (HyScanDataBox *data_box,
-                             const gchar   *svalues)
-{
-  HyScanParamList *list;
-  GVariant *vdict;
-  gboolean status;
-  gsize n_params;
-  gsize i;
-
-  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
-
-  /* Загружаем значения из строки. */
-  vdict = g_variant_parse (NULL, svalues, NULL, NULL, NULL);
-  if (vdict == NULL)
-    return FALSE;
-
-  /* Список параметров. */
-  list = hyscan_param_list_new ();
-
-  /* Массивы имён параметров и их значения. */
-  n_params = g_variant_n_children (vdict);
-  for (i = 0; i < n_params; i++)
-    {
-      GVariant *param;
-      GVariant *value;
-      gchar *name;
-
-      param = g_variant_get_child_value (vdict, i);
-
-      g_variant_get (param, "{sv}", &name, &value);
-      hyscan_param_list_set (list, name, value);
-      g_variant_unref (value);
-      g_free (name);
-
-      g_variant_unref (param);
-    }
-
-  g_variant_unref (vdict);
-
-  /* Устанавливаем новые значения. */
-  status = hyscan_param_set (HYSCAN_PARAM (data_box), list);
-
-  g_object_unref (list);
-
-  return status;
-}
-
 /* Функция возвращает схему параметров. */
 static HyScanDataSchema *
 hyscan_data_box_schema (HyScanParam *param)
@@ -707,6 +589,242 @@ hyscan_data_box_get (HyScanParam     *param,
   g_mutex_unlock (&priv->lock);
 
   return TRUE;
+}
+
+/**
+ * hyscan_data_box_serialize:
+ * @data_box: #HyScanDataBox
+ * @kf: #GKeyFile для записи параметров
+ * @group: (allow none): Название группы
+ *
+ * Функция сериализует параметры в ini-файл. Если группа не задана, ключи будут
+ * записаны в группу с названием идентификатора схемы (#hyscan_data_schema_get_id)
+ *
+ * Returns: %TRUE, если параметры успешно записаны.
+ */
+gboolean
+hyscan_data_box_serialize (HyScanDataBox  *data_box,
+                           GKeyFile       *kf,
+                           const gchar    *group)
+{
+  HyScanDataBoxPrivate *priv;
+  const gchar *schema_id;
+  const gchar * const *key;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
+  g_return_val_if_fail (kf != NULL, FALSE);
+  priv = data_box->priv;
+
+  g_mutex_lock (&priv->lock);
+
+  /* Информация о схеме. */
+  schema_id = hyscan_data_schema_get_id (priv->schema);
+  if (group == NULL)
+    group = schema_id;
+
+  g_key_file_set_string (kf, group, SCHEMA_ID_KEY, schema_id);
+  g_key_file_set_int64 (kf, group, SCHEMA_VERSION_KEY, hyscan_data_schema_get_version (priv->schema));
+
+  /* Сериализация параметров. */
+  for (key = priv->keys_list; key != NULL && *key != NULL; ++key)
+    {
+      HyScanDataBoxParam *param = g_hash_table_lookup (priv->params, *key);
+      GVariant *default_value;
+
+      if ((param == NULL) || !(param->access & HYSCAN_DATA_SCHEMA_ACCESS_WRITE))
+        continue;
+
+      if (param->value == NULL)
+        continue;
+
+      default_value = hyscan_data_schema_key_get_default (priv->schema, *key);
+      if (default_value != NULL)
+        {
+          gboolean equal = g_variant_equal (default_value, param->value);
+          g_variant_unref (default_value);
+          if (equal)
+            continue;
+        }
+
+      switch (param->type)
+        {
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+          g_key_file_set_boolean (kf, group, *key, g_variant_get_boolean (param->value));
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+          g_key_file_set_int64 (kf, group, *key, g_variant_get_int64 (param->value));
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+          g_key_file_set_double (kf, group, *key, g_variant_get_double (param->value));
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
+          g_key_file_set_string (kf, group, *key, g_variant_get_string (param->value, NULL));
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+          g_key_file_set_int64 (kf, group, *key, g_variant_get_int64 (param->value));
+          break;
+
+        default:
+          break;
+        }
+    }
+
+  g_mutex_unlock (&priv->lock);
+
+  return TRUE;
+}
+
+/**
+ * hyscan_data_box_deserialize:
+ * @data_box: #HyScanDataBox
+ * @kf: #GKeyFile для записи параметров
+ * @group: (allow none): Название группы
+ *
+ * Функция десериализует параметры из ini-файла. Если группа не задана, ключи
+ * будут взяты из группы с названием идентификатора схемы
+ * (hyscan_data_schema_get_id())
+ *
+ * Returns: %TRUE, если параметры успешно считаны.
+ */
+gboolean
+hyscan_data_box_deserialize (HyScanDataBox  *data_box,
+                             GKeyFile       *kf,
+                             const gchar    *group)
+{
+  HyScanDataBoxPrivate *priv;
+  HyScanParamList *plist;
+  const gchar *schema_id;
+  const gchar * const *key;
+  GError *err = NULL;
+  gboolean error = FALSE;
+  gint64 version;
+  gboolean status = FALSE;
+
+  g_return_val_if_fail (HYSCAN_IS_DATA_BOX (data_box), FALSE);
+  g_return_val_if_fail (kf != NULL, FALSE);
+  priv = data_box->priv;
+
+  g_mutex_lock (&priv->lock);
+
+  schema_id = hyscan_data_schema_get_id (priv->schema);
+  if (group == NULL)
+    group = schema_id;
+
+  if (!g_key_file_has_group (kf, group))
+    {
+      g_mutex_unlock (&priv->lock);
+      return TRUE;
+    }
+
+  /* Проверяю версию схемы. */
+  version = g_key_file_get_int64 (kf, group, SCHEMA_VERSION_KEY, &err);
+  if (err != NULL || hyscan_data_schema_get_version (priv->schema) != version)
+    {
+      g_warning ("HyScanDataBox: schema <%s> version mismatch", schema_id);
+      g_mutex_unlock (&priv->lock);
+      g_clear_pointer (&err, g_error_free);
+      return FALSE;
+    }
+
+  plist = hyscan_param_list_new ();
+
+  /* Десериализация параметров. */
+  for (key = priv->keys_list; key != NULL && *key != NULL; ++key)
+    {
+      gboolean bool_val = FALSE;
+      gint64 int_val = 0;
+      gchar *str_val = NULL;
+      gdouble double_val = 0.0;
+      HyScanDataBoxParam *param = g_hash_table_lookup (priv->params, *key);
+
+      if ((param == NULL) || !(param->access & HYSCAN_DATA_SCHEMA_ACCESS_READ))
+        continue;
+
+      /* Считываю значение... */
+      switch (param->type)
+        {
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+          bool_val = g_key_file_get_boolean (kf, group, *key, &err);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+          int_val = g_key_file_get_int64 (kf, group, *key, &err);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+          double_val = g_key_file_get_double (kf, group, *key, &err);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
+          str_val = g_key_file_get_string (kf, group, *key, &err);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+          int_val = g_key_file_get_int64 (kf, group, *key, &err);
+          break;
+
+        default:
+          break;
+        }
+
+      /* Может возникнуть ошибка, когда ключа в файле нет. Это нормально. */
+      if (err != NULL)
+        {
+          if (err->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND)
+            {
+              g_warning ("HyScanDataBox: failed to read <%s>: %s", *key, err->message);
+              error = TRUE;
+            }
+
+          goto next;
+        }
+
+      /* ... но если всё считалось нормально, запоминаю. */
+      switch (param->type)
+        {
+        case HYSCAN_DATA_SCHEMA_KEY_BOOLEAN:
+          hyscan_param_list_set_boolean (plist, *key, bool_val);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_INTEGER:
+          hyscan_param_list_set_integer (plist, *key, int_val);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_DOUBLE:
+          hyscan_param_list_set_double (plist, *key, double_val);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_STRING:
+          hyscan_param_list_set_string (plist, *key, str_val);
+          break;
+
+        case HYSCAN_DATA_SCHEMA_KEY_ENUM:
+          hyscan_param_list_set_enum (plist, *key, int_val);
+          break;
+
+        default:
+          break;
+        }
+
+    next:
+      g_clear_pointer (&err, g_error_free);
+      g_clear_pointer (&str_val, g_free);
+
+      if (error)
+        break;
+    }
+
+  g_mutex_unlock (&priv->lock);
+
+  status = error ? FALSE : hyscan_param_set (HYSCAN_PARAM (data_box), plist);
+
+  g_clear_object (&plist);
+
+  return status;
 }
 
 static void

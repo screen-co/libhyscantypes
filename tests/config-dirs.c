@@ -1,6 +1,5 @@
-/* hyscan-config.h
+/* config-dirs.c
  *
- * Copyright 2020 Screen LLC, Alexander Dmitriev <m1n7@yandex.ru>
  * Copyright 2021 Screen LLC, Andrei Fadeev <andrei@webcontrol.ru>
  *
  * This file is part of HyScanTypes.
@@ -33,29 +32,20 @@
  * лицензии. Для этого свяжитесь с ООО Экран - <info@screen-co.ru>.
  */
 
-#ifndef __HYSCAN_CONFIG_H__
-#define __HYSCAN_CONFIG_H__
+#include <hyscan-config.h>
+#include <glib/gi18n.h>
 
-#include <glib-object.h>
-#include <hyscan-api.h>
+int
+main (int    argc,
+      char **argv)
+{
+  setlocale (LC_ALL, "");
 
-G_BEGIN_DECLS
+  g_print ("Gettext locale: %s\n", hyscan_config_get_locale_dir ());
+  g_print ("Device drivers: %s\n", hyscan_config_get_driver_dir ());
+  g_print ("System config: %s\n", hyscan_config_get_system_dir ());
+  g_print ("User config: %s\n", hyscan_config_get_user_dir ());
+  g_print ("Log: %s\n", hyscan_config_get_log_dir ());
 
-HYSCAN_API
-const gchar *          hyscan_config_get_locale_dir            (void);
-
-HYSCAN_API
-const gchar *          hyscan_config_get_driver_dir            (void);
-
-HYSCAN_API
-const gchar *          hyscan_config_get_system_dir            (void);
-
-HYSCAN_API
-const gchar *          hyscan_config_get_user_dir              (void);
-
-HYSCAN_API
-const gchar *          hyscan_config_get_log_dir               (void);
-
-G_END_DECLS
-
-#endif /* __HYSCAN_CONFIG_H__ */
+  return 0;
+}

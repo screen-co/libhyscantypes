@@ -12,7 +12,7 @@ add_executable (param-test param-test.c data-schema-create.c)
 add_executable (param-merge-test param-merge-test.c)
 add_executable (data-schema-list data-schema-list.c)
 add_executable (cancellable-test cancellable-test.c)
-add_executable (config-test config-test.c)
+add_executable (config-dirs config-dirs.c)
 
 target_link_libraries (slice-pool-test ${TEST_LIBRARIES})
 target_link_libraries (channel-name-test ${TEST_LIBRARIES})
@@ -23,8 +23,7 @@ target_link_libraries (param-test ${TEST_LIBRARIES})
 target_link_libraries (param-merge-test ${TEST_LIBRARIES})
 target_link_libraries (data-schema-list ${TEST_LIBRARIES})
 target_link_libraries (cancellable-test ${TEST_LIBRARIES})
-target_link_libraries (config-test ${TEST_LIBRARIES})
-
+target_link_libraries (config-dirs ${TEST_LIBRARIES})
 
 add_test (NAME SlicePoolTest COMMAND slice-pool-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
@@ -43,7 +42,6 @@ add_test (NAME ParamMergeTest COMMAND param-merge-test
 add_test (NAME CancellableTest COMMAND cancellable-test
           WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
-
 install (TARGETS slice-pool-test
                  channel-name-test
                  buffer-test
@@ -52,8 +50,7 @@ install (TARGETS slice-pool-test
                  param-test
                  data-schema-list
                  cancellable-test
+                 config-dirs
          COMPONENT test
-         RUNTIME DESTINATION bin
-         LIBRARY DESTINATION lib
-         ARCHIVE DESTINATION lib
-         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

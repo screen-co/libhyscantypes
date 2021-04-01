@@ -509,6 +509,37 @@ hyscan_param_list_dup_string (HyScanParamList *list,
 }
 
 /**
+ * hyscan_param_list_dup_stringv:
+ * @list: указатель на #HyScanParamList
+ * @name: название параметра
+ * @delimiter: разделитель (см. g_strsplit())
+ *
+ * Функция считывает значение #HYSCAN_DATA_SCHEMA_KEY_STRING параметра из списка,
+ * разбивает на подстроки и возвращает их.
+ *
+ * Returns: Значение параметра или NULL. Для удаления #g_strfreev.
+ */
+gchar **
+hyscan_param_list_dup_stringv (HyScanParamList *list,
+                               const gchar     *name,
+                               const gchar     *delimiter)
+{
+  const gchar *str;
+  gchar **str_array;
+
+  g_return_val_if_fail (HYSCAN_IS_PARAM_LIST (list), NULL);
+
+  str = hyscan_param_list_get_string (list, name);
+
+  if (str == NULL)
+    return NULL;
+
+  str_array = g_strsplit (str, delimiter, -1);
+
+  return str_array;
+}
+
+/**
  * hyscan_param_list_get_enum:
  * @list: указатель на #HyScanParamList
  * @name: название параметра
