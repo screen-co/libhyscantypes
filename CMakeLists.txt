@@ -11,7 +11,6 @@ include (GNUInstallDirs)
 set (HYSCAN_MAJOR_VERSION 5)
 set (HYSCAN_TYPES_VERSION 0)
 set (HYSCAN_TYPES_LIBRARY "hyscantypes-${HYSCAN_MAJOR_VERSION}")
-# set (HYSCAN_PORTABLE 1 )
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release)
@@ -59,29 +58,6 @@ link_directories (${GLIB2_LIBRARY_DIRS} ${LIBXML2_LIBRARY_DIRS})
 add_definitions (${GLIB2_CFLAGS} ${LIBXML2_CFLAGS})
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscantypes")
-
-# Папка с локализацией.
-add_definitions(-DHYSCAN_LOCALE_PREFIX="share")
-add_definitions(-DHYSCAN_LOCALE_POSTFIX="locale")
-
-# Папка с профилями.
-if (NOT DEFINED HYSCAN_USER_FILES_DIR)
-  message ("Profile path not defined. Using \"hyscan\"")
-  set (HYSCAN_USER_FILES_DIR "hyscan")
-endif()
-
-message ("Profile path:" ${HYSCAN_USER_FILES_DIR})
-add_definitions(-DHYSCAN_USER_FILES_DIR="${HYSCAN_USER_FILES_DIR}")
-
-# Пути в portable и standalone сборках
-if (HYSCAN_PORTABLE)
-  add_definitions (-DHYSCAN_USER_FILES_PREFIX="../config")
-  message ("HyScan will be portable")
-else()
-  add_definitions(-DHYSCAN_INSTALLED=1)
-  add_definitions (-DHYSCAN_USER_FILES_PREFIX="share")
-  message ("HyScan will be installed")
-endif()
 
 add_definitions (-DG_LOG_DOMAIN="HyScanTypes")
 add_definitions (-DGETTEXT_PACKAGE="hyscantypes")
