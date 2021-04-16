@@ -423,6 +423,9 @@ hyscan_param_merge_node_to_table (const HyScanDataSchemaNode *node,
 {
   GList *link;
 
+  if (node == NULL)
+    return;
+
   for (link = node->nodes; link != NULL; link = link->next)
     hyscan_param_merge_node_to_table (link->data, keys);
 
@@ -442,6 +445,9 @@ hyscan_param_merge_schema_build (HyScanParamMerge           *merge,
 {
   HyScanParamMergePrivate *priv = merge->priv;
   GList *link;
+
+  if (node == NULL)
+    return;
 
   for (link = node->nodes; link != NULL; link = link->next)
     hyscan_param_merge_node_to_table (link->data, keys);
@@ -544,7 +550,7 @@ hyscan_param_merge_set (HyScanParam     *param,
 
   if (priv->schema == NULL || priv->params == NULL)
     return FALSE;
-  
+
   param_keys = hyscan_param_list_params (list);
   if (param_keys == NULL)
     return TRUE;
@@ -557,11 +563,11 @@ hyscan_param_merge_set (HyScanParam     *param,
 
       if (g_hash_table_contains (priv->keep, param_keys[i]))
         continue;
-      
+
       value = hyscan_param_list_get (list, param_keys[i]);
       hyscan_param_list_set (filtered, param_keys[i], value);
       g_variant_unref (value);
-      
+
       /* Формируем список перечислений. */
       if (hyscan_data_schema_key_get_value_type (priv->schema, param_keys[i]) == HYSCAN_DATA_SCHEMA_KEY_ENUM)
         enum_keys = g_list_append (enum_keys, (gpointer) param_keys[i]);
