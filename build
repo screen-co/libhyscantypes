@@ -8,7 +8,7 @@ VS_PYTHON_DIR="c:\\python"
 VS_VERSION="2013"
 VS_ARCH="Win32"
 
-JOBS="1"
+JOBS=`nproc`
 RUN_TEST="No"
 HYSCAN_RUNTIME_CONFIG="-U HYSCAN_INSTALLED"
 HYSCAN_SYS_LIBS="-U HYSCAN_SYS_LIBS"
@@ -59,7 +59,6 @@ uname | grep -q -e "MINGW"
 if [ $? -ne 0 ]; then
   PLATFORM="UNIX"
   PREFIX_DIR="/usr"
-  HYSCAN_RUNTIME_CONFIG="${HYSCAN_RUNTIME_CONFIG} CMAKE_INSTALL_RPATH='../lib'"
 else
   which pkg-config &> /dev/null
   if [ $? -eq 0 ]; then
@@ -71,7 +70,14 @@ else
 fi
 
 # Parse command line options
-set -- $(getopt -u -o "ho:y:v:a:lj:p:d:ismt" -l "help,opt-dir:,python-dir:,visual-studio:,arch:,clang,jobs:,prefix:,dest-dir:,installed,sys-libs,open-mp,test" -- "$@")
+OPTS=$(getopt -u -o "ho:y:v:a:lj:p:d:ismt" -l "help,opt-dir:,python-dir:,visual-studio:,arch:,clang,jobs:,prefix:,dest-dir:,installed,sys-libs,open-mp,test" -- "$@")
+if [ $? -ne 0 ]; then
+  exit
+fi
+
+eval set -- "${OPTS}"
+unset OPTS
+
 while true ; do
   case "${1}" in
    "-h"|"--help")
@@ -233,14 +239,18 @@ if [ "x${PLATFORM}" =  "xVS" ]; then
     exit 0
   fi
   if [ "x${1}" = "xide" ]; then
-    solution_file=`find . -name '*.sln'`
+    solution_file=`find . -maxdepth 1 -name '*.sln'`
     start "${solution_file}"
     exit 0
   fi
 fi
 
 # Build target
-cmake --build . --config ${BUILD_TYPE} --parallel ${JOBS} || exit
+if [ "x${PLATFORM}" =  "xVS" ]; then
+  cmake --build . --config ${BUILD_TYPE} || exit
+else
+  cmake --build . --config ${BUILD_TYPE} -- -j ${JOBS} || exit
+fi
 
 # Run test
 if [ "x${RUN_TEST}" = "xYes" ]; then

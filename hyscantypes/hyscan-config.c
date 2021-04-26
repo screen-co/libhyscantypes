@@ -140,106 +140,86 @@ hyscan_config_initialise (void)
 #endif
 
   /* Файлы переводов. */
-
-  /* Файлы переводов находятся в ${hyscan_config_prefix}/HYSCAN_INSTALL_LOCALEDIR. */
   hyscan_config_locale = g_build_filename (hyscan_config_prefix,
                                            HYSCAN_INSTALL_LOCALEDIR,
                                            NULL);
-  #ifdef G_OS_WIN32
-    {
-      gchar *utf8_path = hyscan_config_locale;
-      hyscan_config_locale = g_win32_locale_filename_from_utf8 (utf8_path);
-      g_free (utf8_path);
-    }
-  #endif
+#ifdef G_OS_WIN32
+  {
+    gchar *utf8_path = hyscan_config_locale;
+    hyscan_config_locale = g_win32_locale_filename_from_utf8 (utf8_path);
+    g_free (utf8_path);
+  }
+#endif
 
   /* Путь к драйверам. */
+  hyscan_config_driver = g_build_filename (hyscan_config_prefix,
+                                           HYSCAN_INSTALL_DRVDIR,
+                                           NULL);
 
-  #if defined (G_OS_WIN32) || !defined (HYSCAN_INSTALLED)
+  /* Системные настройки. */
 
-    /* В Windows драйверы устройств всегда хранятся в каталоге с исполняемым
-     * файлом. Аналогичный путь используется в portable версиях. */
+#if defined (G_OS_WIN32) || !defined (HYSCAN_INSTALLED)
 
-    hyscan_config_driver = g_build_filename (hyscan_config_prefix,
-                                              "bin",
-                                              NULL);
+  /* В Windows системные настройки программы всегда хранятся в каталоге
+   * ${hyscan_config_prefix}/etc/hyscan. Аналогичный путь используется
+   * в portable версиях. */
 
-  #else
+  hyscan_config_system = g_build_filename (hyscan_config_prefix,
+                                           "etc",
+                                           "hyscan",
+                                           NULL);
+
+#else
 
     /* Если программа установлена в системный каталог дистрибутива,
-     * используется путь HYSCAN_INSTALL_LIBDIR. */
+     * используется путь HYSCAN_INSTALL_SYSCONFDIR. */
 
-    hyscan_config_driver = g_build_filename (HYSCAN_INSTALL_LIBDIR,
+    hyscan_config_system = g_build_filename (HYSCAN_INSTALL_SYSCONFDIR,
                                              "hyscan"HYSCAN_MAJOR_VERSION,
-                                             "drivers",
                                              NULL);
 
-  #endif
-
-    /* Системные настройки. */
-
-    #if defined (G_OS_WIN32) || !defined (HYSCAN_INSTALLED)
-
-      /* В Windows системные настройки программы всегда хранятся в каталоге
-       * ${hyscan_config_prefix}/etc/hyscanX, где X - основная версия HyScan.
-       * Аналогичный путь используется в portable версиях. */
-
-      hyscan_config_system = g_build_filename (hyscan_config_prefix,
-                                                "etc",
-                                                "hyscan"HYSCAN_MAJOR_VERSION,
-                                                NULL);
-
-    #else
-
-      /* Если программа установлена в системный каталог дистрибутива,
-       * используется путь HYSCAN_INSTALL_SYSCONFDIR. */
-
-      hyscan_config_system = g_build_filename (HYSCAN_INSTALL_SYSCONFDIR,
-                                               "hyscan"HYSCAN_MAJOR_VERSION,
-                                               NULL);
-
-    #endif
+#endif
 
   /* Пользовательские настройки. */
 
-  #ifdef HYSCAN_INSTALLED
+#ifdef HYSCAN_INSTALLED
 
-    /* Если программа установлена в системный каталог дистрибутива,
-     * пользовательские настройки хранятся в домашнем каталоге. */
+  /* Если программа установлена в системный каталог дистрибутива,
+   * пользовательские настройки хранятся в домашнем каталоге. */
 
-    hyscan_config_user = g_build_filename (g_get_user_config_dir (),
-                                           "hyscan"HYSCAN_MAJOR_VERSION,
-                                           NULL);
+  hyscan_config_user = g_build_filename (g_get_user_config_dir (),
+                                         "hyscan"HYSCAN_MAJOR_VERSION,
+                                         NULL);
 
-  #else
+#else
 
-    /* В portable версии нет разделения на пользовательские и
-     * системные настройки. */
+  /* В portable версии нет разделения на пользовательские и
+   * системные настройки. */
 
-    hyscan_config_user = g_strdup (hyscan_config_system);
+  hyscan_config_user = g_strdup (hyscan_config_system);
 
-  #endif
+#endif
 
   /* Путь к лог файлам. */
 
-  #ifdef HYSCAN_INSTALLED
+#ifdef HYSCAN_INSTALLED
 
-    /* Если программа установлена в системный каталог дистрибутива,
-     * лог файлы хранятся в домашнем каталоге. */
+  /* Если программа установлена в системный каталог дистрибутива,
+   * лог файлы хранятся в домашнем каталоге. */
 
-    hyscan_config_log = g_build_filename (g_get_user_data_dir (),
-                                          "hyscan"HYSCAN_MAJOR_VERSION,
-                                          NULL);
+  hyscan_config_log = g_build_filename (g_get_user_data_dir (),
+                                        "hyscan"HYSCAN_MAJOR_VERSION,
+                                        NULL);
 
-  #else
+#else
 
-    /* В portable версии лог файлы хранятся в каталоге ${hyscan_config_prefix}/log. */
+  /* В portable версии лог файлы хранятся в каталоге ${hyscan_config_prefix}/log. */
 
-    hyscan_config_log = g_build_filename (hyscan_config_prefix,
-                                          "log",
-                                          NULL);
+  hyscan_config_log = g_build_filename (hyscan_config_prefix,
+                                        "log",
+                                        NULL);
 
-  #endif
+#endif
 
   atexit (hyscan_config_clear);
 }

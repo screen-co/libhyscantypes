@@ -48,5 +48,5 @@ install (TARGETS slice-pool-test
                  cancellable-test
                  config-dirs
          COMPONENT test
-         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
          PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
