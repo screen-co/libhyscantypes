@@ -1,9 +1,9 @@
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 
 project (libhyscantypes)
 
-enable_testing()
+enable_testing ()
 
 include (FindPkgConfig)
 include (GNUInstallDirs)
@@ -59,16 +59,25 @@ add_definitions (${GLIB2_CFLAGS} ${LIBXML2_CFLAGS})
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/hyscantypes")
 
+if (HYSCAN_INSTALLED)
+  add_definitions (-DHYSCAN_INSTALLED)
+else ()
+  set (CMAKE_INSTALL_RPATH "../${CMAKE_INSTALL_LIBDIR}")
+endif ()
+
+if (HYSCAN_INSTALLED AND UNIX)
+  set (HYSCAN_INSTALL_DRVDIR "${CMAKE_INSTALL_LIBDIR}/hyscan${HYSCAN_MAJOR_VERSION}/drivers")
+else ()
+  set (HYSCAN_INSTALL_DRVDIR "${CMAKE_INSTALL_BINDIR}")
+endif ()
+
 add_definitions (-DG_LOG_DOMAIN="HyScanTypes")
 add_definitions (-DGETTEXT_PACKAGE="hyscantypes")
 add_definitions (-DHYSCAN_MAJOR_VERSION="${HYSCAN_MAJOR_VERSION}")
 add_definitions (-DHYSCAN_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 add_definitions (-DHYSCAN_INSTALL_SYSCONFDIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}")
-add_definitions (-DHYSCAN_INSTALL_LIBDIR="${CMAKE_INSTALL_FULL_LIBDIR}")
 add_definitions (-DHYSCAN_INSTALL_LOCALEDIR="${CMAKE_INSTALL_LOCALEDIR}")
-if (HYSCAN_INSTALLED)
-  add_definitions (-DHYSCAN_INSTALLED)
-endif ()
+add_definitions (-DHYSCAN_INSTALL_DRVDIR="${HYSCAN_INSTALL_DRVDIR}")
 
 add_subdirectory (hyscantypes)
 add_subdirectory (tests)

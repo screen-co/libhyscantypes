@@ -1,0 +1,281 @@
+#!/bin/bash
+
+BIN_DIR="bin"
+BUILD_DIR="cbuild"
+
+VS_OPT_DIR="c:\\opt"
+VS_PYTHON_DIR="c:\\python"
+VS_VERSION="2013"
+VS_ARCH="Win32"
+
+JOBS=`nproc`
+RUN_TEST="No"
+HYSCAN_RUNTIME_CONFIG="-U HYSCAN_INSTALLED"
+HYSCAN_SYS_LIBS="-U HYSCAN_SYS_LIBS"
+HYSCAN_OPEN_MP="-U HYSCAN_OPEN_MP"
+
+usage ()
+{
+  echo "Usage:"
+  echo "  build [OPTION...] <target> - HyScan builder"
+  echo
+  echo "Targets:"
+  echo "  release                  Release build (default)"
+  echo "  debug                    Debug build"
+  echo "  clean                    Clean build directory"
+  echo "  distclean                Remove build directory"
+  echo "  install                  Build release configuration and install runtime files"
+  echo "  install-dev              Build release configuration and install development files"
+  echo "  install-test             Build release configuration and install test files"
+  echo "  install-all              Build release configuration and install all files"
+  if [ "x${PLATFORM}" =  "xVS" ]; then
+    echo "  setup                    Setup PATH and run shell"
+    echo "  ide                      Create Visual Studio solution and run IDE"
+  fi
+  echo
+  echo "Options:"
+  echo "  -h, --help               Show help options"
+  if [ "x${PLATFORM}" =  "xVS" ]; then
+    echo "  -o, --opt-dir            Visual Studio toolchanin opt directory (default c:\\opt)"
+    echo "  -y, --python-dir         Path to Python3 directory (default c:\\python)"
+    echo "  -v, --visual-studio      Visual Studio version (default 2013)"
+    echo "  -a, --arch               Architecture to build for, Win32 or Win64 (default Win32)"
+  fi
+  if [ "x${PLATFORM}" =  "xUNIX" ] || [ "x${PLATFORM}" =  "xMINGW" ]; then
+    echo "  -l, --clang              Use CLang compiler"
+  fi
+  echo "  -j, --jobs               The maximum number of concurrent processes to use when building"
+  echo "  -p, --prefix             Install prefix (default /usr)"
+  echo "  -d, --dest-dir           Destination install directory"
+  echo "  -i, --installed          Build installed version (default portable)"
+  echo "  -s, --sys-libs           Link with system installed HyScan libraries"
+  echo "  -m, --open-mp            Use OpenMP"
+  echo "  -t, --test               Run tests"
+  echo
+}
+
+# Detect platfrom
+uname | grep -q -e "MINGW"
+if [ $? -ne 0 ]; then
+  PLATFORM="UNIX"
+  PREFIX_DIR="/usr"
+else
+  which pkg-config &> /dev/null
+  if [ $? -eq 0 ]; then
+    PLATFORM="MINGW"
+  else
+    PLATFORM="VS"
+  fi
+  PREFIX_DIR="//usr"
+fi
+
+# Parse command line options
+OPTS=$(getopt -u -o "ho:y:v:a:lj:p:d:ismt" -l "help,opt-dir:,python-dir:,visual-studio:,arch:,clang,jobs:,prefix:,dest-dir:,installed,sys-libs,open-mp,test" -- "$@")
+if [ $? -ne 0 ]; then
+  exit
+fi
+
+eval set -- "${OPTS}"
+unset OPTS
+
+while true ; do
+  case "${1}" in
+   "-h"|"--help")
+    usage
+    exit 0
+    ;;
+   "-o"|"--opt-dir")
+    VS_OPT_DIR="${2}"
+    shift 2
+    ;;
+   "-y"|"--python-dir")
+    VS_PYTHON_DIR="${2}"
+    shift 2
+    ;;
+   "-v"|"--visual-studio")
+    VS_VERSION="${2}"
+    shift 2
+    ;;
+   "-a"|"--arch")
+    VS_ARCH="${2}"
+    shift 2
+    ;;
+   "-l"|"--clang")
+    export CC=clang
+    export CXX=clang++
+    shift 1
+    ;;
+   "-j"|"--jobs")
+    JOBS="${2}"
+    shift 2
+    ;;
+   "-p"|"--prefix")
+    PREFIX_DIR="${2}"
+    shift 2
+    ;;
+   "-d"|"--dest-dir")
+    DEST_DIR="${2}"
+    shift 2
+    ;;
+   "-i"|"--installed")
+    HYSCAN_RUNTIME_CONFIG="-D HYSCAN_INSTALLED=YES"
+    shift 1
+    ;;
+   "-s"|"--sys-libs")
+    HYSCAN_SYS_LIBS="-D HYSCAN_SYS_LIBS=YES"
+    shift 1
+    ;;
+   "-m"|"--open-mp")
+    HYSCAN_OPEN_MP="-D HYSCAN_OPEN_MP=YES"
+    shift 1
+    ;;
+   "-t"|"--test")
+    RUN_TEST="Yes"
+    shift 1
+    ;;
+   "--")
+    shift
+    break
+    ;;
+   *)
+    echo "Unknown option"
+    exit
+    ;;
+  esac
+done
+
+# Platform configuration
+if [ "x${PLATFORM}" = "xUNIX" ]; then
+  export CMAKE_GENERATOR="Ninja"
+elif [ "x${PLATFORM}" = "xMINGW" ]; then
+  export CMAKE_GENERATOR="Ninja"
+elif [ "x${PLATFORM}" = "xVS" ]; then
+  if [ "x${VS_ARCH}" = "xWin32" ]; then
+    VS_ARCH=""
+    VS_LIBRARY_DIR="vs${VS_VERSION}-lib-i686"
+  elif [ "x${VS_ARCH}" = "xWin64" ]; then
+    VS_ARCH=" Win64"
+    VS_LIBRARY_DIR="vs${VS_VERSION}-lib-x64"
+  else
+    echo "Unsupported architecture ${VS_ARCH}"
+    exit
+  fi
+
+  if [ "x${VS_VERSION}" = "x2013" ]; then
+    VS_VERSION="12 2013"
+  elif [ "x${VS_VERSION}" = "x2017" ]; then
+    VS_VERSION="15 2017"
+  else
+    echo "Unsupported Visual Studio version ${VS_VERSION}"
+    exit
+  fi
+
+  VS_OPT_DIR=`cygpath ${VS_OPT_DIR}`
+  VS_PYTHON_DIR=`cygpath ${VS_PYTHON_DIR}`
+  PREFIX_DIR=`cygpath ${PREFIX_DIR}`
+  if [ "x${DEST_DIR}" != "x" ]; then
+    DEST_DIR=`cygpath ${DEST_DIR}`
+  fi
+  
+  export PATH="${PATH}:${VS_PYTHON_DIR}:${VS_OPT_DIR}/cmake/bin:${VS_OPT_DIR}/${VS_LIBRARY_DIR}/bin"
+
+  export CMAKE_GENERATOR="Visual Studio ${VS_VERSION}${VS_ARCH}"
+fi
+
+# Working directory
+WORK_DIR=`dirname ${0}`
+cd "${WORK_DIR}" || exit
+WORK_DIR=`pwd`
+
+# Target configuration
+case "${1}" in
+  ""|"release"|"install"|"install-all"|"install-dev"|"install-test")
+    BUILD_TYPE="Release"
+    ;;
+  "debug")
+    BUILD_TYPE="Debug"
+    ;;
+  "clean")
+    cmake --build "${BUILD_DIR}" --target clean
+    exit
+    ;;
+  "distclean")
+    echo -n "Remove build directory: "
+    rm -rf "${BIN_DIR}"
+    rm -rf "${BUILD_DIR}"
+    echo "done"
+    exit
+    ;;
+  "ide"|"setup")
+    if [ "x${PLATFORM}" !=  "xVS" ]; then
+      echo "Unsupported target ${1}"
+      exit
+    fi
+    ;;
+   *)
+    echo "Unsupported target ${1}"
+    exit
+    ;;
+esac
+
+# CMake configuration
+mkdir -p "${BIN_DIR}" || exit
+mkdir -p "${BUILD_DIR}" || exit
+cd "${BUILD_DIR}" || exit
+
+cmake -G "${CMAKE_GENERATOR}" \
+      -D CMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+      ${HYSCAN_RUNTIME_CONFIG} \
+      ${HYSCAN_SYS_LIBS} \
+      ${HYSCAN_OPEN_MP} \
+      -D CMAKE_INSTALL_PREFIX="${PREFIX_DIR}" \
+      "${WORK_DIR}" || exit
+
+# Additional Visual Studio targets
+if [ "x${PLATFORM}" =  "xVS" ]; then
+  if [ "x${1}" = "xsetup" ]; then
+    cd ..
+    start mintty bash
+    exit 0
+  fi
+  if [ "x${1}" = "xide" ]; then
+    solution_file=`find . -maxdepth 1 -name '*.sln'`
+    start "${solution_file}"
+    exit 0
+  fi
+fi
+
+# Build target
+if [ "x${PLATFORM}" =  "xVS" ]; then
+  cmake --build . --config ${BUILD_TYPE} || exit
+else
+  cmake --build . --config ${BUILD_TYPE} -- -j ${JOBS} || exit
+fi
+
+# Run test
+if [ "x${RUN_TEST}" = "xYes" ]; then
+  ctest . -C ${BUILD_TYPE} || exit
+fi
+
+# Install target
+if [ "x${DEST_DIR}" != "x" ]; then
+  export DESTDIR="${DEST_DIR}"
+fi
+
+case "${1}" in
+  "install")
+    cmake -D COMPONENT=runtime -D CMAKE_INSTALL_DO_STRIP=YES -P cmake_install.cmake
+    ;;
+
+  "install-dev")
+    cmake -D COMPONENT=development -D CMAKE_INSTALL_DO_STRIP=YES -P cmake_install.cmake
+    ;;
+
+  "install-test")
+    cmake -D COMPONENT=test -D CMAKE_INSTALL_DO_STRIP=YES -P cmake_install.cmake
+    ;;
+
+  "install-all")
+    cmake -D CMAKE_INSTALL_DO_STRIP=YES -P cmake_install.cmake
+    ;;
+esac
